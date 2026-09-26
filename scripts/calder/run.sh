@@ -194,11 +194,6 @@ echo "=== Start Apptainer ==="
 
 START=$(date +%s)
 
-# --max-model-len limits the size of prompts and reponses.
-# The default --max-model-len is 262144
-# The larger the value, the more resources are required and the more context that can be provided in prompts and detail given in responses.
-# --gpu-memory-utilization 0.8 has been tested
-
 SERVER_LOG="${OUTDIR}/vllm_server.log"
 
 apptainer exec \
