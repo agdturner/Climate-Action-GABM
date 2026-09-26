@@ -53,6 +53,12 @@ set -x
 MODEL_NAME="Apertus-v1.5-70B"
 #MODEL_NAME="Apertus-v1.5-8B"
 #MODEL_NAME="Qwen3-14B"
+# Install hf if necessary the download a model
+# curl -LsSf https://hf.co/cli/install.sh | bash
+# hf download swiss-ai/Apertus-v1.5-8B --local-dir ~/.cache/huggingface/hub/Apertus-v1.5-8B
+# hf download swiss-ai/Apertus-v1.5-70B --local-dir ~/.cache/huggingface/hub/Apertus-v1.5-70B
+# hf download Qwen/Qwen3-14B --local-dir /scratch-calder/calder-uat/geoagdt/gabm/huggingface/hub/Qwen3-14B
+
 # Obtain sif file:
 # apptainer pull apertus15.sif docker://ghcr.io/swiss-ai/vllm_apertus_1.5_release:latest-amd64
 # apptainer pull docker://vllm/vllm-openai
