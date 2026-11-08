@@ -8,6 +8,7 @@
 - [0.8](#08)
 - [0.7](#07)
 - [0.6](#06)
+- [0.5](#05)
 - [0.4](#04)
 - [0.3](#03)
 - [0.2](#02)
@@ -16,6 +17,11 @@
 
 ## Overview
 Notable changes are to be documented in this file.
+
+This is the release-oriented record of delivered changes. Future priorities
+and unfinished work live in [ROADMAP.md](ROADMAP.md). Historical counts,
+defaults, implementation locations, and version labels below describe their
+development stage, not necessarily the current code or a verified public tag.
 
 
 ## [Unreleased]
@@ -44,7 +50,14 @@ Notable changes are to be documented in this file.
   shared documentation copy/cleanup manifest.
 - Distinguished the forward-looking roadmap, release-oriented change log,
   dated development history, and detailed implementation plans in the developer
-  guide. Historical roadmap cleanup is deferred to a separate change.
+  guide.
+- **Roadmap/history consolidation (2026-11-08).** Replaced historical release
+  tables in [ROADMAP.md](ROADMAP.md) with forward-looking refactor priorities,
+  documentation/data organisation, consolidated validation backlog, and
+  longer-term goals. Existing release entries below already cover most of the
+  removed deliverables; unique milestone evidence and the MVP dependency
+  record are retained here. Older backlog items with uncertain completion are
+  explicitly marked for evidence reconciliation.
 
 
 ## [0.9]
@@ -65,6 +78,14 @@ v0.9 is the first **behaviour-bearing** release after the v0.8 refactor track.
 - **Affinity-weight three-tier ladder + AIRE run labels (2026-07-03).** The affinity-weight presets in [src/cag/abm/config/exposure.py](src/cag/abm/config/exposure.py) are simplified to an explainable factor-2 ladder. `balanced` (`DEFAULT_AFFINITY_WEIGHTS`): political signals (`brexit`, `politics`, `vote_bonus`) = 2.0, values (`openness`, `selftransc`, `conformtrad`, `sdo`, `rwa`) = 1.0, demographics (`age`, `education`, `region`) = 0.5 (anchors: Fletcher & Nielsen 2017 on selective exposure; Steg & de Groot 2010 on value-based environmental attitudes). `vote_dominant` keeps the ladder but pushes the political tier 2.0 → 4.0; `values_dominant` swaps the top two tiers (values 4.0, political 1.0, demographics 0.5). Because affinity scores only *order* citizens before slicing to the target cell shares, the weights change *who* lands in each audience cell but never the cell sizes. Caveat: NB 27's reported preset-agreement percentages predate this change and no longer match the shipped presets; NB 27 is left as a historical v0.5 pilot, not re-run. Separately, [scripts/aire/run.sh](scripts/aire/run.sh) now honours an optional `RUN_LABEL` env var appended as a suffix to the scratch output dir (`run_${SLURM_JOB_ID}${RUN_LABEL:+_${RUN_LABEL}}`) with a banner echo, so sweep jobs land in self-describing folders. Docs: researcher-facing affinity scorecard/sort-and-slice walkthrough + weight table added to [docs/Simulation_Configuration_Guide.md](docs/Simulation_Configuration_Guide.md); [docs/Model_Design.md](docs/Model_Design.md) §33.
 - **Test suite** — **680 passed, 1 skipped** (was 610 at the end of v0.8; +20 persona-mode, +9 frequency, +17 reach-targeting, +6 output/prompt-capture, +1 O2-plots, +13 peer fan-out, plus subtest coverage).
 - **Versioning** — no `__version__` bump (carried from v0.8; the bump is left for the user to decide at release time).
+
+### Historical milestone evidence
+
+The earlier v0.9 roadmap snapshot recorded **647 passed, 1 skipped** after
+persona-mode and broadcast-frequency coverage (20 and 9 new tests,
+respectively), up from 610. The later 680-test result above supersedes that
+snapshot. The roadmap also recorded the documentation update to the design
+log's sections 31-33 and the 2026-07-03 development-history entries.
 
 
 ## [0.8]
@@ -89,6 +110,18 @@ v0.8 is the **refactor track**: pure structural splits of long-accumulated modul
 - **Validation.** End-to-end NB 32 re-run ([data/output/experiments/20260623_140314/](data/output/experiments/20260623_140314/)) compared against the pre-refactor baseline ([data/output/experiments/20260622_170436/](data/output/experiments/20260622_170436/)). All deterministic outputs (`config.json`, `ground_truth.csv`, `package_ground_truth.csv`, `agent_attributes.csv`, `network_snapshot.json`) are **bit-identical**. All 22 LLM-driven CSVs have **identical schemas and row counts**; numeric distributional stats (mean abs_shift, calibration MAE, signed shifts per bucket) match within gpt-5-mini @ T=0.5 stochasticity. Network: 10 nodes, 9 edges, bucket distribution `{A-only:1, B-only:1, both:3, neither:5}` both runs. The refactor preserves the determinism path, the schema contract, and the call-count contract.
 - **Test suite** — **556 passed, 1 skipped, 21 subtests passed** (was 538 at end of v0.7; +18 from new v2-memory section-order tests). No tests rewritten; imports updated to the new module paths where symbols moved.
 - **Versioning** — no `__version__` bump. v0.8 is a refactor-only label; the bump is held until the next behaviour change.
+
+### Historical milestone evidence
+
+The earlier v0.8 roadmap snapshot recorded **556 passed, 1 skipped, 21 subtests
+passed**, with 18 additional tests for the verbatim/target-scoped memory path;
+later configurable-memory work raised the suite to 610. It also recorded
+[NB 34](notebooks/34_memory_v2_smoke.ipynb) configured for local Qwen3-8B-4bit,
+with the full Day-0 run deferred to AIRE for throughput, and a first-model-
+download callout recommending a six-hour cold-cache job in the AIRE quickstart.
+The accompanying docs sweep updated the design log's sections 27-29 and the
+2026-06-23 development-history entries. These are historical milestones, not
+evidence that the deferred production validation has since completed.
 
 
 ## [0.7]
@@ -123,6 +156,11 @@ v0.7 consolidates a long block of work that had been accumulating under the in-p
 
 
 ## [0.6]
+
+Historical internal consolidation label; the v0.7 entry records that this work
+was subsumed into 0.7 rather than separately tagged on `origin`. The earlier
+roadmap snapshot reported **465 passed, 1 skipped** during this consolidation.
+
 - **Canonical SIM defaults refresh** — `SIM_CONFIG` in `src/cag/abm/sim.py` now defaults to the current research-canon profile: `n_citizens=100`; package-mode alternating day plan (`["P-A","P-B","C"]` / `["P-B","P-A","C"]`); `llm_provider="local"`; `llm_model="mlx-community/Qwen3-8B-4bit"`; `debias=True`; `day0_anchor="ground_truth_with_rationale"`; `political_message_source="offline"`; `political_message_set="v1"`.
 - **Offline political-message subsystem promoted to first-class runtime path** — new loader/module `src/cag/abm/political_messages.py`, curated datasets under `data/political_messages/`, strict startup validation of required message cells, and deterministic selection/rotation behavior. Offline remains explicit default and there is no silent fallback when required cells are missing.
 - **Broadcast provenance in outputs** — `messages.csv` now includes `political_message_id` so every political broadcast row can be traced back to a concrete entry in the message pool.
@@ -185,6 +223,25 @@ v0.7 consolidates a long block of work that had been accumulating under the in-p
 - **Simulation Loop + Output** — `run_simulation()` in `sim.py`, `SIM_CONFIG` defaults, CSV/JSON export, panel plot utility in `output.py`
 - **8 demo notebooks** (01–08) covering each simulation component
 - **226 tests** across 14 test files
+
+### Historical MVP delivery dependencies
+
+The original roadmap organised the ten delivered MVP issues into foundation
+(1-2), agents/network (3-5), simulation phases (6-8), memory (9), and loop/output
+(10). Its dependency record is retained here for historical context, not as a
+current implementation plan:
+
+```text
+Issues 1, 2 (independent)
+    ├── Issue 3 (depends on 1, 2)
+    ├── Issue 4 (depends on 1, 2)
+    │       └── Issue 5 (depends on 4)
+    │               ├── Issue 6 (depends on 3, 4, 5)
+    │               │       ├── Issue 7 (depends on 5, 6)
+    │               │       └── Issue 9 (depends on 6)
+    │               └── Issue 8 (depends on 3, 6, 7)
+    └── Issue 10 (depends on all)
+```
 
 ## [0.1]
 - README.md

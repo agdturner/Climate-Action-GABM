@@ -229,8 +229,9 @@ Keep planning and history separate:
 - [ROADMAP.md](ROADMAP.md) is forward-looking: priorities, intended outcomes,
   unfinished work, and dependencies. It is not a release log. When work lands,
   remove or update the relevant planned item and record the delivered change
-  in the change log. Historical release tables currently in the roadmap will
-  be reconciled incrementally, preserving outstanding work.
+  in the change log. Keep inherited tasks with uncertain completion explicitly
+  marked for evidence reconciliation, rather than silently dropping them or
+  treating them as confirmed open work.
 - [CHANGE_LOG.md](CHANGE_LOG.md) records delivered changes by release, with an
   Unreleased section for changes awaiting release. Preserve unique historical
   details when moving material from the roadmap; do not duplicate entries.
