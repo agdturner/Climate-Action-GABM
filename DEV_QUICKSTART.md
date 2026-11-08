@@ -73,6 +73,22 @@ pip install -r requirements.txt -r requirements-dev.txt
 
 `requirements.txt` provides the runtime stack (numpy, pandas, networkx, the LLM clients, …); `requirements-dev.txt` adds the test, docs, and packaging tools.
 
+### Updating an existing checkout to GABM 0.3.0
+
+The dependency manifests pin `gabm==0.3.0`. In your activated development
+environment, rerun the combined installation command above, then run
+`make test`. The integration tests compare against the retained 0.2.18 golden
+reference; do not regenerate that reference just because the dependency changed.
+
+In notebooks or external scripts, import the survey-specific `PoliticsID`,
+`EthnicityID`, and `FamilyID` from `cag.abm.attributes.politics`,
+`cag.abm.attributes.ethnicity`, and `cag.abm.attributes.family`, respectively.
+The old GABM modules no longer exist. Their CAG identifiers and descriptions
+are unchanged. `SurveyedNation(place="UK", ...)` remains supported.
+
+See [GABM_Refactor_Plan.md](GABM_Refactor_Plan.md) for compatibility evidence,
+the default ethnicity-map alignment, and existing checkpoint replay limitations.
+
 To run fully offline against a local LLM, also install a local runtime for your hardware and serve a model — see [docs/Local_LLM_Setup_Guide.md](docs/Local_LLM_Setup_Guide.md):
 
 ```bash

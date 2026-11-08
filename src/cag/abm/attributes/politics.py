@@ -3,15 +3,24 @@ Politics module for Climate-Action-GABM.
 """
 # Metadata
 __author__ = ["Andy Turner <agdturner@gmail.com>"]
-__version__ = "0.9.0"
+__version__ = "0.9.1"
 __copyright__ = "Copyright (c) 2026 Climate-Action-GABM contributors, University of Leeds"
 
-# Standard library imports
-import logging
-# Local imports
-from gabm.core.id import GABMID
-from gabm.abm.attribute import GABMAttribute, GABMAttributeMap
-from gabm.abm.attributes.politics import PoliticsID, Politics
+from gabm.abm.attribute import GABMAttributeID, GABMAttribute, GABMAttributeMap
+
+
+class PoliticsID(GABMAttributeID):
+    """Identifier for the survey's political-spectrum categories."""
+
+    def __init__(self, politics_id: int):
+        super().__init__(politics_id)
+
+
+class Politics(GABMAttribute):
+    """A political-spectrum category and its persona description."""
+
+    def __init__(self, politics_id: PoliticsID, description: str):
+        super().__init__(politics_id, description)
 
 PoliticsID.UNKNOWN = PoliticsID(0)
 PoliticsID.VERY_LEFT_WING = PoliticsID(1)

@@ -1,16 +1,26 @@
 """
-Income module for Climate-Action-GABM.
+Family module for Climate-Action-GABM.
 """
 # Metadata
 __author__ = ["Andy Turner <agdturner@gmail.com>"]
-__version__ = "0.9.0"
+__version__ = "0.9.1"
 __copyright__ = "Copyright (c) 2026 Climate-Action-GABM contributors, University of Leeds"
 
-# Standard library imports
-import logging
-# Local imports
-from gabm.abm.attributes.family import FamilyID, Family
-from gabm.abm.attribute import GABMAttributeMap
+from gabm.abm.attribute import GABMAttributeID, GABMAttribute, GABMAttributeMap
+
+
+class FamilyID(GABMAttributeID):
+    """Identifier for the survey's parenthood categories."""
+
+    def __init__(self, family_id: int):
+        super().__init__(family_id)
+
+
+class Family(GABMAttribute):
+    """A parenthood category and its persona description."""
+
+    def __init__(self, family_id: FamilyID, description: str):
+        super().__init__(family_id, description)
 
 FamilyID.UNKNOWN = FamilyID(0)
 FamilyID.NOT_PARENT = FamilyID(1)

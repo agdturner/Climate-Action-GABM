@@ -3,14 +3,24 @@ Ethnicity module for Climate-Action-GABM.
 """
 # Metadata
 __author__ = ["Andy Turner <agdturner@gmail.com>"]
-__version__ = "0.9.0"
+__version__ = "0.9.1"
 __copyright__ = "Copyright (c) 2026 Climate-Action-GABM contributors, University of Leeds"
 
-# Standard library imports
-import logging
-# Local imports
-from gabm.abm.attributes.ethnicity import EthnicityID, Ethnicity
-from gabm.abm.attribute import GABMAttributeMap
+from gabm.abm.attribute import GABMAttributeID, GABMAttribute, GABMAttributeMap
+
+
+class EthnicityID(GABMAttributeID):
+    """Identifier for the survey's ethnicity categories."""
+
+    def __init__(self, ethnicity_id: int):
+        super().__init__(ethnicity_id)
+
+
+class Ethnicity(GABMAttribute):
+    """An ethnicity category and its persona description."""
+
+    def __init__(self, ethnicity_id: EthnicityID, description: str):
+        super().__init__(ethnicity_id, description)
 
 EthnicityID.UNKNOWN = EthnicityID(0)
 EthnicityID.WHITE = EthnicityID(1)

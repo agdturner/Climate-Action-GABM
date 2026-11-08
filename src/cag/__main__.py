@@ -49,7 +49,7 @@ __author__ = [
     "Ajaykumar Manivannan <ashwamanivannan@gmail.com>",
     "Charlie Pilgrim <pilgrimcharlie2@gmail.com>",
 ]
-__version__ = "0.9.0"
+__version__ = "0.9.1"
 __copyright__ = "Copyright (c) 2026 Climate-Action-GABM contributors, University of Leeds"
 
 import argparse
@@ -67,7 +67,6 @@ matplotlib.use("Agg")
 
 # ── Agent / attribute imports ─────────────────────────────────────
 from gabm.abm.attributes.gender import GenderMap, GenderID
-from gabm.abm.attributes.politics import PoliticsID
 from gabm.abm.democracy.election import ElectionID
 
 from cag.io.survey import load
@@ -78,7 +77,7 @@ from cag.abm.attributes.region import UKRegionMap, RegionID
 from cag.abm.attributes.education import SurveyEducationMap, EducationID
 from cag.abm.attributes.ethnicity import SurveyEthnicityMap, EthnicityID
 from cag.abm.attributes.income import SurveyIncomeMap, IncomeID
-from cag.abm.attributes.politics import SurveyPoliticsMap
+from cag.abm.attributes.politics import SurveyPoliticsMap, PoliticsID
 from cag.abm.attributes.family import SurveyFamilyMap, FamilyID
 from cag.abm.democracy.elections.ukge2019 import UKGE2019VoteMap, UKGE2019VoteID
 from cag.abm.democracy.elections.brexit import BrexitVoteMap, BrexitVoteID
