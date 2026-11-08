@@ -697,8 +697,8 @@ cells.append(md(r"""---
 * **Per-policy view.** This notebook is package-level (all six policies averaged). A follow-up pass
   will repeat the headline DiD policy-by-policy to see whether the effect is broad or driven by a
   couple of salient policies.
-* **Write-up.** Numbers go to `docs/result_report.md` (new v0.9 Tier-1 section, superseding the
-  n=50 pilot); the plain-language framing goes to `docs/research_notes.md`.
+* **Write-up.** Numbers go to `documentation/research/result_report.md` (new v0.9 Tier-1 section, superseding the
+  n=50 pilot); the plain-language framing goes to `documentation/research/research_notes.md`.
 """))
 
 # ---------------------------------------------------------------- assemble

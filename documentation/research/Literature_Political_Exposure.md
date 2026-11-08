@@ -247,7 +247,7 @@ current UK media conditions.
 The v0.5 implementation operationalises this section as a set of
 named **target presets** consumed by
 `assign_political_exposure(mode='rule_affinity_rank', targets=...)`
-in [`src/cag/abm/environment.py`](../src/cag/abm/environment.py). The
+in [`src/cag/abm/environment.py`](../../src/cag/abm/environment.py). The
 two presets actually shipped in v0.5 are:
 
 | Preset | A-only | B-only | both | neither | Rationale |

@@ -43,7 +43,7 @@ This first model simulates opinion on **six UK climate policies** — renewable 
 A simulated **day** runs as: one or both minority agents broadcast to citizens over a configurable social network (default: a weak-homophily stochastic block model) → citizens reflect privately → citizens exchange peer messages with network neighbours and reflect again → every citizen is re-administered the original survey instrument, recording opinion on a 7-point scale (*Strongly oppose → Strongly support*). Who hears each broadcast is set by an **affinity-ranked exposure** rule that weights political signals above values above demographics.
 
 ### Memory and bias control
-Each citizen carries a **six-section tiered memory** ([docs/Model_Design.md](docs/Model_Design.md) §28) that ranks context as persona + values → Day-0 anchor (verbatim from the agent's own Day-0 rationale) → daily summaries (older days) → recent reflections → own reasoning → today-so-far. A split between **context scope** (`policy_id`) and **question scope** (`target_policy_id`) lets package-mode end-of-day surveys see cross-policy reflections while staying anchored to the specific policy being asked. Two mechanisms hold known LLM survey bias in check: a **Day-0 ground-truth anchor** that ties each agent to its real starting opinion, and a **two-step debiased survey** prompt (reason first, then answer).
+Each citizen carries a **six-section tiered memory** ([docs/Model_Design.md](documentation/research/Model_Design.md) §28) that ranks context as persona + values → Day-0 anchor (verbatim from the agent's own Day-0 rationale) → daily summaries (older days) → recent reflections → own reasoning → today-so-far. A split between **context scope** (`policy_id`) and **question scope** (`target_policy_id`) lets package-mode end-of-day surveys see cross-policy reflections while staying anchored to the specific policy being asked. Two mechanisms hold known LLM survey bias in check: a **Day-0 ground-truth anchor** that ties each agent to its real starting opinion, and a **two-step debiased survey** prompt (reason first, then answer).
 
 ### What the experiments test
 A resource advantage can take **different forms**, and the framework holds them apart so their effects can be estimated separately:
@@ -54,7 +54,7 @@ A resource advantage can take **different forms**, and the framework holds them 
 
 The central finding of the accompanying paper is that the **form** of a resource asymmetry, not merely its magnitude, shapes which side moves the majority. Alongside the simulation, the repo ships a **fit-for-purpose evaluation protocol** — including a persona-null ablation that checks whether the model actually conditions on each agent's assigned persona. We are careful about epistemic status: the evidence targets **internal validity and algorithmic fidelity**, not a claim that the model reproduces real-world opinion change.
 
-> The accompanying manuscript is in preparation in [paper/](paper/) (`sn-article.tex` + supplementary `sn-si.tex`). See [docs/result_report.md](docs/result_report.md) for experiment results and [docs/Model_Design.md](docs/Model_Design.md) for the full design specification.
+> The accompanying manuscript is in preparation in [paper/](paper/) (`sn-article.tex` + supplementary `sn-si.tex`). See [docs/result_report.md](documentation/research/result_report.md) for experiment results and [docs/Model_Design.md](documentation/research/Model_Design.md) for the full design specification.
 
 
 ## Quick Start
@@ -83,7 +83,7 @@ Prefer notebooks? Open [notebooks/01_agent_profiles.ipynb](notebooks/01_agent_pr
 
 - **Users** — full setup (Conda or pip), configuration paths, and run recipes: [User Guide](USER_GUIDE.md).
 - **Contributors** — fork / clone / test setup: [Developer Quickstart](DEV_QUICKSTART.md) and [Developer Guide](DEV_GUIDE.md).
-- **HPC (Leeds AIRE)** — clone-to-`sbatch` walkthrough: [AIRE Quickstart](docs/AIRE_Quickstart.md).
+- **HPC (Leeds AIRE)** — clone-to-`sbatch` walkthrough: [AIRE Quickstart](documentation/guides/AIRE_Quickstart.md).
 
 
 ## Current Status
@@ -100,11 +100,11 @@ Prefer notebooks? Open [notebooks/01_agent_profiles.ipynb](notebooks/01_agent_pr
 | Source files | 32 under `src/cag/` |
 
 See [ROADMAP.md](ROADMAP.md) for the full issue list and status.
-See [docs/Model_Design.md](docs/Model_Design.md) for the design specification.
-See [docs/Code_Tour.md](docs/Code_Tour.md) for a newcomer-friendly walkthrough of `src/cag/`.
-See [docs/result_report.md](docs/result_report.md) for experiment results and analysis.
-See [docs/Simulation_Configuration_Guide.md](docs/Simulation_Configuration_Guide.md) for canonical configuration options (supervisor brief + developer matrix).
-See [docs/AIRE_Quickstart.md](docs/AIRE_Quickstart.md) for the v0.7 HPC walkthrough.
+See [docs/Model_Design.md](documentation/research/Model_Design.md) for the design specification.
+See [docs/Code_Tour.md](documentation/guides/Code_Tour.md) for a newcomer-friendly walkthrough of `src/cag/`.
+See [docs/result_report.md](documentation/research/result_report.md) for experiment results and analysis.
+See [docs/Simulation_Configuration_Guide.md](documentation/guides/Simulation_Configuration_Guide.md) for canonical configuration options (supervisor brief + developer matrix).
+See [documentation/guides/AIRE_Quickstart.md](documentation/guides/AIRE_Quickstart.md) for the v0.7 HPC walkthrough.
 See [paper/](paper/) for the manuscript in preparation (`sn-article.tex` and supplementary `sn-si.tex`).
 
 
@@ -136,7 +136,7 @@ src/cag/
 └── __main__.py                # Full argparse coverage for every SIM_CONFIG knob; --preset / --list-presets / --dry-run
 ```
 
-A newcomer-friendly walkthrough of this layout — with a 30-minute skim sequence, file-by-file reading guide, and an AIRE pre-flight checklist — is in [docs/Code_Tour.md](docs/Code_Tour.md).
+A newcomer-friendly walkthrough of this layout — with a 30-minute skim sequence, file-by-file reading guide, and an AIRE pre-flight checklist — is in [docs/Code_Tour.md](documentation/guides/Code_Tour.md).
 
 
 ## Notebooks
@@ -206,7 +206,7 @@ For security or conduct concerns, you can also use the `Contact maintainers` lin
 ## User Guide
 Please use the [User Guide](USER_GUIDE.md).
 
-Running on Leeds's AIRE HPC? Start with the [AIRE Quickstart](docs/AIRE_Quickstart.md) — clone-to-`sbatch` walkthrough with worked smoke + split50 examples.
+Running on Leeds's AIRE HPC? Start with the [AIRE Quickstart](documentation/guides/AIRE_Quickstart.md) — clone-to-`sbatch` walkthrough with worked smoke + split50 examples.
 
 
 ## Developer Guide

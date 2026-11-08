@@ -4,7 +4,7 @@
 
 This file contains the full implementation plan for the Climate-Action-GABM MVP, broken into 10 GitHub issues across 5 dependency phases. Each issue is self-contained with enough context for any developer to pick up and implement independently.
 
-**Source:** All issues are derived from the design specification in [Model_Design.md](Model_Design.md).
+**Source:** All issues are derived from the design specification in [Model_Design.md](../research/Model_Design.md).
 
 ---
 
@@ -147,7 +147,7 @@ Define the 6 climate policy survey questions, A–G response scale, numeric mapp
      - `GREEN_HOUSING` → CSV column `page5posttreatment6_7`
      - `CARBON_TAX` → CSV column `page5posttreatment6_9`
      - `CLIMATE_COMPENSATION` → CSV column `page5posttreatment6_11`
-   - `SURVEY_QUESTIONS: dict[ClimatePolicyID, str]` — full question text for each policy. The exact wording is in [Model_Design.md Section 3](Model_Design.md#3-baseline-measurement-validation-step). Each question starts with "Please say how much you support or oppose government policies that do the following:" followed by the specific policy.
+   - `SURVEY_QUESTIONS: dict[ClimatePolicyID, str]` — full question text for each policy. The exact wording is in [Model_Design.md Section 3](../research/Model_Design.md#3-baseline-measurement-validation-step). Each question starts with "Please say how much you support or oppose government policies that do the following:" followed by the specific policy.
    - `RESPONSE_SCALE: dict[str, int]` — `{"A": -3, "B": -2, "C": -1, "D": 0, "E": 1, "F": 2, "G": 3}`
    - `RESPONSE_LABELS: dict[str, str]` — `{"A": "Strongly oppose", "B": "Somewhat oppose", "C": "Slightly oppose", "D": "Neutral", "E": "Slightly support", "F": "Somewhat support", "G": "Strongly support"}`
    - `SURVEY_COLUMN_MAP: dict[ClimatePolicyID, str]` — maps each policy ID to its CSV column name (for looking up real survey responses)
@@ -164,8 +164,8 @@ Define the 6 climate policy survey questions, A–G response scale, numeric mapp
 
 #### Reference
 
-- [Model_Design.md Section 3](Model_Design.md#3-baseline-measurement-validation-step) — survey questions table, response scale table
-- [Model_Design.md Section 4.4](Model_Design.md#44-opinion-shift-calibration-post-hoc-clamping) — `clamp_opinion_shift()` spec with code
+- [Model_Design.md Section 3](../research/Model_Design.md#3-baseline-measurement-validation-step) — survey questions table, response scale table
+- [Model_Design.md Section 4.4](../research/Model_Design.md#44-opinion-shift-calibration-post-hoc-clamping) — `clamp_opinion_shift()` spec with code
 - `sandbox/ajay_sandbox/survey_dict.py` — original `SURVEY_QUESTIONS` dict (for reference only; implement fresh in `opinion.py`)
 
 #### Acceptance Criteria
@@ -242,7 +242,7 @@ Create a thin wrapper for sending chat-style prompts (system message + user mess
 #### Notes
 
 - Do **not** build response caching for MVP — gabm's cache system can be integrated later.
-- Temperature is a parameter (default 0.7) as specified in [Model_Design.md Section 9](Model_Design.md#9-simulation-configuration).
+- Temperature is a parameter (default 0.7) as specified in [Model_Design.md Section 9](../research/Model_Design.md#9-simulation-configuration).
 - This module will be imported by `agent.py` for all LLM interactions throughout the simulation.
 
 ---
@@ -260,7 +260,7 @@ Create a thin wrapper for sending chat-style prompts (system message + user mess
 
 Before the simulation begins, each citizen agent answers the 6 climate policy survey questions via LLM, using their persona prompt as the system message. These baseline responses are compared to the real human respondent's survey answers to assess **persona fidelity** — how well the LLM reproduces the attitudes of the person it represents.
 
-**Background:** This is the validation step described in [Model_Design.md Section 3](Model_Design.md#3-baseline-measurement-validation-step). The existing `SurveyedCitizen` class already has `get_persona()` and `get_narrative()` methods that produce a natural-language description of the agent's demographics and psychological profile. What's missing is the ability to use these as LLM prompts, administer the survey, and compare results to ground truth.
+**Background:** This is the validation step described in [Model_Design.md Section 3](../research/Model_Design.md#3-baseline-measurement-validation-step). The existing `SurveyedCitizen` class already has `get_persona()` and `get_narrative()` methods that produce a natural-language description of the agent's demographics and psychological profile. What's missing is the ability to use these as LLM prompts, administer the survey, and compare results to ground truth.
 
 #### What to build
 
@@ -314,8 +314,8 @@ Before the simulation begins, each citizen agent answers the 6 climate policy su
 
 #### Reference
 
-- [Model_Design.md Section 3](Model_Design.md#3-baseline-measurement-validation-step) — baseline measurement procedure, survey questions, response scale
-- [Model_Design.md Section 13](Model_Design.md#13-validation-strategy) — validation strategy, persona fidelity (point 1)
+- [Model_Design.md Section 3](../research/Model_Design.md#3-baseline-measurement-validation-step) — baseline measurement procedure, survey questions, response scale
+- [Model_Design.md Section 13](../research/Model_Design.md#13-validation-strategy) — validation strategy, persona fidelity (point 1)
 - Existing methods: `SurveyedCitizen.get_persona()`, `SurveyedCitizen.get_narrative()` in `src/cag/abm/agent.py`
 
 #### Acceptance Criteria
@@ -338,7 +338,7 @@ Before the simulation begins, each citizen agent answers the 6 climate policy su
 
 Create a `PoliticalAgent` class representing a fixed-stance political communicator that generates persuasive messages about climate policies via LLM. Two instances will be created: one pro-climate (Agent A) and one anti-climate (Agent B). These agents **do not update their opinions** — they are fixed message sources that broadcast to connected citizens.
 
-**Background:** The design models two opposing elite voices (see [Model_Design.md Section 2.2](Model_Design.md#22-political-group-agents)). Each day, a political agent generates a persuasive message about the target policy, which is then delivered to its connected subset of citizens. This is a separate class from `SurveyedCitizen` because it has fundamentally different behaviour (message generation vs. opinion formation). We do not use gabm's `OpinionatedGroup` because political agents are message generators, not opinion holders.
+**Background:** The design models two opposing elite voices (see [Model_Design.md Section 2.2](../research/Model_Design.md#22-political-group-agents)). Each day, a political agent generates a persuasive message about the target policy, which is then delivered to its connected subset of citizens. This is a separate class from `SurveyedCitizen` because it has fundamentally different behaviour (message generation vs. opinion formation). We do not use gabm's `OpinionatedGroup` because political agents are message generators, not opinion holders.
 
 #### What to build
 
@@ -373,8 +373,8 @@ Create a `PoliticalAgent` class representing a fixed-stance political communicat
 
 #### Reference
 
-- [Model_Design.md Section 2.2](Model_Design.md#22-political-group-agents) — political group agent description
-- [Model_Design.md Section 4.1](Model_Design.md#41-interaction-phases) — how political agents broadcast in phases P-A and P-B
+- [Model_Design.md Section 2.2](../research/Model_Design.md#22-political-group-agents) — political group agent description
+- [Model_Design.md Section 4.1](../research/Model_Design.md#41-interaction-phases) — how political agents broadcast in phases P-A and P-B
 
 #### Acceptance Criteria
 
@@ -396,9 +396,9 @@ Create a `PoliticalAgent` class representing a fixed-stance political communicat
 
 Build a stochastic block model network connecting citizens and assign political exposure categories that determine which political agent's messages each citizen receives.
 
-**Background:** The social network determines who exchanges messages during peer messaging (Phase C). It is implemented as a [NetworkX](https://networkx.org/) graph. The default topology is a **Stochastic Block Model** with two blocks representing political clusters — this models echo chambers vs. cross-cutting exposure, which is central to the research questions. See [Model_Design.md Section 7](Model_Design.md#7-network-structure).
+**Background:** The social network determines who exchanges messages during peer messaging (Phase C). It is implemented as a [NetworkX](https://networkx.org/) graph. The default topology is a **Stochastic Block Model** with two blocks representing political clusters — this models echo chambers vs. cross-cutting exposure, which is central to the research questions. See [Model_Design.md Section 7](../research/Model_Design.md#7-network-structure).
 
-Political exposure determines which political agent's broadcasts a citizen receives. Assignment is based on the citizen's **voting history** (Brexit referendum vote + 2019 General Election vote) as the primary signal, with political self-placement as secondary. This is documented in [Model_Design.md Section 8](Model_Design.md#8-political-exposure-attribute-based). The research lead specifically noted that voting history should be prioritised over self-reported political leaning.
+Political exposure determines which political agent's broadcasts a citizen receives. Assignment is based on the citizen's **voting history** (Brexit referendum vote + 2019 General Election vote) as the primary signal, with political self-placement as secondary. This is documented in [Model_Design.md Section 8](../research/Model_Design.md#8-political-exposure-attribute-based). The research lead specifically noted that voting history should be prioritised over self-reported political leaning.
 
 #### What to build
 
@@ -450,9 +450,9 @@ These are already on `SurveyedCitizen` from the current codebase:
 
 #### Reference
 
-- [Model_Design.md Section 7](Model_Design.md#7-network-structure) — stochastic block model, default parameters (p_intra=0.15, p_inter=0.02)
-- [Model_Design.md Section 8](Model_Design.md#8-political-exposure-attribute-based) — exposure categories, assignment logic
-- [Model_Design.md Section 8](Model_Design.md#8-political-exposure-attribute-based) note: "We should rely on voting history rather than just political leaning"
+- [Model_Design.md Section 7](../research/Model_Design.md#7-network-structure) — stochastic block model, default parameters (p_intra=0.15, p_inter=0.02)
+- [Model_Design.md Section 8](../research/Model_Design.md#8-political-exposure-attribute-based) — exposure categories, assignment logic
+- [Model_Design.md Section 8](../research/Model_Design.md#8-political-exposure-attribute-based) note: "We should rely on voting history rather than just political leaning"
 - NetworkX docs: [`nx.stochastic_block_model()`](https://networkx.org/documentation/stable/reference/generated/networkx.generators.community.stochastic_block_model.html)
 
 #### Acceptance Criteria
@@ -482,7 +482,7 @@ These are already on `SurveyedCitizen` from the current codebase:
 
 Implement the political agent broadcast → citizen reflection cycle. In each political broadcast phase, a political agent generates a persuasive message about the target policy and delivers it to its connected citizens. Each receiving citizen produces a **private reflection** — a short natural-language paragraph describing how the message affected their thinking. The citizen does NOT commit to a scale position at this stage.
 
-**Background:** This is described in [Model_Design.md Section 4.1](Model_Design.md#41-interaction-phases) (Phases P-A and P-B). Reflections serve as chain-of-thought reasoning that feeds into the end-of-day survey. They also provide qualitative micro-data for understanding influence mechanisms. The hybrid opinion update model ([Section 5](Model_Design.md#5-opinion-update-mechanism-hybrid-reflections--end-of-day-survey)) separates internal reasoning (reflections) from formal measurement (survey).
+**Background:** This is described in [Model_Design.md Section 4.1](../research/Model_Design.md#41-interaction-phases) (Phases P-A and P-B). Reflections serve as chain-of-thought reasoning that feeds into the end-of-day survey. They also provide qualitative micro-data for understanding influence mechanisms. The hybrid opinion update model ([Section 5](../research/Model_Design.md#5-opinion-update-mechanism-hybrid-reflections--end-of-day-survey)) separates internal reasoning (reflections) from formal measurement (survey).
 
 #### What to build
 
@@ -519,8 +519,8 @@ Implement the political agent broadcast → citizen reflection cycle. In each po
 
 #### Reference
 
-- [Model_Design.md Section 4.1](Model_Design.md#41-interaction-phases) — Phase P-A and P-B procedure, reflection prompt template
-- [Model_Design.md Section 5.1](Model_Design.md#51-summary) — hybrid opinion update: reflections are private, no scale commitment
+- [Model_Design.md Section 4.1](../research/Model_Design.md#41-interaction-phases) — Phase P-A and P-B procedure, reflection prompt template
+- [Model_Design.md Section 5.1](../research/Model_Design.md#51-summary) — hybrid opinion update: reflections are private, no scale commitment
 
 #### Acceptance Criteria
 
@@ -543,7 +543,7 @@ Implement the political agent broadcast → citizen reflection cycle. In each po
 
 Implement simultaneous peer-to-peer messaging. During Phase C, citizens exchange views on the target policy with a random subset of their network neighbors. The update is **synchronous (simultaneous)** — ALL citizen messages are generated based on their current state BEFORE any reflections occur. This prevents cascade effects where one citizen's updated thinking influences another's message within the same phase.
 
-**Background:** This is the peer messaging mechanism from [Model_Design.md Section 4.1 (Phase C)](Model_Design.md#41-interaction-phases). The simultaneous update ensures that the order in which agents are processed doesn't affect outcomes. Each citizen exchanges messages with at most `k` neighbors per day (default: 2–3), controlled by the `k_peers_per_day` parameter ([Section 7.3](Model_Design.md#73-peer-messages-per-day)).
+**Background:** This is the peer messaging mechanism from [Model_Design.md Section 4.1 (Phase C)](../research/Model_Design.md#41-interaction-phases). The simultaneous update ensures that the order in which agents are processed doesn't affect outcomes. Each citizen exchanges messages with at most `k` neighbors per day (default: 2–3), controlled by the `k_peers_per_day` parameter ([Section 7.3](../research/Model_Design.md#73-peer-messages-per-day)).
 
 #### What to build
 
@@ -581,8 +581,8 @@ Implement simultaneous peer-to-peer messaging. During Phase C, citizens exchange
 
 #### Reference
 
-- [Model_Design.md Section 4.1 (Phase C)](Model_Design.md#41-interaction-phases) — simultaneous update procedure
-- [Model_Design.md Section 7.3](Model_Design.md#73-peer-messages-per-day) — `k_peers_per_day` (default: 2–3)
+- [Model_Design.md Section 4.1 (Phase C)](../research/Model_Design.md#41-interaction-phases) — simultaneous update procedure
+- [Model_Design.md Section 7.3](../research/Model_Design.md#73-peer-messages-per-day) — `k_peers_per_day` (default: 2–3)
 
 #### Acceptance Criteria
 
@@ -605,7 +605,7 @@ Implement simultaneous peer-to-peer messaging. During Phase C, citizens exchange
 
 At the end of each simulated day, every citizen agent is re-administered the original survey for the target policy. The key difference from the baseline survey (Issue 3) is that the survey prompt now includes all reflections accumulated during that day's interaction phases (P-A, P-B, C), providing the agent with the full record of that day's experiences to inform its response. Raw LLM responses are then clamped to enforce realistic opinion shift limits.
 
-**Background:** This implements the end-of-day survey from [Model_Design.md Section 4.3](Model_Design.md#43-end-of-day-survey) and the clamping from [Section 4.4](Model_Design.md#44-opinion-shift-calibration-post-hoc-clamping). The hybrid update model ([Section 5](Model_Design.md#5-opinion-update-mechanism-hybrid-reflections--end-of-day-survey)) means reflections feed into the survey response, but the formal opinion is only recorded at end-of-day.
+**Background:** This implements the end-of-day survey from [Model_Design.md Section 4.3](../research/Model_Design.md#43-end-of-day-survey) and the clamping from [Section 4.4](../research/Model_Design.md#44-opinion-shift-calibration-post-hoc-clamping). The hybrid update model ([Section 5](../research/Model_Design.md#5-opinion-update-mechanism-hybrid-reflections--end-of-day-survey)) means reflections feed into the survey response, but the formal opinion is only recorded at end-of-day.
 
 #### What to build
 
@@ -648,9 +648,9 @@ At the end of each simulated day, every citizen agent is re-administered the ori
 
 #### Reference
 
-- [Model_Design.md Section 4.3](Model_Design.md#43-end-of-day-survey)
-- [Model_Design.md Section 4.4](Model_Design.md#44-opinion-shift-calibration-post-hoc-clamping) — clamping function
-- [Model_Design.md Section 5.1](Model_Design.md#51-summary) — hybrid update model
+- [Model_Design.md Section 4.3](../research/Model_Design.md#43-end-of-day-survey)
+- [Model_Design.md Section 4.4](../research/Model_Design.md#44-opinion-shift-calibration-post-hoc-clamping) — clamping function
+- [Model_Design.md Section 5.1](../research/Model_Design.md#51-summary) — hybrid update model
 
 #### Acceptance Criteria
 
@@ -678,7 +678,7 @@ At the end of each simulated day, every citizen agent is re-administered the ori
 
 Implement a tiered memory system that manages each agent's LLM context across simulation days. As the simulation progresses, older reflections are compressed into daily summaries (medium detail) and then further into weekly summaries (low detail). This prevents the LLM context window from overflowing while preserving experiential continuity.
 
-**Background:** Without memory management, an agent running for 30 days would accumulate hundreds of reflections, easily exceeding LLM context limits. The tiered approach (inspired by cognitive science) balances detail and compression. See [Model_Design.md Section 6](Model_Design.md#6-memory-architecture-tiered-memory-architecture-3) for the full design. The persona drift mitigation strategy (placing persona at both start and end of context, periodic re-injection) is also part of this issue.
+**Background:** Without memory management, an agent running for 30 days would accumulate hundreds of reflections, easily exceeding LLM context limits. The tiered approach (inspired by cognitive science) balances detail and compression. See [Model_Design.md Section 6](../research/Model_Design.md#6-memory-architecture-tiered-memory-architecture-3) for the full design. The persona drift mitigation strategy (placing persona at both start and end of context, periodic re-injection) is also part of this issue.
 
 #### Context assembly structure
 
@@ -734,10 +734,10 @@ On any given day `d`, the agent's full context is assembled as (in order):
 
 #### Reference
 
-- [Model_Design.md Section 6](Model_Design.md#6-memory-architecture-tiered-memory-architecture-3) — tiered memory overview
-- [Model_Design.md Section 6.2](Model_Design.md#62-context-assembly) — context assembly order
-- [Model_Design.md Section 6.3](Model_Design.md#63-summarization-process) — summarization process
-- [Model_Design.md Section 6.4](Model_Design.md#64-persona-drift-mitigation) — persona reinforcement strategy
+- [Model_Design.md Section 6](../research/Model_Design.md#6-memory-architecture-tiered-memory-architecture-3) — tiered memory overview
+- [Model_Design.md Section 6.2](../research/Model_Design.md#62-context-assembly) — context assembly order
+- [Model_Design.md Section 6.3](../research/Model_Design.md#63-summarization-process) — summarization process
+- [Model_Design.md Section 6.4](../research/Model_Design.md#64-persona-drift-mitigation) — persona reinforcement strategy
 
 #### Acceptance Criteria
 
@@ -766,13 +766,13 @@ On any given day `d`, the agent's full context is assembled as (in order):
 
 Create the end-to-end simulation runner that wires all components together. This is the capstone issue. It includes a `SimulationConfig` dataclass (all configurable parameters), a `run_simulation()` function (the main loop), CSV output, and basic matplotlib visualization.
 
-**Background:** The simulation loop follows the pseudocode in [Model_Design.md Section 11](Model_Design.md#11-simulation-pseudocode). Each day: execute interaction phases in configurable order → end-of-day survey → memory management. The phase ordering is a key experimental variable — all 6 permutations of [P-A, P-B, C] are valid conditions ([Section 4.2](Model_Design.md#42-phase-ordering)). Output format follows [Section 10](Model_Design.md#10-data-collection-and-output).
+**Background:** The simulation loop follows the pseudocode in [Model_Design.md Section 11](../research/Model_Design.md#11-simulation-pseudocode). Each day: execute interaction phases in configurable order → end-of-day survey → memory management. The phase ordering is a key experimental variable — all 6 permutations of [P-A, P-B, C] are valid conditions ([Section 4.2](../research/Model_Design.md#42-phase-ordering)). Output format follows [Section 10](../research/Model_Design.md#10-data-collection-and-output).
 
 #### What to build
 
 1. **Create `src/cag/abm/simulation.py`:**
 
-   - **`SimulationConfig`** dataclass with all parameters from [Model_Design.md Section 9](Model_Design.md#91-master-parameter-table):
+   - **`SimulationConfig`** dataclass with all parameters from [Model_Design.md Section 9](../research/Model_Design.md#91-master-parameter-table):
      ```python
      @dataclass
      class SimulationConfig:
@@ -852,7 +852,7 @@ Create the end-to-end simulation runner that wires all components together. This
        - `config.json` (serialized `SimulationConfig` for reproducibility)
 
    - **`plot_opinion_trajectories(results, output_dir)`**
-     - Creates a matplotlib panel plot per [Model_Design.md Section 10.4](Model_Design.md#104-primary-visualization):
+     - Creates a matplotlib panel plot per [Model_Design.md Section 10.4](../research/Model_Design.md#104-primary-visualization):
        - X-axis: simulation day (0 to n_days)
        - Y-axis: opinion score (-3 to +3)
        - Individual agent trajectory lines (semi-transparent, alpha ~0.2)
@@ -869,11 +869,11 @@ Create the end-to-end simulation runner that wires all components together. This
 
 #### Reference
 
-- [Model_Design.md Section 9](Model_Design.md#91-master-parameter-table) — full parameter table with defaults
-- [Model_Design.md Section 10](Model_Design.md#10-data-collection-and-output) — output schemas (primary, secondary, tertiary)
-- [Model_Design.md Section 10.4](Model_Design.md#104-primary-visualization) — panel plot specification
-- [Model_Design.md Section 11](Model_Design.md#11-simulation-pseudocode) — simulation pseudocode
-- [Model_Design.md Section 4.2](Model_Design.md#42-phase-ordering) — all 6 valid phase orderings
+- [Model_Design.md Section 9](../research/Model_Design.md#91-master-parameter-table) — full parameter table with defaults
+- [Model_Design.md Section 10](../research/Model_Design.md#10-data-collection-and-output) — output schemas (primary, secondary, tertiary)
+- [Model_Design.md Section 10.4](../research/Model_Design.md#104-primary-visualization) — panel plot specification
+- [Model_Design.md Section 11](../research/Model_Design.md#11-simulation-pseudocode) — simulation pseudocode
+- [Model_Design.md Section 4.2](../research/Model_Design.md#42-phase-ordering) — all 6 valid phase orderings
 
 #### Acceptance Criteria
 

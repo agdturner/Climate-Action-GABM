@@ -9,7 +9,7 @@ meant to be run before building the documentation to ensure all assets are up to
 """
 # Metadata
 __author__ = ["Andy Turner <agdturner@gmail.com>"]
-__version__ = "0.1.1"
+__version__ = "0.1.4"
 __copyright__ = "Copyright (c) 2026 Climate-Action-GABM contributors, University of Leeds"
 
 # Standard library imports
@@ -18,7 +18,7 @@ import shutil
 import re
 import logging
 from pathlib import Path
-from urllib.parse import quote, urlsplit
+from urllib.parse import quote, unquote, urlsplit
 from logging.handlers import RotatingFileHandler
 
 # Files to copy from root to docs/
@@ -49,11 +49,12 @@ REPOSITORY_URL = "https://github.com/compolis/Climate-Action-GABM/blob/main/"
 # Regex to match markdown links: [text](filename)
 LINK_RE = re.compile(r"\[([^\]]+)\]\(([^)]+)\)")
 
-def update_links(text):
+def update_links(text, source_file="README.md"):
     """
-    Rewrite root-document links for staged Sphinx sources and repository files.
+    Rewrite authored-document links for staged Sphinx sources and repository files.
     Args:
         text (str): Markdown content.
+        source_file (str): Repository-relative path of the authored document.
     Returns:
         str: Markdown with updated links.
     """
@@ -62,20 +63,31 @@ def update_links(text):
         parts = urlsplit(target)
         if parts.scheme or parts.netloc or target.startswith('#'):
             return match.group(0)
-        path = parts.path.removeprefix("./")
+        path = unquote(parts.path).removeprefix("./")
         suffix = ("?" + parts.query if parts.query else "") + (
             "#" + parts.fragment if parts.fragment else ""
         )
-        for docfile in LINK_MAP:
-            if path == docfile or path == docfile.removesuffix('.md'):
-                return f"[{label}]({LINK_MAP[docfile]}{suffix})"
         root = Path(ROOT)
-        source = (root / path).resolve()
-        if not source.is_relative_to(root) or not source.exists():
+        source = (root / source_file).parent.joinpath(path).resolve()
+        if not source.is_relative_to(root):
+            return match.group(0)
+        repository_name = source.relative_to(root).as_posix()
+        for docfile, staged_name in LINK_MAP.items():
+            if repository_name in (docfile, docfile.removesuffix('.md')):
+                relative = os.path.relpath(
+                    Path(DOCS) / staged_name,
+                    (Path(DOCS) / LINK_MAP.get(source_file, source_file)).parent,
+                ).replace(os.sep, "/")
+                return f"[{label}]({quote(relative, safe='/')}{suffix})"
+        if not source.exists():
             return match.group(0)
         if source.is_relative_to(Path(DOCS)) and source.suffix in (".md", ".rst"):
             staged = source.relative_to(Path(DOCS)).as_posix()
-            return f"[{label}]({staged}{suffix})"
+            relative = os.path.relpath(
+                Path(DOCS) / staged,
+                (Path(DOCS) / LINK_MAP.get(source_file, source_file)).parent,
+            ).replace(os.sep, "/")
+            return f"[{label}]({quote(relative, safe='/')}{suffix})"
         repository_path = quote(source.relative_to(root).as_posix(), safe="/")
         return f"[{label}]({REPOSITORY_URL}{repository_path}{suffix})"
     return LINK_RE.sub(repl, text)
@@ -228,6 +240,11 @@ def main():
             logger.warning(f"{src} does not exist, skipping.")
             continue
         try:
+            os.makedirs(os.path.dirname(dst), exist_ok=True)
+            if fname.endswith(".html"):
+                shutil.copyfile(src, dst)
+                logger.info(f"Copied standalone HTML asset: {fname}")
+                continue
             # Special handling for requirements files: copy both .txt and .md versions
             if fname in ["requirements.txt", "requirements-dev.txt"]:
                 with open(src, "r", encoding="utf-8") as f:
@@ -240,12 +257,15 @@ def main():
                 md_name = fname.replace('.txt', '.md')
                 dst_md = os.path.join(DOCS, md_name)
                 heading = "# Requirements" if fname == "requirements.txt" else "# Requirements (Developer)"
-                note = (
+                note = update_links(
                     "> **Note:** This file is for documentation only.\n"
-                    "> Install dependencies from [requirements.txt](requirements.txt) and [requirements-dev.txt](requirements-dev.txt) in the project root.\n"
+                    "> Install dependencies from "
+                    f"[requirements.txt]({REPOSITORY_URL}requirements.txt) and "
+                    f"[requirements-dev.txt]({REPOSITORY_URL}requirements-dev.txt) "
+                    "in the project root.\n"
                 )
                 with open(dst_md, "w", encoding="utf-8") as f:
-                    f.write(f"{heading}\n\n{note}\n\n```")
+                    f.write(f"{heading}\n\n{note}\n\n```text\n")
                     f.write(content)
                     f.write("\n```")
                 logger.info(f"Copied and formatted: {fname} -> {md_name}")
@@ -310,7 +330,7 @@ def main():
             with open(src, "r", encoding="utf-8") as f:
                 content = f.read()
             with open(dst, "w", encoding="utf-8") as f:
-                f.write(update_links(content))
+                f.write(update_links(content, fname))
             logger.info(f"Copied generic: {fname} -> docs/")
         except Exception as e:
             logger.error(f"Error processing {fname}: {e}")

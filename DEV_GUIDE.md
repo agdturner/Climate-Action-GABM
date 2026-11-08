@@ -189,10 +189,21 @@ Please refer to the Makefile for full details.
 
 ### Authored sources and Sphinx staging
 
-Create and maintain prose documentation outside `docs/`. The repository root
-is the default location for new Markdown documents. `docs/` is the staging
-directory where documentation is copied and pre-processed for Sphinx, not a
-second place to author guides or plans.
+Create and maintain prose documentation outside `docs/`. Keep project
+entry points, contributor guides, the roadmap, and change history in the
+repository root. Longer-form authored material belongs in `documentation/`:
+
+- `documentation/guides/`: maintained usage, code, configuration, and HPC guides.
+- `documentation/research/`: design history, research notes, result reports,
+  survey documentation, and literature notes.
+- `documentation/archive/`: superseded guides and historical planning snapshots.
+- `documentation/presentations/`: authored presentation assets such as the
+  standalone HTML handover deck.
+
+Create each category as its first source is migrated; empty placeholder
+directories are unnecessary. `docs/` is the staging directory where
+documentation is copied and pre-processed for Sphinx, not a second place to
+author guides or plans.
 
 The exceptions are Sphinx configuration and navigation sources, such as
 `docs/conf.py`, `docs/index.md`, and API directives in `docs/api.rst`; these
@@ -204,14 +215,45 @@ edit its existing source rather than deleting it or creating a second copy.
 Move these guides incrementally, updating links, staging, navigation, and
 cleanup together; no bulk relocation is required.
 
-For a new root Markdown document intended for the Sphinx site:
+The AIRE guides, code tour, local LLM setup, prompts/personas V2, output guide,
+and configuration guide now have authoritative sources in
+`documentation/guides/`. Their original filenames under `docs/` are temporary
+staging copies only. The design history, research notes, results report, and
+survey documentation now live in `documentation/research/` and are staged
+under their original page names. Preserve their research provenance and
+historical claims during ownership moves; the design history is not a current
+model specification. Supplementary literature/parameterisation notes also live
+in `documentation/research/`. Superseded prompts/code tours, older AIRE article
+notes, and issue-planning snapshots live in `documentation/archive/`.
+Archive placement preserves context; it does not establish that all planned
+items were completed or that older cluster advice remains valid.
+Their existing `supplementary_docs/` site paths are retained by staging.
+The documentation index is authored in `documentation/README.md` and staged as
+`docs/documentation_index.md`. Runtime and developer dependency pages are
+generated from the root requirement manifests and cleaned after the build;
+never edit or commit those mirrors.
 
-1. Create the authoritative file in the repository root and link it from an
+The handover deck lives in `documentation/presentations/`. Staging copies its
+HTML bytes to `docs/_extra/`; Sphinx's `html_extra_path` publishes it at
+`cag_handover_deck.html` beside the built index. Cleanup removes the staged
+asset, not its authored source or published output. It is a standalone
+presentation, not a generated API page; its external Google Fonts dependency
+is retained.
+
+For a new authored Markdown document intended for the Sphinx site:
+
+1. Create the authoritative file in its agreed source location and link it from an
    appropriate entry-point document.
-2. Add its filename to `DOC_FILES` in
+2. Add its repository-relative path to `DOC_FILES` in
    [scripts/docs_assets.py](scripts/docs_assets.py), the shared copy/cleanup
    manifest. Do not register an authored file that exists only in `docs/`:
-   cleanup would delete it.
+   cleanup would delete it. For a nested source, add a `STAGED_NAMES` entry
+   mapping its source path to the desired filename under `docs/`. Keep staged
+   filenames unique. The AIRE guides demonstrate this mapping while retaining
+   their existing Sphinx page names.
+   Staged paths may include subdirectories; staging creates their parents,
+   link rewriting resolves relative to the staged document, and cleanup
+   removes only registered files, never authored directories.
 3. Add the staged filename to the Project Documents toctree in
    [docs/index.md](docs/index.md).
 4. Check links in both the authored source and the rendered site. Paths valid
@@ -223,23 +265,31 @@ Only authoritative sources and intentional Sphinx inputs should be committed,
 not generated copies or `docs/_build/`.
 
 The project README is staged as `docs/project_readme.md`, using `STAGED_NAMES`
-in the shared manifest. This avoids overwriting the existing authored
-`docs/README.md` documentation index. The latter remains a GitHub-readable
-legacy source until deliberately migrated. Sphinx uses `docs/index.md`;
+in the shared manifest. The separate authored documentation index lives in
+`documentation/README.md`. Sphinx uses `docs/index.md`;
 the historical `docs/index.rst` placeholder is excluded from the build.
 
-Staging rewrites links in copied root documents: links to other staged documents
+Staging resolves links relative to each authored source, including nested
+guides. Links to other staged documents
 stay local, links to existing guides under `docs/` lose that prefix, and links
 to repository code, tests, or data point to the upstream GitHub `main` branch.
 Unresolved paths remain unchanged so Sphinx can report them. These repository
 links describe the current branch on GitHub, not a versioned documentation snapshot.
 Markdown heading anchors are enabled for local section links.
 
+When an unmigrated legacy guide in `docs/` references a migrated source, use
+its upstream repository URL until that guide is migrated too. This keeps the
+link usable both on GitHub and in Sphinx without creating a second authored
+copy. Links from migrated sources should be relative to those sources and
+are rewritten for Sphinx during staging. The AIRE migration changes ownership
+and links only; consolidation and cluster-policy/command verification remain
+separate work.
+
 Autosummary does not overwrite existing stubs during ordinary builds. New
 generated stubs are ignored by Git; explicit API directives in `docs/api.rst`
-remain the maintained API reference. Some stubs and requirement mirrors are
-still tracked legacy generated files; avoid incidental changes to them and
-migrate their ownership deliberately.
+remain the maintained API reference. Some stubs are still tracked legacy
+generated files; avoid incidental changes to them and migrate their ownership
+deliberately. Requirement mirrors are temporary generated files.
 
 Default pytest discovery is limited to `tests/` by `pytest.ini`. This prevents
 Python test examples downloaded into Sphinx's HTML output from being collected
@@ -360,7 +410,7 @@ The following files and directories are essential for building, testing, and dis
 - **MANIFEST.in**: Informs setuptools which additional files (beyond Python modules) to include in the source distribution (sdist). This should be updated so users who install from source get all necessary files.
 - **requirements.txt**: Lists pinned dependencies for end users (used by pip install -r requirements.txt).
 - **requirements-dev.txt**: Lists development dependencies (testing, linting, docs) with version ranges for contributors.
-- **requirements-local.txt**: Optional dependencies for the `provider="local"` LLM backend (e.g. `mlx-lm` on Apple Silicon). Not required for cloud-only runs; see [docs/Local_LLM_Setup_Guide.md](docs/Local_LLM_Setup_Guide.md).
+- **requirements-local.txt**: Optional dependencies for the `provider="local"` LLM backend (e.g. `mlx-lm` on Apple Silicon). Not required for cloud-only runs; see [docs/Local_LLM_Setup_Guide.md](documentation/guides/Local_LLM_Setup_Guide.md).
 - **dist/**: Output directory for built distributions (.tar.gz and .whl files) after running the build process.
 - **src/cag.egg-info/**: Metadata directory created by setuptools during build. Contains information about the package (version, dependencies, etc.). Safe to delete; will be recreated as needed.
 - **venv-build-test/**: Temporary virtual environment created by `make build-test` for testing the built package in isolation. This can be safely deleted after testing.

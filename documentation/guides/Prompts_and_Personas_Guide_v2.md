@@ -5,9 +5,9 @@ A reader-friendly tour of every prompt the simulation sends to the LLM and of th
 - The **prompt overhaul (May 2026):** a consistent first-person voice throughout, a merged persona concept, end-of-day surveys that point the model at its own memory, and reflection memory with the internal phase tags stripped out.
 - The **memory rewrite (the "memory-v2" change):** the system prompt the model reads now has **six** clearly-named sections instead of five (§2.2). The biggest differences: the agent's original Day-0 position on the policy being asked about is now quoted **word-for-word** near the top (instead of all six policies being squeezed in together), and the model is no longer given a separate "remember who you are" reminder line at the bottom.
 
-**Supersedes:** [Prompts_and_Personas_Guide.md](Prompts_and_Personas_Guide.md). The V1 guide is preserved with a banner for historical reference of the earliest prompts.
+**Supersedes:** [Prompts_and_Personas_Guide.md](../archive/Prompts_and_Personas_Guide.md). The V1 guide is preserved with a banner for historical reference of the earliest prompts.
 
-**Every quoted prompt below exactly matches the template in code** ([src/cag/abm/agent.py](../src/cag/abm/agent.py), [src/cag/abm/attributes/opinion.py](../src/cag/abm/attributes/opinion.py) as of this commit). Nothing is paraphrased.
+**Every quoted prompt below exactly matches the template in code** ([src/cag/abm/agent.py](../../src/cag/abm/agent.py), [src/cag/abm/attributes/opinion.py](../../src/cag/abm/attributes/opinion.py) as of this commit). Nothing is paraphrased.
 
 ---
 
@@ -15,8 +15,8 @@ A reader-friendly tour of every prompt the simulation sends to the LLM and of th
 
 Two kinds of agent talk to an LLM.
 
-- **Citizens** ([`SurveyedCitizen`](../src/cag/abm/agent.py)) — one per simulated person, each carrying a real YouGov respondent's profile. They write reflections, peer messages, Day-0 rationales, and end-of-day survey answers.
-- **Political agents** ([`PoliticalAgent`](../src/cag/abm/agent.py)) — exactly two, one `pro_climate` and one `anti_climate`. They emit broadcasts that exposed citizens read.
+- **Citizens** ([`SurveyedCitizen`](../../src/cag/abm/agent.py)) — one per simulated person, each carrying a real YouGov respondent's profile. They write reflections, peer messages, Day-0 rationales, and end-of-day survey answers.
+- **Political agents** ([`PoliticalAgent`](../../src/cag/abm/agent.py)) — exactly two, one `pro_climate` and one `anti_climate`. They emit broadcasts that exposed citizens read.
 
 > **Status of the political agents.** The two campaign briefs in §3 are provisional and intended as a **fallback**. They are documented here for reproducibility of the v0.5 experimental runs and remain available for users who want a self-contained LLM-only setup, but the default research direction moves toward broadcasting **real-world political messages** (party press releases, MP speeches, campaign material) that have been collected and stored. As of v0.5.1 the briefs have been de-identified (no party or leader names) and trimmed to climate-policy framing only; the briefs may be archived or refactored in a future release.
 
@@ -37,7 +37,7 @@ For citizens, the **system prompt** is built fresh on each call by `assemble_con
 
 In V2 the persona is **one concept**: demographics + values, concatenated and exposed via a single public method `get_persona()`. The two internal builders `_build_demographics_text()` and `_build_values_text()` are private helpers; callers should use `get_persona()`.
 
-**Verbatim example** (citizen `agent_id = 1923` from run [`data/output/experiments/20260425_082317/`](../data/output/experiments/20260425_082317/), reconstructed from the same YouGov respondent's attributes):
+**Verbatim example** (citizen `agent_id = 1923` from run [`data/output/experiments/20260425_082317/`](../../data/output/experiments/20260425_082317), reconstructed from the same YouGov respondent's attributes):
 
 > I am a 32 year old female living in the Wales. My ethnicity is white. I have a University or CNAA higher degree (e.g. M.Sc, Ph.D). My gross household income is £40,000 - £44,999 per year. I am not a parent. I position myself fairly left-wing of the political spectrum. I voted for the Green party candidate in the 2019 General Election. I voted to remain in the 2016 EU Referendum.
 > When it comes to my core values and worldview: I care about the people close to me and have a basic respect for nature, but I do not actively champion global equality or make environmental protection a primary, driving life focus. I am not strongly driven by the need to get ahead of others, impress people, or hold leadership positions. I am highly curious, adventurous, and love trying out new things. I do not feel strictly bound by traditional values. I strongly believe that all groups should have an equal chance to succeed. I believe that all lifeforms on Earth should be treated equally. I am highly skeptical of leaders.
@@ -60,21 +60,21 @@ The prompt is built from up to **six** sections, in this order (empty ones are s
    - *Single-policy form* (when there is a question-scope policy, e.g. the end-of-day survey): just that one policy, under the header `Original prior position on "<short label>":`. Built by `_section_day0_anchor()`.
    - *Package form* (package-scoped context with no single target, e.g. package-mode peer messaging and reflection): every policy's Day-0 rationale, bulleted under `Original prior positions:` as `- <short label>: <text>`, in canonical policy order. Built by `_section_day0_anchor_all()`.
 
-   This split keeps the survey focused on the policy being asked while making sure the agent never "forgets" its starting position when it writes a peer message or reflects — the identity anchor is present in **every** step (see §20 of [Model_Design.md](Model_Design.md)).
+   This split keeps the survey focused on the policy being asked while making sure the agent never "forgets" its starting position when it writes a peer message or reflects — the identity anchor is present in **every** step (see §20 of [Model_Design.md](../research/Model_Design.md)).
 3. **Summary of recent days** — for every day older than `d-1`, a 4–5-sentence first-person summary produced by `compress_daily_memory()` (which delegates to `compress_memories()`). Surfaced under `Summary of recent days:` as `Day k: <summary>`.
 4. **Recent reflections following received messages** — the agent's full reflection text from `d-1` and `d`, filtered to the context-scope policy. Bulleted as `- Day k: <text>`. **No `[P-A] / [P-B] / [C]` phase tags are shown to the model** (the tags are still preserved in `reflections.csv` for the audit trail; this is a deliberate simplification).
 5. **Your considered position in recent days** — the agent's own end-of-day survey reasoning for the *question-scope* policy on `d-1` and `d`, bulleted as `- Day k — <short label>: <text>`. This is the "what did I decide about *this* policy yesterday and today" companion to the cross-policy summaries above. Built by `_section_recent_own_reasoning()`.
 6. **Your answers so far in today's survey** (package mode only) — when the model is part-way through today's six-policy survey, the positions it has already given today on the *other* policies, as `- <short label>: <phrase>. (Why: <today's reasoning>)`. This lets the model keep its package internally consistent. Built by `_section_today_so_far()`.
 
-The short policy labels in sections 2, 5 and 6 come from `SURVEY_SHORT_LABELS` in [`opinion.py`](../src/cag/abm/attributes/opinion.py) (≤ 5 words per policy), which replaced the old `SURVEY_QUESTIONS[pid][:60]` truncation — that produced six identical-looking labels, because every policy question starts with the same 84-character preamble.
+The short policy labels in sections 2, 5 and 6 come from `SURVEY_SHORT_LABELS` in [`opinion.py`](../../src/cag/abm/attributes/opinion.py) (≤ 5 words per policy), which replaced the old `SURVEY_QUESTIONS[pid][:60]` truncation — that produced six identical-looking labels, because every policy question starts with the same 84-character preamble.
 
-> **What changed from the earlier version of this guide.** The old layer had five sections and ended with a separate `"Remember who you are: …"` reminder line; it also crammed *all six* Day-0 rationales into one block regardless of which policy was being asked. The reminder line is gone and the persona now appears once at the top. The Day-0 anchor (section 2) now has the two-form behaviour described above: focused on the asked policy at survey time, package-wide during peer messaging / reflection. For the deeper "why" of this design, see [Code_Tour.md](Code_Tour.md) §5.1 and Appendix B, and §20 of [Model_Design.md](Model_Design.md).
+> **What changed from the earlier version of this guide.** The old layer had five sections and ended with a separate `"Remember who you are: …"` reminder line; it also crammed *all six* Day-0 rationales into one block regardless of which policy was being asked. The reminder line is gone and the persona now appears once at the top. The Day-0 anchor (section 2) now has the two-form behaviour described above: focused on the asked policy at survey time, package-wide during peer messaging / reflection. For the deeper "why" of this design, see [Code_Tour.md](Code_Tour.md) §5.1 and Appendix B, and §20 of [Model_Design.md](../research/Model_Design.md).
 
 ---
 
 ## 3. The political-agent system prompts
 
-These are quoted **verbatim** below to fix a V1 issue where they were summarised. Live source: `_DEFAULT_PRO_CLIMATE_PROMPT` and `_DEFAULT_ANTI_CLIMATE_PROMPT` in [`agent.py`](../src/cag/abm/agent.py).
+These are quoted **verbatim** below to fix a V1 issue where they were summarised. Live source: `_DEFAULT_PRO_CLIMATE_PROMPT` and `_DEFAULT_ANTI_CLIMATE_PROMPT` in [`agent.py`](../../src/cag/abm/agent.py).
 
 ### 3.1 Pro-climate agent (`_DEFAULT_PRO_CLIMATE_PROMPT`)
 
@@ -285,7 +285,7 @@ The version used in most v0.3+ experimental runs. Two LLM calls per (agent, poli
 
 - Output: single letter A–G.
 
-The two-step trick deliberately decouples *reasoning* from *answer*. NB 13 found this collapses ~97% of the aggregate pro-climate bias on Ban Petrol Cars (measured on `gpt-4.1-mini`) and generalises to 3 of 4 policies (see [docs/result_report.md](result_report.md)).
+The two-step trick deliberately decouples *reasoning* from *answer*. NB 13 found this collapses ~97% of the aggregate pro-climate bias on Ban Petrol Cars (measured on `gpt-4.1-mini`) and generalises to 3 of 4 policies (see [docs/result_report.md](../research/result_report.md)).
 
 **v0.5 changes (all in this template):**
 1. Flipped from third-person — 3P, "this person", "their values" — to first-person — 1P, "you", "your values". Originally Step 1's deliberate switch to third-person came from NB 12 / NB 13 explorations; subsequent thinking judged the inconsistency with the rest of the prompt chain (Day-0 rationale, reflections, peer messages — all first-person) to be a larger risk than the perspective-shift benefit. The aggregate bias-reduction number from NB 13 should not be assumed to transfer; a Condition B re-measurement on the new first-person chain is on the deferred backlog (Phase 5 of the v0.5 prompt-overhaul plan).
@@ -315,7 +315,7 @@ A small auxiliary call used to keep the system prompt short on long runs. Once a
 
 ## 5. What the LLM sees over time — worked example
 
-Citizen `agent_id = 165` from [`data/output/experiments/run_6267094/20260624_012156/`](../data/output/experiments/run_6267094/20260624_012156/) (50 citizens, 5 days, `package` mode, `day0_anchor = "ground_truth_with_rationale"`, `debias = True`, model `Qwen/Qwen3-8B` served through the `local` provider). All text below is **verbatim from the CSVs** for that agent, lightly truncated where marked with "…".
+Citizen `agent_id = 165` from [`data/output/experiments/run_6267094/20260624_012156/`](../../data/output/experiments/run_6267094/20260624_012156) (50 citizens, 5 days, `package` mode, `day0_anchor = "ground_truth_with_rationale"`, `debias = True`, model `Qwen/Qwen3-8B` served through the `local` provider). All text below is **verbatim from the CSVs** for that agent, lightly truncated where marked with "…".
 
 This is the latest full-scale run, produced with the current six-section memory layer, so it shows the real headers a model reads. The example follows the context built when the agent is asked about **one specific policy** — "Accelerate renewable energy roll-out" — partway through a package survey, so every section is populated.
 
@@ -367,11 +367,11 @@ Three things to notice:
 
 - **Only the policy being asked about appears in sections 2, 5 and 6's target slot.** Ask the same agent about a different policy later in the same survey and sections 2 and 5 swap to that policy's anchor and recent reasoning, while section 6 lists renewable energy among the "already answered" policies.
 - **Raw broadcasts appear in the prompt exactly once** — at the time the citizen reflects on them (§4.3). After that they leave the system prompt; the reflection text remains until it is older than `d-1`, at which point it is compressed into a `Day k:` summary (section 3).
-- **The Day-0 anchor never leaves.** It is the persistent "in my own words" anchor that justifies the ground-truth Day-0 seeding (see the Day-0 anchoring discussion in [Model_Design.md](Model_Design.md)).
+- **The Day-0 anchor never leaves.** It is the persistent "in my own words" anchor that justifies the ground-truth Day-0 seeding (see the Day-0 anchoring discussion in [Model_Design.md](../research/Model_Design.md)).
 
 - **Only the policy being asked about appears in sections 2, 5 and 6's target slot.** Ask the same agent about a different policy later in the same survey and sections 2 and 5 swap to that policy's anchor and recent reasoning, while section 6 lists renewable energy among the "already answered" policies.
 - **Raw broadcasts appear in the prompt exactly once** — at the time the citizen reflects on them (§4.3). After that they leave the system prompt; the reflection text remains until it is older than `d-1`, at which point it is compressed into a `Day k:` summary (section 3).
-- **The Day-0 anchor never leaves.** It is the persistent "in my own words" anchor that justifies the ground-truth Day-0 seeding (see the Day-0 anchoring discussion in [Model_Design.md](Model_Design.md)).
+- **The Day-0 anchor never leaves.** It is the persistent "in my own words" anchor that justifies the ground-truth Day-0 seeding (see the Day-0 anchoring discussion in [Model_Design.md](../research/Model_Design.md)).
 
 ---
 
@@ -379,14 +379,14 @@ Three things to notice:
 
 | Concept | File | Symbols |
 |---|---|---|
-| Persona (merged) | [`src/cag/abm/agent.py`](../src/cag/abm/agent.py) | `get_persona`, `_build_demographics_text`, `_build_values_text` |
-| Memory assembly (six sections) | [`src/cag/abm/agent.py`](../src/cag/abm/agent.py) | `assemble_context`, `_section_day0_anchor`, `_section_recent_own_reasoning`, `_section_today_so_far` |
-| Citizen-side prompts | [`src/cag/abm/agent.py`](../src/cag/abm/agent.py) | `receive_political_message`, `receive_package_political_message`, `generate_peer_message`, `generate_package_peer_message`, `receive_peer_messages`, `receive_package_peer_messages` |
-| Survey prompts (vanilla + debias) | [`src/cag/abm/agent.py`](../src/cag/abm/agent.py) | `administer_survey`, `_DEBIAS_STEP1_TEMPLATE`, `_DEBIAS_STEP2_TEMPLATE`, `_ANTI_SYCOPHANCY` |
-| Day-0 anchoring | [`src/cag/abm/agent.py`](../src/cag/abm/agent.py) | `seed_opinion_from_ground_truth`, `seed_opinion_with_rationale` |
-| Political-agent briefs + broadcast prompts | [`src/cag/abm/agent.py`](../src/cag/abm/agent.py) | `_DEFAULT_PRO_CLIMATE_PROMPT`, `_DEFAULT_ANTI_CLIMATE_PROMPT`, `PoliticalAgent.generate_message`, `PoliticalAgent.generate_package_message` |
-| Memory compression | [`src/cag/abm/agent.py`](../src/cag/abm/agent.py) | `compress_memories`, `compress_daily_memory`, `manage_memory` |
-| Policy text + response scale + short labels | [`src/cag/abm/attributes/opinion.py`](../src/cag/abm/attributes/opinion.py) | `SURVEY_QUESTIONS`, `SURVEY_SHORT_LABELS`, `RESPONSE_LABELS`, `RESPONSE_SCALE` |
+| Persona (merged) | [`src/cag/abm/agent.py`](../../src/cag/abm/agent.py) | `get_persona`, `_build_demographics_text`, `_build_values_text` |
+| Memory assembly (six sections) | [`src/cag/abm/agent.py`](../../src/cag/abm/agent.py) | `assemble_context`, `_section_day0_anchor`, `_section_recent_own_reasoning`, `_section_today_so_far` |
+| Citizen-side prompts | [`src/cag/abm/agent.py`](../../src/cag/abm/agent.py) | `receive_political_message`, `receive_package_political_message`, `generate_peer_message`, `generate_package_peer_message`, `receive_peer_messages`, `receive_package_peer_messages` |
+| Survey prompts (vanilla + debias) | [`src/cag/abm/agent.py`](../../src/cag/abm/agent.py) | `administer_survey`, `_DEBIAS_STEP1_TEMPLATE`, `_DEBIAS_STEP2_TEMPLATE`, `_ANTI_SYCOPHANCY` |
+| Day-0 anchoring | [`src/cag/abm/agent.py`](../../src/cag/abm/agent.py) | `seed_opinion_from_ground_truth`, `seed_opinion_with_rationale` |
+| Political-agent briefs + broadcast prompts | [`src/cag/abm/agent.py`](../../src/cag/abm/agent.py) | `_DEFAULT_PRO_CLIMATE_PROMPT`, `_DEFAULT_ANTI_CLIMATE_PROMPT`, `PoliticalAgent.generate_message`, `PoliticalAgent.generate_package_message` |
+| Memory compression | [`src/cag/abm/agent.py`](../../src/cag/abm/agent.py) | `compress_memories`, `compress_daily_memory`, `manage_memory` |
+| Policy text + response scale + short labels | [`src/cag/abm/attributes/opinion.py`](../../src/cag/abm/attributes/opinion.py) | `SURVEY_QUESTIONS`, `SURVEY_SHORT_LABELS`, `RESPONSE_LABELS`, `RESPONSE_SCALE` |
 
 ---
 
@@ -395,6 +395,6 @@ Three things to notice:
 1. **Persona realism.** Read 3–5 personas from `messages.csv` / `reflections.csv`. Does the values paragraph (§2.1, second half) read as a plausible accompaniment to the demographic paragraph, or does it sometimes contradict the political-history attributes?
 2. **Political-agent voices.** Are §3.1 and §3.2 sufficiently distinctive *and* sufficiently fair? Should we add a centrist / "transition realist" third agent for the next round, or instead replace both with a real-world-message ingestion pipeline (the roadmap option)?
 3. **Reflection vs. survey separation.** We tell the LLM "do not state a final position" in reflections, then ask for one only at the end-of-day survey. Spot-check the v0.5 `reflections.csv` text — does the separation hold, or do reflections sneak in positions anyway?
-4. **Debias Step 1 reasoning quality (post-overhaul).** With the first-person rewrite, does `survey_reasoning.csv` for Day ≥ 1 genuinely weigh both support- and oppose-side factors? Compare to the older third-person text from [`data/output/experiments/20260425_082317/`](../data/output/experiments/20260425_082317/) for a baseline. NB 13's bias-reduction number is **not** assumed to transfer until re-measured (see §4.7 v0.5 change note).
+4. **Debias Step 1 reasoning quality (post-overhaul).** With the first-person rewrite, does `survey_reasoning.csv` for Day ≥ 1 genuinely weigh both support- and oppose-side factors? Compare to the older third-person text from [`data/output/experiments/20260425_082317/`](../../data/output/experiments/20260425_082317) for a baseline. NB 13's bias-reduction number is **not** assumed to transfer until re-measured (see §4.7 v0.5 change note).
 5. **Memory cuing.** The v0.5 vanilla-survey framing and debias Step 1 both now reference the in-context memory explicitly. Spot-check whether end-of-day answers actually shift when reflections suggest they should, or whether the LLM still inertially repeats yesterday's letter.
 6. **Day-0 anchor mode.** The example run uses `ground_truth_with_rationale`, which seeds opinion from YouGov and asks for a rationale (§4.1). Open question (deferred in v0.5): should the rationale be injected into the persona itself, into the system prompt as a separate block (current), or replaced by a literal LLM Day-0 survey (the original v0.2 default)?

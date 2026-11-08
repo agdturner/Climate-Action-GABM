@@ -3,7 +3,7 @@
 Grouped forest plot: VOLUME levers (reach, frequency) vs ALLOCATION levers
 (targeting, iso-impression). Point = pooled within-person difference in the
 final package index P (points, -3..+3), 95% CI, per-seed dots. Values ASSERTED
-against docs/result_report.md. Neutral labels only (no party names).
+against documentation/research/result_report.md. Neutral labels only (no party names).
 Contrast sign convention: (pro-climate-dominant) - (climate-sceptic-dominant).
 """
 from pathlib import Path

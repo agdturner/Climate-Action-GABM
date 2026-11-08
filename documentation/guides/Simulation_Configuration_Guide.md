@@ -22,7 +22,7 @@ The guide is organised so you can stop reading as soon as you have what you need
 > [Prompts_and_Personas_Guide_v2.md](Prompts_and_Personas_Guide_v2.md). What each output file
 > contains is in [Run_Output_Guide.md](Run_Output_Guide.md). Setting up a local AI model is in
 > [Local_LLM_Setup_Guide.md](Local_LLM_Setup_Guide.md). The reasoning behind the design choices is
-> in [Model_Design.md](Model_Design.md), and a tour of the code is in [Code_Tour.md](Code_Tour.md).
+> in [Model_Design.md](../research/Model_Design.md), and a tour of the code is in [Code_Tour.md](Code_Tour.md).
 
 ---
 
@@ -243,7 +243,7 @@ From the command line the three flags are `--peer-fanout-mode {constant,degree,b
 #### Broadcast-frequency asymmetry from the command line
 
 The shorthand above lets one side broadcast more often than the other *within a day*. When you run
-from the command line ([src/cag/__main__.py](../src/cag/__main__.py)) and give `--days` a plain
+from the command line ([src/cag/__main__.py](../../src/cag/__main__.py)) and give `--days` a plain
 number, three flags apply that same asymmetry to **every** day of the run without you having to write
 out a `days` list:
 
@@ -610,7 +610,7 @@ To hand-tune, pass a dictionary with only the parts you want to change — for e
 **stage** (`survey`, `reflection`, or `peer_message`) so, say, the anchor is hidden at survey time
 but shown when writing peer messages. The full schema and every preset live in
 `src/cag/abm/config/memory.py`; the demo notebook
-[`notebooks/35_memory_ablation_demo.ipynb`](../notebooks/35_memory_ablation_demo.ipynb) shows each
+[`notebooks/35_memory_ablation_demo.ipynb`](../../notebooks/35_memory_ablation_demo.ipynb) shows each
 preset changing the assembled prompt.
 
 The run records exactly what it used: the startup log prints a `[memory]` line, and `config.json`
@@ -655,7 +655,7 @@ config = {
 }
 ```
 
-This needs API keys in `data/api_key.csv` (see [API_KEYS.md](../API_KEYS.md)).
+This needs API keys in `data/api_key.csv` (see [API_KEYS.md](../../API_KEYS.md)).
 
 ### 5.4 An unequal-reach experiment
 
@@ -739,19 +739,19 @@ it stopped. When you resume, the model compares your new configuration against t
 
 ### Companion guides
 
-- [Model_Design.md](Model_Design.md) — why the design is the way it is.
+- [Model_Design.md](../research/Model_Design.md) — why the design is the way it is.
 - [Prompts_and_Personas_Guide_v2.md](Prompts_and_Personas_Guide_v2.md) — every prompt, word for word.
 - [Local_LLM_Setup_Guide.md](Local_LLM_Setup_Guide.md) — running a local AI server.
 - [Run_Output_Guide.md](Run_Output_Guide.md) — what each output file contains.
 - [Code_Tour.md](Code_Tour.md) — a guided walk through the source code.
-- [Literature_Political_Exposure.md](Literature_Political_Exposure.md) — the evidence behind the
+- [Literature_Political_Exposure.md](../research/Literature_Political_Exposure.md) — the evidence behind the
   exposure proportions and affinity weights.
-- [`notebooks/29_canonical_full_smoke.ipynb`](../notebooks/29_canonical_full_smoke.ipynb) — a working
+- [`notebooks/29_canonical_full_smoke.ipynb`](../../notebooks/29_canonical_full_smoke.ipynb) — a working
   end-to-end run you can copy as a starting template.
 
 ### Where things live in the code
 
-The settings dictionary and the run loop are in [src/cag/abm/sim.py](../src/cag/abm/sim.py). Rather
+The settings dictionary and the run loop are in [src/cag/abm/sim.py](../../src/cag/abm/sim.py). Rather
 than line numbers (which drift as the file changes), here are names you can search for:
 
 - `SIM_CONFIG` — the full default dictionary, with an explanatory comment beside each setting.
@@ -763,14 +763,14 @@ than line numbers (which drift as the file changes), here are names you can sear
 - `_resolve_network_params` — how the network settings are assembled.
 
 Exposure and affinity scoring are in
-[src/cag/abm/environment.py](../src/cag/abm/environment.py): `assign_political_exposure`,
+[src/cag/abm/environment.py](../../src/cag/abm/environment.py): `assign_political_exposure`,
 `_green_affinity_score`, `_reform_affinity_score`, `TARGET_PRESETS`, `AFFINITY_WEIGHT_PRESETS`, and
 `VALID_EXPOSURE_MODES`.
 
 Other key locations: network building in
-[src/cag/abm/networks.py](../src/cag/abm/networks.py) (`build_network`, `compute_diagnostics`); the
+[src/cag/abm/networks.py](../../src/cag/abm/networks.py) (`build_network`, `compute_diagnostics`); the
 political-message file loader in
-[src/cag/abm/political_messages.py](../src/cag/abm/political_messages.py) (`load_message_pool`,
-`MessagePool`); the single door to every AI model in [src/cag/io/llm.py](../src/cag/io/llm.py)
+[src/cag/abm/political_messages.py](../../src/cag/abm/political_messages.py) (`load_message_pool`,
+`MessagePool`); the single door to every AI model in [src/cag/io/llm.py](../../src/cag/io/llm.py)
 (`send_chat`, `configure_local`, `ping_local`); and the per-citizen timeline in
-[src/cag/io/aggregators.py](../src/cag/io/aggregators.py) (`build_agent_timeline`).
+[src/cag/io/aggregators.py](../../src/cag/io/aggregators.py) (`build_agent_timeline`).

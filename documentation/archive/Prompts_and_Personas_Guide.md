@@ -6,11 +6,11 @@
 > runs under `data/output/experiments/` dated on or before 2026-05-15.
 >
 > The current canonical guide is
-> [Prompts_and_Personas_Guide_v2.md](Prompts_and_Personas_Guide_v2.md),
+> [Prompts_and_Personas_Guide_v2.md](../guides/Prompts_and_Personas_Guide_v2.md),
 > which reflects the v0.5 prompt overhaul (consistent first-person framing,
 > merged persona, daily-context-aware end-of-day surveys, repaired Day-0
 > rationale labels, and phase-tag-free reflection memory). See
-> [Model_Design.md §20](Model_Design.md) for the change rationale.
+> [Model_Design.md §20](../research/Model_Design.md) for the change rationale.
 
 A reader-friendly tour of every prompt the simulation sends to the LLM, plus the persona text that gives each agent its identity. The goal is that anyone — modeller, reviewer, supervisor, social scientist — can read this in one sitting and form an opinion on the design.
 
@@ -34,7 +34,7 @@ user prompt     →  "here is the specific thing I want you to do"
 
 For citizens, the **system prompt** is built fresh each time by `assemble_context()` — persona + values + recent reflections + Day-0 rationales. For political agents, the system prompt is a fixed campaign brief, written once.
 
-The full source for prompts lives in [`src/cag/abm/agent.py`](src/cag/abm/agent.py).
+The full source for prompts lives in [`src/cag/abm/agent.py`](../../src/cag/abm/agent.py).
 
 ---
 
@@ -90,7 +90,7 @@ The two `PoliticalAgent` instances each carry a fixed system prompt — a campai
 
 ### 3.1 Pro-climate agent (Green Party-style)
 
-Source: `_DEFAULT_PRO_CLIMATE_PROMPT` in [`src/cag/abm/agent.py`](src/cag/abm/agent.py).
+Source: `_DEFAULT_PRO_CLIMATE_PROMPT` in [`src/cag/abm/agent.py`](../../src/cag/abm/agent.py).
 
 > *"You are a political agent campaigning in the style of the Green Party of England and Wales. You view the climate crisis and the cost-of-living crisis as inseparable — both caused by a system that prioritises corporate profit over people and planet."*
 >
@@ -107,7 +107,7 @@ Source: `_DEFAULT_PRO_CLIMATE_PROMPT` in [`src/cag/abm/agent.py`](src/cag/abm/ag
 
 ### 3.2 Anti-climate agent (Reform UK-style)
 
-Source: `_DEFAULT_ANTI_CLIMATE_PROMPT` in [`src/cag/abm/agent.py`](src/cag/abm/agent.py).
+Source: `_DEFAULT_ANTI_CLIMATE_PROMPT` in [`src/cag/abm/agent.py`](../../src/cag/abm/agent.py).
 
 > *"You are a political agent campaigning in the style of Reform UK. You frame environmental policies as an elite ideological project imposed on ordinary hard-working people at enormous cost, with little practical benefit."*
 >
@@ -298,7 +298,7 @@ The version used in the example run. Two LLM calls per (agent, policy) per day. 
 
 - Output: single letter A–G.
 
-The two-step trick deliberately decouples *reasoning* from *answer*. NB 13 found this collapses ~97% of the aggregate pro-climate bias on Ban Petrol Cars and generalises to most other policies (with caveats on already-high-consensus policies — see [docs/result_report.md](docs/result_report.md)).
+The two-step trick deliberately decouples *reasoning* from *answer*. NB 13 found this collapses ~97% of the aggregate pro-climate bias on Ban Petrol Cars and generalises to most other policies (with caveats on already-high-consensus policies — see [docs/result_report.md](../research/result_report.md)).
 
 ### 4.8 Memory compression — `compress_memories()` / `compress_daily_memory()`
 
@@ -332,13 +332,13 @@ The total LLM call count per citizen-day is dominated by step 5 in debias mode (
 
 | Concept | File | Symbols |
 |---|---|---|
-| Persona / narrative / memory assembly | [`src/cag/abm/agent.py`](src/cag/abm/agent.py) | `get_persona`, `get_narrative`, `assemble_context`, `_build_day0_rationales` |
-| Citizen-side prompts | [`src/cag/abm/agent.py`](src/cag/abm/agent.py) | `receive_political_message`, `receive_package_political_message`, `generate_peer_message`, `generate_package_peer_message`, `receive_peer_messages`, `receive_package_peer_messages` |
-| Survey prompts (vanilla + debias) | [`src/cag/abm/agent.py`](src/cag/abm/agent.py) | `administer_survey`, `_DEBIAS_STEP1_TEMPLATE`, `_DEBIAS_STEP2_TEMPLATE`, `_ANTI_SYCOPHANCY` |
-| Day-0 anchoring | [`src/cag/abm/agent.py`](src/cag/abm/agent.py) | `seed_opinion_from_ground_truth`, `seed_opinion_with_rationale` |
-| Political-agent briefs + broadcast prompts | [`src/cag/abm/agent.py`](src/cag/abm/agent.py) | `_DEFAULT_PRO_CLIMATE_PROMPT`, `_DEFAULT_ANTI_CLIMATE_PROMPT`, `PoliticalAgent.generate_message`, `PoliticalAgent.generate_package_message` |
-| Memory compression | [`src/cag/abm/agent.py`](src/cag/abm/agent.py) | `compress_memories`, `compress_daily_memory`, `manage_memory` |
-| Policy text + response scale | [`src/cag/abm/attributes/opinion.py`](src/cag/abm/attributes/opinion.py) | `SURVEY_QUESTIONS`, `RESPONSE_LABELS`, `RESPONSE_SCALE` |
+| Persona / narrative / memory assembly | [`src/cag/abm/agent.py`](../../src/cag/abm/agent.py) | `get_persona`, `get_narrative`, `assemble_context`, `_build_day0_rationales` |
+| Citizen-side prompts | [`src/cag/abm/agent.py`](../../src/cag/abm/agent.py) | `receive_political_message`, `receive_package_political_message`, `generate_peer_message`, `generate_package_peer_message`, `receive_peer_messages`, `receive_package_peer_messages` |
+| Survey prompts (vanilla + debias) | [`src/cag/abm/agent.py`](../../src/cag/abm/agent.py) | `administer_survey`, `_DEBIAS_STEP1_TEMPLATE`, `_DEBIAS_STEP2_TEMPLATE`, `_ANTI_SYCOPHANCY` |
+| Day-0 anchoring | [`src/cag/abm/agent.py`](../../src/cag/abm/agent.py) | `seed_opinion_from_ground_truth`, `seed_opinion_with_rationale` |
+| Political-agent briefs + broadcast prompts | [`src/cag/abm/agent.py`](../../src/cag/abm/agent.py) | `_DEFAULT_PRO_CLIMATE_PROMPT`, `_DEFAULT_ANTI_CLIMATE_PROMPT`, `PoliticalAgent.generate_message`, `PoliticalAgent.generate_package_message` |
+| Memory compression | [`src/cag/abm/agent.py`](../../src/cag/abm/agent.py) | `compress_memories`, `compress_daily_memory`, `manage_memory` |
+| Policy text + response scale | [`src/cag/abm/attributes/opinion.py`](../../src/cag/abm/attributes/opinion.py) | `SURVEY_QUESTIONS`, `RESPONSE_LABELS`, `RESPONSE_SCALE` |
 
 ---
 

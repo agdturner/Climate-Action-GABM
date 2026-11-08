@@ -607,7 +607,7 @@ Vary `max_shift` (0.5, 1, 1.5, 2) and compare results to empirical benchmarks fr
 
 ## 15. Implementation Plan
 
-The implementation of this design spec is broken into 10 GitHub issues organised across 5 dependency phases. See [github_issues.md](github_issues.md) for the full issue breakdown, dependency graph, and acceptance criteria.
+The implementation of this design spec is broken into 10 GitHub issues organised across 5 dependency phases. See [github_issues.md](../archive/github_issues.md) for the full issue breakdown, dependency graph, and acceptance criteria.
 
 ### v0.2 — MVP Complete
 
@@ -685,7 +685,7 @@ This addendum is purely operational — it does not change agent behaviour, prom
 
 ### v0.5 — Local LLM Provider (Operational Addendum)
 
-Like v0.4's checkpoint addendum, v0.5 is purely operational — agent behaviour, prompts, and CSV semantics are unchanged. v0.5 promotes NB 24's in-notebook monkey-patch into a first-class fourth provider in [src/cag/io/llm.py](../src/cag/io/llm.py) so that any locally-hosted, OpenAI-compatible model (mlx-lm, Ollama, vLLM, sglang, llama.cpp) can be used as a drop-in replacement for the cloud `openai` / `genai` / `anthropic` providers without modifying any call site.
+Like v0.4's checkpoint addendum, v0.5 is purely operational — agent behaviour, prompts, and CSV semantics are unchanged. v0.5 promotes NB 24's in-notebook monkey-patch into a first-class fourth provider in [src/cag/io/llm.py](../../src/cag/io/llm.py) so that any locally-hosted, OpenAI-compatible model (mlx-lm, Ollama, vLLM, sglang, llama.cpp) can be used as a drop-in replacement for the cloud `openai` / `genai` / `anthropic` providers without modifying any call site.
 
 **`provider="local"` dispatcher branch.** `send_chat(..., provider="local")` routes through a new `_send_local()` that uses the `openai` SDK with a configurable `base_url` (any OpenAI-compatible server). The dispatcher reads its base URL, timeout, and per-model defaults from a module-level `_LOCAL_CONFIG` populated once per run by `configure_local(base_url=..., extra_body=..., timeout_s=...)`. This avoids touching the dozens of `send_chat` call sites in `agent.py` / `environment.py` — they keep passing `provider="local"` with no other change. Resolution order for the base URL is: `configure_local()` argument → `CAG_LOCAL_BASE_URL` environment variable → the built-in default `http://localhost:8080/v1`. Timeout follows the same chain via `CAG_LOCAL_TIMEOUT_S`.
 
@@ -695,7 +695,7 @@ Like v0.4's checkpoint addendum, v0.5 is purely operational — agent behaviour,
 
 **Empty-thinking-truncation guard.** Some local backends return an empty `content` field when a thinking-mode response is truncated at `max_tokens` while the model is still inside `<think>…</think>`. `_send_local()` detects this and retries once with `enable_thinking=False` plus the non-thinking sampling preset and `max_tokens` budget. Non-thinking empties are not retried (they indicate a real generation failure to surface). This is generic across any registered model with a `thinking_extra_body` lambda; today only Qwen3 has one.
 
-**`ping_local()` startup health-check.** `_resolve_runtime` in [src/cag/abm/sim.py](../src/cag/abm/sim.py) calls `ping_local()` once at simulation start when `llm_provider=="local"` (or `survey_provider=="local"`). It issues a GET to `<base_url>/models` and raises a remediation-tagged exception if the server is unreachable, so a misconfigured run fails in the first second instead of after the first agent call.
+**`ping_local()` startup health-check.** `_resolve_runtime` in [src/cag/abm/sim.py](../../src/cag/abm/sim.py) calls `ping_local()` once at simulation start when `llm_provider=="local"` (or `survey_provider=="local"`). It issues a GET to `<base_url>/models` and raises a remediation-tagged exception if the server is unreachable, so a misconfigured run fails in the first second instead of after the first agent call.
 
 **Three new SIM_CONFIG keys.**
 
@@ -707,11 +707,11 @@ All three are added to `_RESUME_SOFT_KEYS`: changing them mid-experiment (e.g. s
 
 **Mixed providers.** Because `survey_provider` / `survey_model` are independent of `llm_provider` / `llm_model`, a run can use, for example, a local Qwen3 for messaging and reflections while routing surveys to GPT-4o-mini in the cloud, or vice versa. `configure_local()` is invoked when either provider is `"local"`.
 
-**Validation.** [tests/test_llm_local.py](../tests/test_llm_local.py) adds 26 unit tests (mocked `openai.OpenAI`, no live server required) covering: dispatcher routing, base-URL / timeout resolution priority chain, registry substring matching across all five registered families, registry sampling and `max_tokens` injection (with caller and user-`extra_body` precedence rules), Qwen3 thinking on/off behaviour, empty-thinking retry trigger and non-trigger, `load_api_key("local")` short-circuit, and unsupported-provider error message coverage. The full suite is **365 passing, 1 skipped, 0 failures** (up from 339).
+**Validation.** [tests/test_llm_local.py](../../tests/test_llm_local.py) adds 26 unit tests (mocked `openai.OpenAI`, no live server required) covering: dispatcher routing, base-URL / timeout resolution priority chain, registry substring matching across all five registered families, registry sampling and `max_tokens` injection (with caller and user-`extra_body` precedence rules), Qwen3 thinking on/off behaviour, empty-thinking retry trigger and non-trigger, `load_api_key("local")` short-circuit, and unsupported-provider error message coverage. The full suite is **365 passing, 1 skipped, 0 failures** (up from 339).
 
-**End-to-end parity.** [notebooks/25_local_llm_integrated_smoke.ipynb](../notebooks/25_local_llm_integrated_smoke.ipynb) re-runs NB 24's exact configuration (10 agents × 1 day Ban Petrol Cars, Qwen3 8B 4-bit, `debias=True`, `thinking=True`, seed 42) through the integrated provider. Headline metrics match NB 24 bit-for-bit (Day-0 bias +0.50, Day-1 ρ +0.76, reflections median 135.5 tokens, 59 % mention rate, 0 errors, 0 thinking-empty retries) — see [result_report.md](result_report.md) for the full comparison table.
+**End-to-end parity.** [notebooks/25_local_llm_integrated_smoke.ipynb](../../notebooks/25_local_llm_integrated_smoke.ipynb) re-runs NB 24's exact configuration (10 agents × 1 day Ban Petrol Cars, Qwen3 8B 4-bit, `debias=True`, `thinking=True`, seed 42) through the integrated provider. Headline metrics match NB 24 bit-for-bit (Day-0 bias +0.50, Day-1 ρ +0.76, reflections median 135.5 tokens, 59 % mention rate, 0 errors, 0 thinking-empty retries) — see [result_report.md](result_report.md) for the full comparison table.
 
-**Documentation.** A V3 quickstart-first rewrite of [docs/Local_LLM_Setup_Guide.md](Local_LLM_Setup_Guide.md) covers mlx-lm, Ollama, vLLM, sglang, and llama.cpp; a model gallery lists licenses, RAM footprints, and registered status; a registry-extension recipe shows how to add a new model family without code changes outside `_MODEL_REGISTRY`; troubleshooting covers server-unreachable, empty-thinking, OOM, and HPC scenarios. The legacy V2 (mlx-only) and V1 (Qwen 2.5) sections are retained below the V3 section as historical reference. Optional dependencies are pinned in [requirements-local.txt](../requirements-local.txt).
+**Documentation.** A V3 quickstart-first rewrite of [docs/Local_LLM_Setup_Guide.md](https://github.com/compolis/Climate-Action-GABM/blob/main/documentation/guides/Local_LLM_Setup_Guide.md) covers mlx-lm, Ollama, vLLM, sglang, and llama.cpp; a model gallery lists licenses, RAM footprints, and registered status; a registry-extension recipe shows how to add a new model family without code changes outside `_MODEL_REGISTRY`; troubleshooting covers server-unreachable, empty-thinking, OOM, and HPC scenarios. The legacy V2 (mlx-only) and V1 (Qwen 2.5) sections are retained below the V3 section as historical reference. Optional dependencies are pinned in [requirements-local.txt](../../requirements-local.txt).
 
 ---
 
@@ -745,7 +745,7 @@ What is **not** safe: parallelising across days (causal dependency), or collapsi
 Because the bottleneck is HTTP wait, a thread pool gives near-linear speedup up to the provider rate-limit ceiling. Plan:
 
 - Add a config key `max_concurrent_agents: int = 1` (default preserves current sequential behaviour).
-- Wrap the per-agent loops in [src/cag/abm/environment.py](src/cag/abm/environment.py) (`administer_survey`, `run_broadcast`, the two non-barrier sub-steps of `run_peer_messaging`) and the `manage_memory` loop in [src/cag/abm/sim.py](src/cag/abm/sim.py) with a single shared `ThreadPoolExecutor(max_workers=cfg["max_concurrent_agents"])`.
+- Wrap the per-agent loops in [src/cag/abm/environment.py](../../src/cag/abm/environment.py) (`administer_survey`, `run_broadcast`, the two non-barrier sub-steps of `run_peer_messaging`) and the `manage_memory` loop in [src/cag/abm/sim.py](../../src/cag/abm/sim.py) with a single shared `ThreadPoolExecutor(max_workers=cfg["max_concurrent_agents"])`.
 - Provider SDKs (`openai`, `anthropic`, `google-genai`) are thread-safe per client.
 - Keep the phase barriers explicit: each `executor.map(...)` call must complete before the next phase begins.
 
@@ -753,7 +753,7 @@ Expected speedup: roughly `min(N_agents, max_workers, rate_limit_ceiling)`. A st
 
 ### 16.4 Caveats and mitigations
 
-- **Rate limits.** The existing `_resilient_call` in [src/cag/io/llm.py](src/cag/io/llm.py) handles 400-class param errors; it does not yet do 429 backoff with jitter. Add bounded exponential backoff before turning concurrency on in production.
+- **Rate limits.** The existing `_resilient_call` in [src/cag/io/llm.py](../../src/cag/io/llm.py) handles 400-class param errors; it does not yet do 429 backoff with jitter. Add bounded exponential backoff before turning concurrency on in production.
 - **Determinism.** Order of completion will vary; logging will interleave. Any per-agent RNG must be seeded at agent construction (already the case). For exact reproducibility, use `max_concurrent_agents=1`.
 - **Logging volume.** The per-agent `INFO` lines in the survey loop will interleave. Consider buffering per-agent log lines and flushing at the phase barrier.
 - **Checkpoint interaction.** The atomic write in `_atomic_write_csv` happens once per day, after the `manage_memory` barrier — concurrency inside a phase does not affect checkpoint integrity.
@@ -955,7 +955,7 @@ The upgrade has two independent parts:
   marginals directly).
 
 The function `assign_political_exposure()` in
-[`src/cag/abm/environment.py`](../src/cag/abm/environment.py) **keeps
+[`src/cag/abm/environment.py`](../../src/cag/abm/environment.py) **keeps
 its name** (so existing notebooks continue to work). It becomes a
 dispatcher that takes a `mode` argument and delegates to one of three
 implementations.
@@ -1791,7 +1791,7 @@ network construction, simulation loop, output, or LLM provider.
   rather than `- [P-A] <text>`. The `phase` field is unchanged in
   `self.reflections[i]["phase"]` and `reflections.csv` (full audit
   trail preserved). Rationale: the broadcast source is intentionally
-  unlabelled (see §19.3 / §3 of [V2 Prompts Guide](Prompts_and_Personas_Guide_v2.md)),
+  unlabelled (see §19.3 / §3 of [V2 Prompts Guide](https://github.com/compolis/Climate-Action-GABM/blob/main/documentation/guides/Prompts_and_Personas_Guide_v2.md)),
   and the LLM doesn't need a meta-tag it can't act on.
 - **Memory compression: more depth, phase-agnostic.**
   `compress_memories`'s user prompt rewritten from
@@ -1819,14 +1819,14 @@ text-level; existing structural coverage is sufficient). Full suite:
 ### 20.4 Documentation
 
 - New canonical guide:
-  [docs/Prompts_and_Personas_Guide_v2.md](Prompts_and_Personas_Guide_v2.md).
+  [docs/Prompts_and_Personas_Guide_v2.md](https://github.com/compolis/Climate-Action-GABM/blob/main/documentation/guides/Prompts_and_Personas_Guide_v2.md).
   Verbatim prompt quotes from current code, worked example over
   Day 0 / Day 2 / Day 5 using real data from
   `data/output/experiments/20260425_082317/` (with a caveat that
   that run pre-dates the overhaul — structure is unchanged, wording
   inside each section differs).
 - The V1 guide
-  [docs/Prompts_and_Personas_Guide.md](Prompts_and_Personas_Guide.md)
+  [docs/Prompts_and_Personas_Guide.md](../archive/Prompts_and_Personas_Guide.md)
   is preserved as historical reference of pre-v0.5 prompts.
 
 ### 20.5 Out of scope (deferred)
@@ -1843,7 +1843,7 @@ text-level; existing structural coverage is sufficient). Full suite:
 Follow-up to §20.2 covering the political-agent side (citizen-side
 prompts were already audited in §20.2). The two campaign briefs
 `_DEFAULT_PRO_CLIMATE_PROMPT` and `_DEFAULT_ANTI_CLIMATE_PROMPT` in
-[`src/cag/abm/agent.py`](../src/cag/abm/agent.py) previously read
+[`src/cag/abm/agent.py`](../../src/cag/abm/agent.py) previously read
 "campaigning in the style of the Green Party of England and Wales /
 Reform UK" and named real politicians (Zack Polanski, Caroline Lucas,
 Nigel Farage, Richard Tice). For the v0.5 paper this is reframed as a
@@ -1876,7 +1876,7 @@ Nigel Farage, Richard Tice). For the v0.5 paper this is reframed as a
   messages and reflections from today and previous days" so the
   factor list matches the v0.5.1 multi-day daily-context surveys
   (§20.2 (b)).
-- **Documentation.** [Prompts_and_Personas_Guide_v2.md](Prompts_and_Personas_Guide_v2.md)
+- **Documentation.** [Prompts_and_Personas_Guide_v2.md](https://github.com/compolis/Climate-Action-GABM/blob/main/documentation/guides/Prompts_and_Personas_Guide_v2.md)
   status banner rewritten as fallback framing with an explicit note
   about the de-identification and the real-message-ingestion direction;
   §3.1, §3.2, and the debias step-1 verbatim quotes regenerated to
@@ -2057,20 +2057,20 @@ v0.7 ships a production-ready HPC integration layer for the University of Leeds 
 
 ### 22.1 Thin sbatch launcher
 
-[scripts/aire/run.sh](../scripts/aire/run.sh) is a single sbatch script that delegates every research knob to the Python CLI via environment variables. It defines the SLURM `#SBATCH` directives (partition, gres, mem, time), auto-starts a vLLM server on the GPU node with `$HF_MODEL` (overrideable), waits for the model endpoint to come up, then invokes `python -m cag` with every variable forwarded as a `--flag`. Adding a new experiment never requires editing this script.
+[scripts/aire/run.sh](../../scripts/aire/run.sh) is a single sbatch script that delegates every research knob to the Python CLI via environment variables. It defines the SLURM `#SBATCH` directives (partition, gres, mem, time), auto-starts a vLLM server on the GPU node with `$HF_MODEL` (overrideable), waits for the model endpoint to come up, then invokes `python -m cag` with every variable forwarded as a `--flag`. Adding a new experiment never requires editing this script.
 
 ### 22.2 Sweep submitter
 
-[scripts/aire/sweep.sh](../scripts/aire/sweep.sh) reads a sweep file (one line per condition, each line a list of CLI overrides) and submits one `sbatch` per condition. Sweep files live under [scripts/aire/sweeps/](../scripts/aire/sweeps/). The v0.7 canonical sweep is [scripts/aire/sweeps/r14_v2.txt](../scripts/aire/sweeps/r14_v2.txt) — 3 split50 conditions for the first AIRE production run.
+[scripts/aire/sweep.sh](../../scripts/aire/sweep.sh) reads a sweep file (one line per condition, each line a list of CLI overrides) and submits one `sbatch` per condition. Sweep files live under [scripts/aire/sweeps/](../../scripts/aire/sweeps). The v0.7 canonical sweep is [scripts/aire/sweeps/r14_v2.txt](../../scripts/aire/sweeps/r14_v2.txt) — 3 split50 conditions for the first AIRE production run.
 
 ### 22.3 Preset bundle registry
 
-New [src/cag/presets.py](../src/cag/presets.py) defines `RUN_BUNDLE_PRESETS`, a dict of named SIM_CONFIG bundles. v0.7 ships two: `"smoke"` (10-agent × 2-day fast smoke, used by NB 32) and `"r14_canonical"` (the canonical 50-agent × 5-day Run-14 v2 baseline). Presets are loaded by the CLI via `--preset NAME`; individual `--flag` overrides layer on top.
+New [src/cag/presets.py](../../src/cag/presets.py) defines `RUN_BUNDLE_PRESETS`, a dict of named SIM_CONFIG bundles. v0.7 ships two: `"smoke"` (10-agent × 2-day fast smoke, used by NB 32) and `"r14_canonical"` (the canonical 50-agent × 5-day Run-14 v2 baseline). Presets are loaded by the CLI via `--preset NAME`; individual `--flag` overrides layer on top.
 
 ### 22.4 Walkthrough docs
 
-- [docs/AIRE_HPC_repo_primer.md](AIRE_HPC_repo_primer.md) — cluster fundamentals, storage rules, hard constraints, troubleshooting.
-- [docs/AIRE_Quickstart.md](AIRE_Quickstart.md) — copy-pasteable zero-to-Run-14 walkthrough.
+- [docs/AIRE_HPC_repo_primer.md](https://github.com/compolis/Climate-Action-GABM/blob/main/documentation/guides/AIRE_HPC_repo_primer.md) — cluster fundamentals, storage rules, hard constraints, troubleshooting.
+- [docs/AIRE_Quickstart.md](https://github.com/compolis/Climate-Action-GABM/blob/main/documentation/guides/AIRE_Quickstart.md) — copy-pasteable zero-to-Run-14 walkthrough.
 
 
 ## 23. NB-31 package-mode survey-context fix (v0.7, 2026-06-21)
@@ -2083,15 +2083,15 @@ The bug was silent. Per-day inertia metrics looked plausible (the LLM is anchore
 
 ### 23.2 Discovery
 
-[notebooks/30_surgical_survey_replay.ipynb](../notebooks/30_surgical_survey_replay.ipynb) replays a single agent's package-mode survey under frozen state across models. With the buggy code the assembled context was structurally empty after the persona prefix; with `PACKAGE_SCOPE` plumbed in, the same agent's context expanded by ~10–18 KB and the survey response shifted.
+[notebooks/30_surgical_survey_replay.ipynb](../../notebooks/30_surgical_survey_replay.ipynb) replays a single agent's package-mode survey under frozen state across models. With the buggy code the assembled context was structurally empty after the persona prefix; with `PACKAGE_SCOPE` plumbed in, the same agent's context expanded by ~10–18 KB and the survey response shifted.
 
 ### 23.3 Fix
 
-Both `administer_survey()` and `run_end_of_day_survey()` now branch on `communication_mode`. In package mode they pass `PACKAGE_SCOPE` (the canonical union key from [src/cag/abm/attributes/opinion.py](../src/cag/abm/attributes/opinion.py)) to `assemble_context()`. In single-policy mode the call is unchanged.
+Both `administer_survey()` and `run_end_of_day_survey()` now branch on `communication_mode`. In package mode they pass `PACKAGE_SCOPE` (the canonical union key from [src/cag/abm/attributes/opinion.py](../../src/cag/abm/attributes/opinion.py)) to `assemble_context()`. In single-policy mode the call is unchanged.
 
 ### 23.4 Validation
 
-[notebooks/31_package_mode_fix_validation.ipynb](../notebooks/31_package_mode_fix_validation.ipynb) confirms the predicted amplification on the surgical-replay pool. Production confirmation: **Run-14 v2 measured +0.667 Day-5 cross-bucket package-index gap-widening vs +0.053 pre-fix — a 12.6× amplification** matching the GPT-5.4-mini surgical-replay prediction within noise. Full write-up in [docs/result_report.md](result_report.md).
+[notebooks/31_package_mode_fix_validation.ipynb](../../notebooks/31_package_mode_fix_validation.ipynb) confirms the predicted amplification on the surgical-replay pool. Production confirmation: **Run-14 v2 measured +0.667 Day-5 cross-bucket package-index gap-widening vs +0.053 pre-fix — a 12.6× amplification** matching the GPT-5.4-mini surgical-replay prediction within noise. Full write-up in [docs/result_report.md](result_report.md).
 
 
 ## 24. Outputs and instrumentation expansion (v0.7, 2026-06-22)
@@ -2100,9 +2100,9 @@ The saved run bundle in v0.7 expands from 17 → 29 artefacts so that every diag
 
 ### 24.1 Phase 1 — Agent-attribute persistence
 
-`_assign_affinity_rank` in [src/cag/abm/environment.py](../src/cag/abm/environment.py) now caches `_affinity_score_a` and `_affinity_score_b` on every citizen (mirrors the existing in-place `political_exposure` write).
+`_assign_affinity_rank` in [src/cag/abm/environment.py](../../src/cag/abm/environment.py) now caches `_affinity_score_a` and `_affinity_score_b` on every citizen (mirrors the existing in-place `political_exposure` write).
 
-New `collect_agent_attributes(nation)` in [src/cag/abm/sim.py](../src/cag/abm/sim.py) returns a per-agent DataFrame keyed on `agent_id` with `bucket`, both affinity scores, the demographic IDs that drive the persona, and the **full `get_persona()` text** (no truncation). Written as `agent_attributes.csv` to checkpoints + final.
+New `collect_agent_attributes(nation)` in [src/cag/abm/sim.py](../../src/cag/abm/sim.py) returns a per-agent DataFrame keyed on `agent_id` with `bucket`, both affinity scores, the demographic IDs that drive the persona, and the **full `get_persona()` text** (no truncation). Written as `agent_attributes.csv` to checkpoints + final.
 
 ### 24.2 Phase 2 — Bucket-stratified CSVs
 
@@ -2119,7 +2119,7 @@ The Run-14 v2 "+0.667 Day-5 gap-widening" headline is now derivable from `packag
 - `plot_opinion_shares_by_bucket` (`policy × bucket` mega-grid)
 - `plot_gap_widening` (bold package-index gap + thin per-policy gap traces)
 
-All wired through the single `save_result_plots(results, out_path)` entry point in [src/cag/abm/output.py](../src/cag/abm/output.py).
+All wired through the single `save_result_plots(results, out_path)` entry point in [src/cag/abm/output.py](../../src/cag/abm/output.py).
 
 ### 24.4 Phase 4 — Calibration, message flow, network snapshot
 
@@ -2131,7 +2131,7 @@ All wired through the single `save_result_plots(results, out_path)` entry point 
 
 ### 24.5 Phase 5 — Survey assembled-context + agent timeline
 
-New `self.survey_assembled_context = {}` on `SurveyedCitizen` in [src/cag/abm/agent.py](../src/cag/abm/agent.py). `administer_survey()` appends `(day, ctx_str)` immediately after `assemble_context()`. Captures the **exact ~1–18 KB system prompt** each agent saw at every survey call — the diagnostic affordance that would have caught NB-31 in week one.
+New `self.survey_assembled_context = {}` on `SurveyedCitizen` in [src/cag/abm/agent.py](../../src/cag/abm/agent.py). `administer_survey()` appends `(day, ctx_str)` immediately after `assemble_context()`. Captures the **exact ~1–18 KB system prompt** each agent saw at every survey call — the diagnostic affordance that would have caught NB-31 in week one.
 
 Two new `SIM_CONFIG` keys:
 - `timeline_sample_size = 3` — number of agents to include in `agent_timeline`.
@@ -2155,11 +2155,11 @@ Monotonic `nation._sim_step` counter (lazy-init, restored to `max(sim_step)` acr
 
 ### 25.1 Motivation
 
-v0.6 shipped with SBM `p_inter = 0.02` and ER `p = 0.05` as defaults. Empirical sweep in [scripts/estimate_connectivity_threshold.py](../scripts/estimate_connectivity_threshold.py) showed that at n=10 these are hopeless at any `p ≤ 0.15`, and at n=50 SBM needs `p_inter ≥ 0.06` for 90% connectivity. The failure mode is silent: disjoint components produce uneven cross-bucket exposure with no warning to the operator.
+v0.6 shipped with SBM `p_inter = 0.02` and ER `p = 0.05` as defaults. Empirical sweep in [scripts/estimate_connectivity_threshold.py](../../scripts/estimate_connectivity_threshold.py) showed that at n=10 these are hopeless at any `p ≤ 0.15`, and at n=50 SBM needs `p_inter ≥ 0.06` for 90% connectivity. The failure mode is silent: disjoint components produce uneven cross-bucket exposure with no warning to the operator.
 
 ### 25.2 New defaults
 
-Updated in [src/cag/abm/networks.py](../src/cag/abm/networks.py) and [src/cag/abm/sim.py](../src/cag/abm/sim.py):
+Updated in [src/cag/abm/networks.py](../../src/cag/abm/networks.py) and [src/cag/abm/sim.py](../../src/cag/abm/sim.py):
 - SBM `p_inter` default 0.02 → **0.05** (within-to-between ratio drops from 7.5:1 to 3:1, yielding ~25% cross-cutting exposure — within the Facebook ~24% of Bakshy et al. 2015 *Science* and the Twitter 18–26% of Halberstam & Knight 2016).
 - ER `p` default 0.05 → **0.10** (above the n=50 classical threshold ln(50)/50 ≈ 0.078).
 - Watts–Strogatz, Barabási–Albert, and `homophily_weighted` defaults unchanged (always connected by construction).
@@ -2191,7 +2191,7 @@ Records `nation._auto_connected_edges` (count).
 
 ### 25.6 Validation
 
-NB 32 ([notebooks/32_v06_outputs_smoke.ipynb](../notebooks/32_v06_outputs_smoke.ipynb)) doubles as the live demo: at n=10, Layer 1 fires (`p_inter` 0.05 → 0.10) and Layer 2 fires (5 components → 1 with 4 bridging edges). `network_snapshot.json` and `network_diagnostics.json` both reflect the auto-repaired graph. 13 new tests in [tests/test_networks.py](../tests/test_networks.py) cover Layer 1 (`TestAdjustNetworkParamsForSmallN`, 7 tests), Layer 2 (`TestAutoConnectComponents`, 4 tests), and Layer 3 (`TestNetworkDiagnosticsAutoConnectedField`, 2 tests).
+NB 32 ([notebooks/32_v06_outputs_smoke.ipynb](../../notebooks/32_v06_outputs_smoke.ipynb)) doubles as the live demo: at n=10, Layer 1 fires (`p_inter` 0.05 → 0.10) and Layer 2 fires (5 components → 1 with 4 bridging edges). `network_snapshot.json` and `network_diagnostics.json` both reflect the auto-repaired graph. 13 new tests in [tests/test_networks.py](../../tests/test_networks.py) cover Layer 1 (`TestAdjustNetworkParamsForSmallN`, 7 tests), Layer 2 (`TestAutoConnectComponents`, 4 tests), and Layer 3 (`TestNetworkDiagnosticsAutoConnectedField`, 2 tests).
 
 
 ## 26. v0.7 operational defaults (2026-06-22)
@@ -2223,18 +2223,18 @@ The refactor is the first item on the v0.8 **refactor track** — a label that w
 
 | New module | Lines | Responsibility |
 |---|---:|---|
-| [src/cag/abm/sim.py](../src/cag/abm/sim.py) | **838** | Orchestration only: `run_simulation`, `_run_one_day`, `_resolve_runtime`, `SIM_CONFIG`. |
-| [src/cag/abm/network_repair.py](../src/cag/abm/network_repair.py) | 263 | v0.7 3-layer connectivity defence: `_adjust_network_params_for_small_n`, `_auto_connect_components`, `_log_network_summary`, `_safe_network_diagnostics`. |
-| [src/cag/io/aggregators.py](../src/cag/io/aggregators.py) | 506 | `_collect_results` post-processing: `collect_agent_attributes`, `build_package_index_by_bucket`, `build_opinion_shares_by_bucket`, `build_day0_vs_dayN_shifts`, `build_calibration_table`, `build_message_flow`, `build_agent_timeline`. |
-| [src/cag/io/plots.py](../src/cag/io/plots.py) | 555 | `save_result_plots` + every per-figure plotter (`plot_package_index_by_bucket`, `plot_opinion_shares_by_bucket`, `plot_gap_widening`, `plot_calibration_by_policy`, `plot_network_graph`, plus the legacy single-policy plotters). |
-| [src/cag/io/results.py](../src/cag/io/results.py) | 512 | `save_results`, `_RESULT_CSV_SCHEMAS`, `_write_all_csvs`, `_safe_network_snapshot`, JSON config/diagnostics serialisation. |
-| [src/cag/io/checkpoint.py](../src/cag/io/checkpoint.py) | 366 | `_write_checkpoint`, `_load_checkpoint`, `_CHECKPOINT_SKIP_KEYS`, resume-key validation, `sim_step` rehydration logic. |
+| [src/cag/abm/sim.py](../../src/cag/abm/sim.py) | **838** | Orchestration only: `run_simulation`, `_run_one_day`, `_resolve_runtime`, `SIM_CONFIG`. |
+| [src/cag/abm/network_repair.py](../../src/cag/abm/network_repair.py) | 263 | v0.7 3-layer connectivity defence: `_adjust_network_params_for_small_n`, `_auto_connect_components`, `_log_network_summary`, `_safe_network_diagnostics`. |
+| [src/cag/io/aggregators.py](../../src/cag/io/aggregators.py) | 506 | `_collect_results` post-processing: `collect_agent_attributes`, `build_package_index_by_bucket`, `build_opinion_shares_by_bucket`, `build_day0_vs_dayN_shifts`, `build_calibration_table`, `build_message_flow`, `build_agent_timeline`. |
+| [src/cag/io/plots.py](../../src/cag/io/plots.py) | 555 | `save_result_plots` + every per-figure plotter (`plot_package_index_by_bucket`, `plot_opinion_shares_by_bucket`, `plot_gap_widening`, `plot_calibration_by_policy`, `plot_network_graph`, plus the legacy single-policy plotters). |
+| [src/cag/io/results.py](../../src/cag/io/results.py) | 512 | `save_results`, `_RESULT_CSV_SCHEMAS`, `_write_all_csvs`, `_safe_network_snapshot`, JSON config/diagnostics serialisation. |
+| [src/cag/io/checkpoint.py](../../src/cag/io/checkpoint.py) | 366 | `_write_checkpoint`, `_load_checkpoint`, `_CHECKPOINT_SKIP_KEYS`, resume-key validation, `sim_step` rehydration logic. |
 
 Total: ~3040 lines across 6 focused modules vs. one 2755-line file. The +285-line overhead is import boilerplate and module-level docstrings in each new file.
 
 ### 27.3 Validation
 
-End-to-end NB 32 smoke ([notebooks/32_v06_outputs_smoke.ipynb](../notebooks/32_v06_outputs_smoke.ipynb), 10 agents × 2 alternating package-mode days, `gpt-5-mini`, `debias=True`, `random_seed=42`) re-run against the pre-refactor baseline. See [docs/result_report.md](result_report.md) v0.8 entry for the full regression-validation matrix. Headline:
+End-to-end NB 32 smoke ([notebooks/32_v06_outputs_smoke.ipynb](../../notebooks/32_v06_outputs_smoke.ipynb), 10 agents × 2 alternating package-mode days, `gpt-5-mini`, `debias=True`, `random_seed=42`) re-run against the pre-refactor baseline. See [docs/result_report.md](result_report.md) v0.8 entry for the full regression-validation matrix. Headline:
 
 - **Deterministic outputs bit-identical:** `config.json`, `ground_truth.csv`, `package_ground_truth.csv`, `agent_attributes.csv`, `network_snapshot.json` (10 nodes, 9 edges, bucket distribution `{A-only:1, B-only:1, both:3, neither:5}`).
 - **All 22 LLM-driven CSVs match in schema and row count.**
@@ -2268,7 +2268,7 @@ The v0.7 stack stitched four memory mechanisms together: (a) full reflections ke
 
 ### 28.2 The v2 six-section context order
 
-`assemble_context(day, policy_id, target_policy_id)` in [src/cag/abm/agent.py](../src/cag/abm/agent.py) now builds the system prompt as the following ordered concatenation, skipping any section that is empty:
+`assemble_context(day, policy_id, target_policy_id)` in [src/cag/abm/agent.py](../../src/cag/abm/agent.py) now builds the system prompt as the following ordered concatenation, skipping any section that is empty:
 
 ```
 §1 Persona + values             always (get_persona())
@@ -2288,9 +2288,9 @@ The pre-v2 architecture had `compress_day0_anchor()` re-summarise the Day-0 rati
 
 - `agent.day0_anchors = {}` dict initialisation removed from `SurveyedCitizen.__init__`.
 - `compress_day0_anchor()` method removed.
-- Post-`_run_day0` compression loop removed from [src/cag/abm/sim.py](../src/cag/abm/sim.py).
-- `day0_anchors.csv` removed from `_RESULT_CSV_SCHEMAS` in [src/cag/io/results.py](../src/cag/io/results.py).
-- `day0_anchors.csv` hydration block and the `agent.day0_anchors = {}` reset line removed from [src/cag/io/checkpoint.py](../src/cag/io/checkpoint.py).
+- Post-`_run_day0` compression loop removed from [src/cag/abm/sim.py](../../src/cag/abm/sim.py).
+- `day0_anchors.csv` removed from `_RESULT_CSV_SCHEMAS` in [src/cag/io/results.py](../../src/cag/io/results.py).
+- `day0_anchors.csv` hydration block and the `agent.day0_anchors = {}` reset line removed from [src/cag/io/checkpoint.py](../../src/cag/io/checkpoint.py).
 - `_section_day0_anchor()` simplified to read `survey_reasoning.get(target_policy_id, [])` directly.
 
 **Effect:** one fewer LLM call per agent at Day 0 (n=100 agents × 6 policies → ~600 calls saved per run); the §2 text is now provably the same string the agent wrote during the Day-0 rationale step.
@@ -2301,7 +2301,7 @@ The pre-v2 architecture had `compress_day0_anchor()` re-summarise the Day-0 rati
 
 ### 28.5 Test coverage and ordering invariants
 
-[tests/test_memory.py](../tests/test_memory.py) covers:
+[tests/test_memory.py](../../tests/test_memory.py) covers:
 
 - `TestSectionOrder` — every legal combination of populated sections renders the six in the canonical order; missing sections are skipped (no blank lines, no orphan headers).
 - `TestDay0AnchorSection` — §2 is always sourced from `survey_reasoning[target_policy_id][0]` (the Day-0 entry), is target-scoped (one policy's anchor, not all six), and is verbatim.
@@ -2324,11 +2324,11 @@ A small cluster of operational cleanups landed in the same v0.8 cycle as the ref
 
 ### 29.1 Dead `SIM_CONFIG["output_dir"]` removed
 
-The key was never consumed. [src/cag/__main__.py](../src/cag/__main__.py) reads `--outdir` (default `data/output/experiments`) and passes it directly to `save_results(output_dir=…)`. Removed from `SIM_CONFIG` in [src/cag/abm/sim.py](../src/cag/abm/sim.py), from `_base_config()` in [tests/test_checkpoint.py](../tests/test_checkpoint.py), and from [notebooks/32_v06_outputs_smoke.ipynb](../notebooks/32_v06_outputs_smoke.ipynb) (which has a `set(config) == set(SIM_CONFIG)` parity assertion). `SIM_CONFIG` now has 33 keys (was 34). Not in `_RESUME_HARD_KEYS` or `_RESUME_SOFT_KEYS`, so resume contracts are unaffected.
+The key was never consumed. [src/cag/__main__.py](../../src/cag/__main__.py) reads `--outdir` (default `data/output/experiments`) and passes it directly to `save_results(output_dir=…)`. Removed from `SIM_CONFIG` in [src/cag/abm/sim.py](../../src/cag/abm/sim.py), from `_base_config()` in [tests/test_checkpoint.py](../../tests/test_checkpoint.py), and from [notebooks/32_v06_outputs_smoke.ipynb](../../notebooks/32_v06_outputs_smoke.ipynb) (which has a `set(config) == set(SIM_CONFIG)` parity assertion). `SIM_CONFIG` now has 33 keys (was 34). Not in `_RESUME_HARD_KEYS` or `_RESUME_SOFT_KEYS`, so resume contracts are unaffected.
 
 ### 29.2 Network-type-aware `[peer]` config-log line
 
-`_log_experiment_config()` in [src/cag/abm/sim.py](../src/cag/abm/sim.py) previously printed `[peer] k_peers_per_day=K  network_type=T  p_intra=X  p_inter=Y` — but `p_intra` / `p_inter` are SBM-only legacy flat keys, misleading for `watts_strogatz` (`k`, `beta`), `barabasi_albert` (`m`), `erdos_renyi` (`p`), or `homophily_weighted` (`scale`, `threshold`, `attributes`). The line now renders the resolved params dict via `_resolve_network_params(cfg)`:
+`_log_experiment_config()` in [src/cag/abm/sim.py](../../src/cag/abm/sim.py) previously printed `[peer] k_peers_per_day=K  network_type=T  p_intra=X  p_inter=Y` — but `p_intra` / `p_inter` are SBM-only legacy flat keys, misleading for `watts_strogatz` (`k`, `beta`), `barabasi_albert` (`m`), `erdos_renyi` (`p`), or `homophily_weighted` (`scale`, `threshold`, `attributes`). The line now renders the resolved params dict via `_resolve_network_params(cfg)`:
 
 ```
 [peer] k_peers_per_day=K  network_type=stochastic_block  params={p_intra=0.15, p_inter=0.05}
@@ -2342,11 +2342,11 @@ Future network types added to `NETWORK_TYPES` automatically render correctly —
 
 ### 29.3 AIRE Quickstart §6 first-time-model-download callout
 
-[docs/AIRE_Quickstart.md](../docs/AIRE_Quickstart.md) §6 ("First real experiment — split50 Run-14") gained a `> **Important — first-time model download.**` blockquote between the wall-clock estimate and the `sbatch --time=06:00:00` example. Explains that the first submission with a model not yet in the Hugging Face cache can exceed the **1500 s** vLLM-readiness wait baked into `scripts/aire/run.sh`, and recommends `--time=06:00:00` on that first submission. Subsequent runs warm from cache in <2 min and the standard wall-clock is fine.
+[docs/AIRE_Quickstart.md](https://github.com/compolis/Climate-Action-GABM/blob/main/documentation/guides/AIRE_Quickstart.md) §6 ("First real experiment — split50 Run-14") gained a `> **Important — first-time model download.**` blockquote between the wall-clock estimate and the `sbatch --time=06:00:00` example. Explains that the first submission with a model not yet in the Hugging Face cache can exceed the **1500 s** vLLM-readiness wait baked into `scripts/aire/run.sh`, and recommends `--time=06:00:00` on that first submission. Subsequent runs warm from cache in <2 min and the standard wall-clock is fine.
 
 ### 29.4 Code Tour — researcher onboarding doc
 
-[docs/Code_Tour.md](../docs/Code_Tour.md) is a new ~25-page walkthrough of `src/cag/` aimed at a newcomer who knows the science but has not opened the source code. Structure:
+[docs/Code_Tour.md](https://github.com/compolis/Climate-Action-GABM/blob/main/documentation/guides/Code_Tour.md) is a new ~25-page walkthrough of `src/cag/` aimed at a newcomer who knows the science but has not opened the source code. Structure:
 
 - **A. Audience + conventions.**
 - **B. 30-minute skim sequence** — five files in order (`__main__.py` → `presets.py` → `sim.py` → `agent.py` → `io/results.py`).
@@ -2356,11 +2356,11 @@ Future network types added to `NETWORK_TYPES` automatically render correctly —
 - **F. Glossary** — 11 terms (PACKAGE_SCOPE, debias, day0_anchor modes, reach_*, audience_cap, political_exposure_mode, affinity_weights, thinking, P-A/P-B/C, package mode, vivid window / gist memory).
 - **G. AIRE pre-flight checklist** — 10 copy-pasteable steps plus 4 common pitfalls.
 
-The doc is model-agnostic; it does not assume the reader will use any particular provider. It pairs with [docs/AIRE_Quickstart.md](../docs/AIRE_Quickstart.md) for HPC submission and [docs/USER_GUIDE.md](../USER_GUIDE.md) for the canonical research config.
+The doc is model-agnostic; it does not assume the reader will use any particular provider. It pairs with [docs/AIRE_Quickstart.md](https://github.com/compolis/Climate-Action-GABM/blob/main/documentation/guides/AIRE_Quickstart.md) for HPC submission and [docs/USER_GUIDE.md](../../USER_GUIDE.md) for the canonical research config.
 
 ### 29.5 NB 34 v2-memory smoke
 
-[notebooks/34_memory_v2_smoke.ipynb](../notebooks/34_memory_v2_smoke.ipynb) is a paired smoke for v0.8 §28: end-to-end run with the v2 6-section context order, asserting that §2 reads verbatim from `survey_reasoning`, §3 + §4 respect the `policy_id` filter, and §5 + §6 are target-scoped. The notebook is configured for local Qwen3-8B-4bit (`provider="local"`). Local Apple-Silicon throughput proved too low on this laptop for a Day-0 survey on n=10 agents in a reasonable time; AIRE re-run is the planned path. The notebook's diagnostic cells are valid regardless of LLM backend.
+[notebooks/34_memory_v2_smoke.ipynb](../../notebooks/34_memory_v2_smoke.ipynb) is a paired smoke for v0.8 §28: end-to-end run with the v2 6-section context order, asserting that §2 reads verbatim from `survey_reasoning`, §3 + §4 respect the `policy_id` filter, and §5 + §6 are target-scoped. The notebook is configured for local Qwen3-8B-4bit (`provider="local"`). Local Apple-Silicon throughput proved too low on this laptop for a Day-0 survey on n=10 agents in a reasonable time; AIRE re-run is the planned path. The notebook's diagnostic cells are valid regardless of LLM backend.
 
 ---
 
@@ -2368,11 +2368,11 @@ The doc is model-agnostic; it does not assume the reader will use any particular
 
 ### 30.1 Motivation
 
-§28 hard-wired the six-section context order and a fixed 2-day verbatim window. Runs plateau after Day 1: agents lock in and stop moving (see [result_report.md](result_report.md) — a Day-0→Day-1 jump then a flat trajectory). The suspected drivers are all *memory* mechanisms — the Day-0 anchor never leaves (§2 is re-stated at every step as a persistent identity tether), and §5 re-injects the agent's own prior survey reasoning (a self-consistency cue). To test which mechanism causes the lock-in, a researcher needs to ablate the sections **one at a time** — remove the anchor, retire it after N days, shrink or widen the verbatim window — without editing `agent.py`. This section lifts the hard-wired pipeline into a single declarative config so social scientists can run these ablations from `SIM_CONFIG` or the CLI. **The default config reproduces the §28 behaviour bit-for-bit** (guarded by the existing [tests/test_memory.py](../tests/test_memory.py), which becomes the golden suite).
+§28 hard-wired the six-section context order and a fixed 2-day verbatim window. Runs plateau after Day 1: agents lock in and stop moving (see [result_report.md](result_report.md) — a Day-0→Day-1 jump then a flat trajectory). The suspected drivers are all *memory* mechanisms — the Day-0 anchor never leaves (§2 is re-stated at every step as a persistent identity tether), and §5 re-injects the agent's own prior survey reasoning (a self-consistency cue). To test which mechanism causes the lock-in, a researcher needs to ablate the sections **one at a time** — remove the anchor, retire it after N days, shrink or widen the verbatim window — without editing `agent.py`. This section lifts the hard-wired pipeline into a single declarative config so social scientists can run these ablations from `SIM_CONFIG` or the CLI. **The default config reproduces the §28 behaviour bit-for-bit** (guarded by the existing [tests/test_memory.py](../../tests/test_memory.py), which becomes the golden suite).
 
 ### 30.2 A dedicated `config/` subpackage (org decision)
 
-The repo has two distinct kinds of configuration. **Run bundles** ([src/cag/presets.py](../src/cag/presets.py) `RUN_BUNDLE_PRESETS`, applied via `--preset`) are coarse `SIM_CONFIG` override bundles that compose a whole named experiment. **Subsystem vocabularies** — the exposure target marginals / affinity weights, and now the memory config — are the *named building blocks* that a single `SIM_CONFIG` key points at. These do not belong in `presets.py` (wrong layer) or buried inside the large consumer modules. They now live in [src/cag/abm/config/](../src/cag/abm/config/), one module per subsystem, each with the shared shape:
+The repo has two distinct kinds of configuration. **Run bundles** ([src/cag/presets.py](../../src/cag/presets.py) `RUN_BUNDLE_PRESETS`, applied via `--preset`) are coarse `SIM_CONFIG` override bundles that compose a whole named experiment. **Subsystem vocabularies** — the exposure target marginals / affinity weights, and now the memory config — are the *named building blocks* that a single `SIM_CONFIG` key points at. These do not belong in `presets.py` (wrong layer) or buried inside the large consumer modules. They now live in [src/cag/abm/config/](../../src/cag/abm/config), one module per subsystem, each with the shared shape:
 
 ```
 DEFAULT_*        # the default config
@@ -2381,12 +2381,12 @@ resolve_*(spec)  # None | preset-name | literal dict -> validated dict
 validate_*(cfg)  # raise ValueError on an incoherent config
 ```
 
-- [config/exposure.py](../src/cag/abm/config/exposure.py) — the exposure target/weight vocabularies **relocated out of** `environment.py` (which keeps the affinity *scoring/assignment* logic and re-exports every public name for backward compatibility, so `from cag.abm.environment import TARGET_PRESETS` keeps working). This resolved the long-standing complaint that the exposure targets were buried in `environment.py`.
-- [config/memory.py](../src/cag/abm/config/memory.py) — the new memory schema described below.
+- [config/exposure.py](../../src/cag/abm/config/exposure.py) — the exposure target/weight vocabularies **relocated out of** `environment.py` (which keeps the affinity *scoring/assignment* logic and re-exports every public name for backward compatibility, so `from cag.abm.environment import TARGET_PRESETS` keeps working). This resolved the long-standing complaint that the exposure targets were buried in `environment.py`.
+- [config/memory.py](../../src/cag/abm/config/memory.py) — the new memory schema described below.
 
 ### 30.3 The memory config schema
 
-`DEFAULT_MEMORY_CONFIG` in [config/memory.py](../src/cag/abm/config/memory.py):
+`DEFAULT_MEMORY_CONFIG` in [config/memory.py](../../src/cag/abm/config/memory.py):
 
 ```python
 {
@@ -2415,7 +2415,7 @@ The "last 2 days" constant previously appeared in **four** places that must agre
 3. §3 daily summaries cover the *compressed* remainder `d < d-W+1`;
 4. `manage_memory` compresses day `d-W` once `day > W`.
 
-Exposing four independent per-section windows would be a footgun. Instead there is **one** knob, `verbatim_window_days` (W), and all four call sites derive from three helpers in [config/memory.py](../src/cag/abm/config/memory.py) — the single source of truth:
+Exposing four independent per-section windows would be a footgun. Instead there is **one** knob, `verbatim_window_days` (W), and all four call sites derive from three helpers in [config/memory.py](../../src/cag/abm/config/memory.py) — the single source of truth:
 
 | Helper | Meaning |
 | --- | --- |
@@ -2443,7 +2443,7 @@ Exposing four independent per-section windows would be a footgun. Instead there 
 
 ### 30.6 Per-stage overrides
 
-`assemble_context(day, policy_id, target_policy_id, stage="survey")` and `get_system_prompt(..., stage=...)` gained a `stage` parameter. `resolve_stage_memory(cfg, stage)` deep-merges `cfg["stages"][stage]` over the global sections, so a section can differ per prompt stage (e.g. drop the anchor at survey time while keeping it during peer messaging). The three stages and their call sites in [src/cag/abm/agent.py](../src/cag/abm/agent.py):
+`assemble_context(day, policy_id, target_policy_id, stage="survey")` and `get_system_prompt(..., stage=...)` gained a `stage` parameter. `resolve_stage_memory(cfg, stage)` deep-merges `cfg["stages"][stage]` over the global sections, so a section can differ per prompt stage (e.g. drop the anchor at survey time while keeping it during peer messaging). The three stages and their call sites in [src/cag/abm/agent.py](../../src/cag/abm/agent.py):
 
 - `"reflection"` — `receive_political_message`, `receive_peer_messages`, and their package variants;
 - `"peer_message"` — `generate_peer_message`, `generate_package_peer_message`;
@@ -2451,21 +2451,21 @@ Exposing four independent per-section windows would be a footgun. Instead there 
 
 ### 30.7 Wiring, resume, and CLI
 
-- `SIM_CONFIG["memory"] = "default"` in [src/cag/abm/sim.py](../src/cag/abm/sim.py). `_resolve_runtime` resolves + validates it into `rt["memory_cfg"]`; `run()` deep-copies it onto every `nation.agents_active` agent's `agent.memory_cfg` before the day loop (per-agent copy so agents never share/mutate one object).
-- `"memory"` is added to `_RESUME_HARD_KEYS` in [src/cag/io/checkpoint.py](../src/cag/io/checkpoint.py): the verbatim window determines which days get compressed into `daily_summaries`, so changing it mid-run would make the stored summaries inconsistent with the resumed config.
-- New `--memory` CLI flag in [src/cag/__main__.py](../src/cag/__main__.py) (via `_maybe_json`): accepts either a preset name (`--memory short_memory`) or a literal JSON dict (`--memory '{"verbatim_window_days": 3}'`), mapping directly to `SIM_CONFIG["memory"]`.
+- `SIM_CONFIG["memory"] = "default"` in [src/cag/abm/sim.py](../../src/cag/abm/sim.py). `_resolve_runtime` resolves + validates it into `rt["memory_cfg"]`; `run()` deep-copies it onto every `nation.agents_active` agent's `agent.memory_cfg` before the day loop (per-agent copy so agents never share/mutate one object).
+- `"memory"` is added to `_RESUME_HARD_KEYS` in [src/cag/io/checkpoint.py](../../src/cag/io/checkpoint.py): the verbatim window determines which days get compressed into `daily_summaries`, so changing it mid-run would make the stored summaries inconsistent with the resumed config.
+- New `--memory` CLI flag in [src/cag/__main__.py](../../src/cag/__main__.py) (via `_maybe_json`): accepts either a preset name (`--memory short_memory`) or a literal JSON dict (`--memory '{"verbatim_window_days": 3}'`), mapping directly to `SIM_CONFIG["memory"]`.
 
 ### 30.8 Test coverage
 
-- [tests/test_memory_config.py](../tests/test_memory_config.py) (new) — schema/preset resolution, deep-merge, validation rejections, per-stage resolution, and the window helpers incl. the partition property test.
-- [tests/test_memory.py](../tests/test_memory.py) `TestMemoryConfigToggles` (new) — every non-default toggle: persona/anchor/own-reasoning disabled, `anchor_ttl2` retirement, `short_memory`/`wide_memory` windows, `manage_memory` respecting W, `no_compression`, `opinion_trajectory` on/off, and a per-stage override. The rest of `test_memory.py` (unchanged) is the golden suite proving the default reproduces §28.
-- [tests/test_sim.py](../tests/test_sim.py) / [tests/test_cli.py](../tests/test_cli.py) — `memory` resolution in `_resolve_runtime`, invalid-preset failure, `"memory"` in `_RESUME_HARD_KEYS`, and the `--memory` flag (preset name + JSON dict + absent-when-unset).
+- [tests/test_memory_config.py](../../tests/test_memory_config.py) (new) — schema/preset resolution, deep-merge, validation rejections, per-stage resolution, and the window helpers incl. the partition property test.
+- [tests/test_memory.py](../../tests/test_memory.py) `TestMemoryConfigToggles` (new) — every non-default toggle: persona/anchor/own-reasoning disabled, `anchor_ttl2` retirement, `short_memory`/`wide_memory` windows, `manage_memory` respecting W, `no_compression`, `opinion_trajectory` on/off, and a per-stage override. The rest of `test_memory.py` (unchanged) is the golden suite proving the default reproduces §28.
+- [tests/test_sim.py](../../tests/test_sim.py) / [tests/test_cli.py](../../tests/test_cli.py) — `memory` resolution in `_resolve_runtime`, invalid-preset failure, `"memory"` in `_RESUME_HARD_KEYS`, and the `--memory` flag (preset name + JSON dict + absent-when-unset).
 
 Test suite: **610 passed, 1 skipped** (was 552 at the start of this cycle).
 
 ### 30.9 NB 35 memory-ablation demo
 
-[notebooks/35_memory_ablation_demo.ipynb](../notebooks/35_memory_ablation_demo.ipynb) demonstrates the config surface offline (no LLM calls): it resolves several presets, prints the resulting configs, and shows how one agent's `assemble_context()` output changes across `default` / `no_anchor` / `short_memory` / `anchor_ttl2`, making the ablation knobs concrete for researchers.
+[notebooks/35_memory_ablation_demo.ipynb](../../notebooks/35_memory_ablation_demo.ipynb) demonstrates the config surface offline (no LLM calls): it resolves several presets, prints the resulting configs, and shows how one agent's `assemble_context()` output changes across `default` / `no_anchor` / `short_memory` / `anchor_ttl2`, making the ablation knobs concrete for researchers.
 
 ---
 
@@ -2477,7 +2477,7 @@ Every result the model produces rests on one unstated assumption: that each agen
 
 ### 31.2 The three arms
 
-`SurveyedNation.apply_persona_mode(mode, seed)` in [src/cag/abm/environment.py](../src/cag/abm/environment.py) rewrites every active citizen's persona under one of `VALID_PERSONA_MODES = ("real", "shuffled", "neutral")`:
+`SurveyedNation.apply_persona_mode(mode, seed)` in [src/cag/abm/environment.py](../../src/cag/abm/environment.py) rewrites every active citizen's persona under one of `VALID_PERSONA_MODES = ("real", "shuffled", "neutral")`:
 
 - **`real`** — no change; each agent keeps its own persona. Bit-for-bit identical to prior canon (the method returns an identity map and writes no override), so the golden test suites are preserved.
 - **`shuffled`** — each agent is given *another* agent's whole persona verbatim, via `persona_override`. The permutation is a **derangement** (no agent keeps its own slot) when `n > 1`, drawn with `random.Random(seed)` and re-rolled up to 1000 times, with a deterministic no-fixed-point fallback (`[1, 2, …, n-1, 0]`). Each agent therefore still reasons as a coherent real UK person — just the wrong one — which isolates *mismatch* from *absence*.
@@ -2487,23 +2487,23 @@ Every result the model produces rests on one unstated assumption: that each agen
 
 ### 31.3 Mechanism
 
-The override lives on the agent. [src/cag/abm/agent.py](../src/cag/abm/agent.py) adds `SurveyedCitizen.persona_override` (default `None`) and a hook in `get_persona()` that returns the override string when set, otherwise builds the persona as before. Because every context-assembly path funnels through `get_persona()`, a single override propagates to persona reminders, survey prompts, peer messages, and reflections without touching any call site.
+The override lives on the agent. [src/cag/abm/agent.py](../../src/cag/abm/agent.py) adds `SurveyedCitizen.persona_override` (default `None`) and a hook in `get_persona()` that returns the override string when set, otherwise builds the persona as before. Because every context-assembly path funnels through `get_persona()`, a single override propagates to persona reminders, survey prompts, peer messages, and reflections without touching any call site.
 
 ### 31.4 Wiring, audit trail, and resume
 
-- [src/cag/abm/sim.py](../src/cag/abm/sim.py): new `SIM_CONFIG["persona_mode"] = "real"` (34 keys total) and a module-level `VALID_PERSONA_MODES` mirroring the environment. `_resolve_runtime` validates the value; `run_simulation` calls `nation.apply_persona_mode(persona_mode, seed=cfg["random_seed"])` alongside the other audience manipulations (reach subsample, audience cap) so it runs on **both** the fresh and resume paths and is captured in the audit trail. The returned map is stored as `nation.persona_map`.
-- [src/cag/io/results.py](../src/cag/io/results.py): new `_RESULT_CSV_SCHEMAS["persona_map"] = ["agent_id", "source_agent_id", "persona_mode"]` → `persona_map.csv`. It is a final-output-only artefact (listed in `_CHECKPOINT_SKIP_KEYS`) recording, for every agent, whose persona it carried (`itself` for `real`, another agent for `shuffled`, the sentinel `"NEUTRAL"` for `neutral`).
-- [src/cag/io/checkpoint.py](../src/cag/io/checkpoint.py): `persona_mode` is added to `_RESUME_HARD_KEYS` — changing the arm mid-run would make the resumed half incomparable with the first.
+- [src/cag/abm/sim.py](../../src/cag/abm/sim.py): new `SIM_CONFIG["persona_mode"] = "real"` (34 keys total) and a module-level `VALID_PERSONA_MODES` mirroring the environment. `_resolve_runtime` validates the value; `run_simulation` calls `nation.apply_persona_mode(persona_mode, seed=cfg["random_seed"])` alongside the other audience manipulations (reach subsample, audience cap) so it runs on **both** the fresh and resume paths and is captured in the audit trail. The returned map is stored as `nation.persona_map`.
+- [src/cag/io/results.py](../../src/cag/io/results.py): new `_RESULT_CSV_SCHEMAS["persona_map"] = ["agent_id", "source_agent_id", "persona_mode"]` → `persona_map.csv`. It is a final-output-only artefact (listed in `_CHECKPOINT_SKIP_KEYS`) recording, for every agent, whose persona it carried (`itself` for `real`, another agent for `shuffled`, the sentinel `"NEUTRAL"` for `neutral`).
+- [src/cag/io/checkpoint.py](../../src/cag/io/checkpoint.py): `persona_mode` is added to `_RESUME_HARD_KEYS` — changing the arm mid-run would make the resumed half incomparable with the first.
 
 ### 31.5 CLI, preset, and sweep
 
-- [src/cag/__main__.py](../src/cag/__main__.py): new `--persona-mode {real,shuffled,neutral}` flag.
-- [src/cag/presets.py](../src/cag/presets.py): new `tierP` bundle — 100 agents, a single empty-phase Day-0-only day (`days=[{"phases": []}]`, no broadcasts or peer messaging), package mode, `day0_anchor="llm_survey"` so each Day-0 opinion is a pure function of *(persona + policy question)*, and `memory="persona_only"` to remove cross-policy leakage. It deliberately does **not** pin a model (AIRE's `run.sh` forces `--model $HF_MODEL`; Mac uses the `SIM_CONFIG` default). The arm is chosen with `--persona-mode` and the shuffle permutation is varied with `--seed`.
-- [scripts/aire/sweeps/tierP.txt](../scripts/aire/sweeps/tierP.txt): 9 lines — the three arms × seeds 42/43/44.
+- [src/cag/__main__.py](../../src/cag/__main__.py): new `--persona-mode {real,shuffled,neutral}` flag.
+- [src/cag/presets.py](../../src/cag/presets.py): new `tierP` bundle — 100 agents, a single empty-phase Day-0-only day (`days=[{"phases": []}]`, no broadcasts or peer messaging), package mode, `day0_anchor="llm_survey"` so each Day-0 opinion is a pure function of *(persona + policy question)*, and `memory="persona_only"` to remove cross-policy leakage. It deliberately does **not** pin a model (AIRE's `run.sh` forces `--model $HF_MODEL`; Mac uses the `SIM_CONFIG` default). The arm is chosen with `--persona-mode` and the shuffle permutation is varied with `--seed`.
+- [scripts/aire/sweeps/tierP.txt](../../scripts/aire/sweeps/tierP.txt): 9 lines — the three arms × seeds 42/43/44.
 
 ### 31.6 Test coverage
 
-New [tests/test_persona_mode.py](../tests/test_persona_mode.py) (20 tests): the `persona_override` hook (set / clear / precedence over `get_persona`), all three modes, the derangement property (no fixed point for `n > 1`), the ground-truth-untouched invariant, the persona-map shape and sentinel values, and the CLI + resume plumbing. Suite: **638 passed, 1 skipped** after this stage (was 610 at the end of v0.8). The persona-null demo notebook is deferred until AIRE `tierP` run directories return.
+New [tests/test_persona_mode.py](../../tests/test_persona_mode.py) (20 tests): the `persona_override` hook (set / clear / precedence over `get_persona`), all three modes, the derangement property (no fixed point for `n > 1`), the ground-truth-untouched invariant, the persona-map shape and sentinel values, and the CLI + resume plumbing. Suite: **638 passed, 1 skipped** after this stage (was 610 at the end of v0.8). The persona-null demo notebook is deferred until AIRE `tierP` run directories return.
 
 ---
 
@@ -2515,7 +2515,7 @@ New [tests/test_persona_mode.py](../tests/test_persona_mode.py) (20 tests): the 
 
 ### 32.2 `build_days` and the three flags
 
-[src/cag/__main__.py](../src/cag/__main__.py) adds `build_days(n_days, broadcasts_a=1, broadcasts_b=1, interleave=True)`, which builds each day via `make_phases(broadcasts_a, broadcasts_b, peer=True, interleave=interleave, a_first=(i % 2 == 0))`. The `a_first` alternation preserves the long-standing convention that neither side always speaks first before the evening survey. Three argparse flags feed it:
+[src/cag/__main__.py](../../src/cag/__main__.py) adds `build_days(n_days, broadcasts_a=1, broadcasts_b=1, interleave=True)`, which builds each day via `make_phases(broadcasts_a, broadcasts_b, peer=True, interleave=interleave, a_first=(i % 2 == 0))`. The `a_first` alternation preserves the long-standing convention that neither side always speaks first before the evening survey. Three argparse flags feed it:
 
 - `--broadcasts-a N` / `--broadcasts-b M` (`type=int`, default 1/1) — each politician's daily broadcast count.
 - `--interleave` / `--no-interleave` (`BooleanOptionalAction`, default on) — alternating (`A,B,A,…`) vs block (`A,A,…,B`) ordering. Only matters when the two counts differ.
@@ -2534,7 +2534,7 @@ Peer chat (`C`) is always appended by `make_phases(peer=True)`; disable it with 
 
 ### 32.4 Test coverage
 
-New `TestBroadcastFrequency` in [tests/test_cli.py](../tests/test_cli.py) (9 tests): symmetric-default unchanged, interleave-irrelevant-when-symmetric, asymmetric block vs interleave expansion, `build_config` popping the knobs, default symmetric, flag parsing, absent-when-unset, and a live dry-run over an asymmetric schedule.
+New `TestBroadcastFrequency` in [tests/test_cli.py](../../tests/test_cli.py) (9 tests): symmetric-default unchanged, interleave-irrelevant-when-symmetric, asymmetric block vs interleave expansion, `build_config` popping the knobs, default symmetric, flag parsing, absent-when-unset, and a live dry-run over an asymmetric schedule.
 
 ---
 
@@ -2542,7 +2542,7 @@ New `TestBroadcastFrequency` in [tests/test_cli.py](../tests/test_cli.py) (9 tes
 
 ### 33.1 Motivation
 
-The affinity-weight presets in [src/cag/abm/config/exposure.py](../src/cag/abm/config/exposure.py) had accumulated ad-hoc per-signal values that were hard to explain to a reader. §18 established that the weights only ever *order* citizens before the rank assignment slices them into the target audience cells, so the exact magnitudes matter only through their ratios. v0.9 rationalises them into an explainable factor-2 three-tier ladder.
+The affinity-weight presets in [src/cag/abm/config/exposure.py](../../src/cag/abm/config/exposure.py) had accumulated ad-hoc per-signal values that were hard to explain to a reader. §18 established that the weights only ever *order* citizens before the rank assignment slices them into the target audience cells, so the exact magnitudes matter only through their ratios. v0.9 rationalises them into an explainable factor-2 three-tier ladder.
 
 ### 33.2 The ladder
 
@@ -2563,11 +2563,11 @@ Anchors: Fletcher & Nielsen (2017) on the primacy of partisan/political identity
 
 ### 33.3 NB 27 drift caveat
 
-NB 27 ([notebooks/27_affinity_exposure_demo.ipynb](../notebooks/27_affinity_exposure_demo.ipynb)) reported preset-agreement percentages (balanced↔vote_dominant 84.2%, ↔values_dominant 78.2%, vote↔values 65.8%) measured against the *old* weights. Those figures no longer match the shipped three-tier presets. NB 27 is left untouched as a historical v0.5 pilot and is **not** re-run this cycle; re-measuring the agreement percentages against the new ladder is on the v0.9 carry-forward backlog.
+NB 27 ([notebooks/27_affinity_exposure_demo.ipynb](../../notebooks/27_affinity_exposure_demo.ipynb)) reported preset-agreement percentages (balanced↔vote_dominant 84.2%, ↔values_dominant 78.2%, vote↔values 65.8%) measured against the *old* weights. Those figures no longer match the shipped three-tier presets. NB 27 is left untouched as a historical v0.5 pilot and is **not** re-run this cycle; re-measuring the agreement percentages against the new ladder is on the v0.9 carry-forward backlog.
 
 ### 33.4 AIRE run labels
 
-[scripts/aire/run.sh](../scripts/aire/run.sh) now honours an optional `RUN_LABEL` environment variable on fresh runs: `SUFFIX="${RUN_LABEL:+_${RUN_LABEL}}"` is appended to the scratch output directory (`OUTDIR="$SCRATCH/cag/runs/run_${SLURM_JOB_ID}${SUFFIX}"`), with a banner echo. Sweep jobs therefore land in self-describing folders, e.g. `RUN_LABEL=split50_freq3v1 sbatch scripts/aire/run.sh …` → `run_1234567_split50_freq3v1`. Resume runs (which read an existing `OUTDIR`) are unaffected.
+[scripts/aire/run.sh](../../scripts/aire/run.sh) now honours an optional `RUN_LABEL` environment variable on fresh runs: `SUFFIX="${RUN_LABEL:+_${RUN_LABEL}}"` is appended to the scratch output directory (`OUTDIR="$SCRATCH/cag/runs/run_${SLURM_JOB_ID}${SUFFIX}"`), with a banner echo. Sweep jobs therefore land in self-describing folders, e.g. `RUN_LABEL=split50_freq3v1 sbatch scripts/aire/run.sh …` → `run_1234567_split50_freq3v1`. Resume runs (which read an existing `OUTDIR`) are unaffected.
 
 ---
 
@@ -2579,7 +2579,7 @@ NB 27 ([notebooks/27_affinity_exposure_demo.ipynb](../notebooks/27_affinity_expo
 
 ### 34.2 The four modes
 
-`SurveyedNation.apply_reach_subsample(..., targeting_a, targeting_b)` in [environment.py](../src/cag/abm/environment.py) accepts, per side, one of:
+`SurveyedNation.apply_reach_subsample(..., targeting_a, targeting_b)` in [environment.py](../../src/cag/abm/environment.py) accepts, per side, one of:
 
 | Mode | Keeps the `floor(reach·n)` audience members with… | Models |
 |---|---|---|
@@ -2592,25 +2592,25 @@ All non-random modes hard-rank on the score and keep the top slice; a seeded per
 
 ### 34.3 Setup ordering
 
-Centrality is a property of the peer graph, so the graph must exist before reach is subsampled. `run_simulation` setup in [sim.py](../src/cag/abm/sim.py) was reordered: `create_network` → `assign_network_blocks` → `_auto_connect_components` (the §25 repair) now run **before** `apply_reach_subsample`, so degree/betweenness are computed on the final, repaired graph. The `random` and `persuadable` arms use their own seeded RNG / ground-truth scores and are unaffected by the reorder — verified bit-for-bit by the unchanged test suite.
+Centrality is a property of the peer graph, so the graph must exist before reach is subsampled. `run_simulation` setup in [sim.py](../../src/cag/abm/sim.py) was reordered: `create_network` → `assign_network_blocks` → `_auto_connect_components` (the §25 repair) now run **before** `apply_reach_subsample`, so degree/betweenness are computed on the final, repaired graph. The `random` and `persuadable` arms use their own seeded RNG / ground-truth scores and are unaffected by the reorder — verified bit-for-bit by the unchanged test suite.
 
 ### 34.4 Configuration and wiring
 
-New `SIM_CONFIG["reach_targeting_a"]` / `["reach_targeting_b"]` (default `"random"`), validated in `run_simulation`; `--reach-targeting-a/-b` CLI flags ([__main__.py](../src/cag/__main__.py)); both are `_RESUME_HARD_KEYS` ([checkpoint.py](../src/cag/io/checkpoint.py)) since they change the audience. Because centrality does not discriminate on `|GT|` and persuadability does not discriminate on degree, the same reach budget selects genuinely different audiences (NB 42: at reach 0.4, persuadable kept mean `|GT|` 0.89 vs 2.04 dropped; degree kept mean degree 9.17 vs 3.67). Targeting only bites at `reach < 1.0`, and the random-vs-targeted gap is widest at moderate reach.
+New `SIM_CONFIG["reach_targeting_a"]` / `["reach_targeting_b"]` (default `"random"`), validated in `run_simulation`; `--reach-targeting-a/-b` CLI flags ([__main__.py](../../src/cag/__main__.py)); both are `_RESUME_HARD_KEYS` ([checkpoint.py](../../src/cag/io/checkpoint.py)) since they change the audience. Because centrality does not discriminate on `|GT|` and persuadability does not discriminate on degree, the same reach budget selects genuinely different audiences (NB 42: at reach 0.4, persuadable kept mean `|GT|` 0.89 vs 2.04 dropped; degree kept mean degree 9.17 vs 3.67). Targeting only bites at `reach < 1.0`, and the random-vs-targeted gap is widest at moderate reach.
 
 ## 35. v0.9 observability layer and diagnostic figures (2026-07-05)
 
 ### 35.1 Full prompt capture — `agent_prompts.csv`
 
-A new `SurveyedCitizen._chat()` wrapper ([agent.py](../src/cag/abm/agent.py)) routes every persona-facing `send_chat` call (seed rationale, both survey steps, broadcast + peer reflections, peer-message generation — single and package variants) and, when the agent is flagged for capture, records the exact `(system_prompt, user_prompt, response)` triple. To keep the file bounded regardless of `n_citizens`, capture is **gated to a stratified sample of one agent per exposure bucket** (or an explicit `timeline_sample_agent_ids`), resolved once in `run_simulation` and shared with `agent_timeline`. This is the definitive "everything the agent saw" audit surface; NB 43 walks one agent's trail stage by stage. `agent_prompts.csv` is final-output only (`_CHECKPOINT_SKIP_KEYS`).
+A new `SurveyedCitizen._chat()` wrapper ([agent.py](../../src/cag/abm/agent.py)) routes every persona-facing `send_chat` call (seed rationale, both survey steps, broadcast + peer reflections, peer-message generation — single and package variants) and, when the agent is flagged for capture, records the exact `(system_prompt, user_prompt, response)` triple. To keep the file bounded regardless of `n_citizens`, capture is **gated to a stratified sample of one agent per exposure bucket** (or an explicit `timeline_sample_agent_ids`), resolved once in `run_simulation` and shared with `agent_timeline`. This is the definitive "everything the agent saw" audit surface; NB 43 walks one agent's trail stage by stage. `agent_prompts.csv` is final-output only (`_CHECKPOINT_SKIP_KEYS`).
 
 ### 35.2 Reached-audience flags and cross-run tables
 
-The *structural* exposure bucket is not the same as *who was actually reached* once `reach < 1` and targeting apply, so `agent_attributes.csv` gains per-agent `reached_by_a` / `reached_by_b` booleans (post-subsample audience membership) — the basis for treatment-on-treated and targeting analysis. Two new tables are built in [aggregators.py](../src/cag/io/aggregators.py): `bucket_summary.csv` (one row per run × bucket: n, Day-0 GT mean, end mean, drift, MAE, rank ρ, reached counts — deliberately shaped as the **cross-run aggregation seed** so many run directories concatenate into a dose-response), and `targeting_diagnostics.csv` (per side: mode, reach, reached-vs-dropped mean `|GT|`). The heavy `survey_assembled_context.csv` — written for every agent though only the sampled rows are consumed by the timeline — is now gated to the same sample at collection time, so it scales with the ~4-agent sample rather than `n_citizens`.
+The *structural* exposure bucket is not the same as *who was actually reached* once `reach < 1` and targeting apply, so `agent_attributes.csv` gains per-agent `reached_by_a` / `reached_by_b` booleans (post-subsample audience membership) — the basis for treatment-on-treated and targeting analysis. Two new tables are built in [aggregators.py](../../src/cag/io/aggregators.py): `bucket_summary.csv` (one row per run × bucket: n, Day-0 GT mean, end mean, drift, MAE, rank ρ, reached counts — deliberately shaped as the **cross-run aggregation seed** so many run directories concatenate into a dose-response), and `targeting_diagnostics.csv` (per side: mode, reach, reached-vs-dropped mean `|GT|`). The heavy `survey_assembled_context.csv` — written for every agent though only the sampled rows are consumed by the timeline — is now gated to the same sample at collection time, so it scales with the ~4-agent sample rather than `n_citizens`.
 
 ### 35.3 New diagnostic figures
 
-[plots.py](../src/cag/io/plots.py) `save_result_plots` gains eight figures: `opinion_trajectories_by_bucket`, `polarization`, `drift_from_gt`, `opinion_ridgeline` (Day-0→Day-N distribution joyplot), `network_before_after` (nodes coloured by opinion, sized by degree, reached nodes ringed), `targeting_mechanism` (reached-vs-unreached spillover), `reach_qc`, and `calibration_before_after`. The existing trajectory and by-bucket plots now render **Day 0 as a distinct anchor marker** — conditional on `day0_anchor` being a ground-truth mode, so an `llm_survey` Day 0 stays on the line — with 95 % CI ribbons, line markers, and per-bucket GT references.
+[plots.py](../../src/cag/io/plots.py) `save_result_plots` gains eight figures: `opinion_trajectories_by_bucket`, `polarization`, `drift_from_gt`, `opinion_ridgeline` (Day-0→Day-N distribution joyplot), `network_before_after` (nodes coloured by opinion, sized by degree, reached nodes ringed), `targeting_mechanism` (reached-vs-unreached spillover), `reach_qc`, and `calibration_before_after`. The existing trajectory and by-bucket plots now render **Day 0 as a distinct anchor marker** — conditional on `day0_anchor` being a ground-truth mode, so an `llm_survey` Day 0 stays on the line — with 95 % CI ribbons, line markers, and per-bucket GT references.
 
 ---
 

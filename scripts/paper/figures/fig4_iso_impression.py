@@ -4,7 +4,7 @@ Both arms pro-climate-dominant with MATCHED total impressions: breadth (reach
 0.5 x 2 broadcasts) vs depth (reach 0.25 x 4 broadcasts). Contrast = breadth -
 depth. Delta P > 0 => breadth (reach) beats depth (frequency) at equal
 impressions. 95% CI, per-seed dots. Whole population + hear-both-sides.
-Asserted against docs/result_report.md. Neutral labels only.
+Asserted against documentation/research/result_report.md. Neutral labels only.
 """
 from pathlib import Path
 import glob

@@ -18,7 +18,7 @@ This doc treats every Python file as a doorway: it tells you what the file is fo
 
 **Conventions:**
 
-- Function and constant names in `backticks`. File paths as Markdown links: [src/cag/abm/sim.py](../src/cag/abm/sim.py).
+- Function and constant names in `backticks`. File paths as Markdown links: [src/cag/abm/sim.py](../../src/cag/abm/sim.py).
 - "v2 memory" refers to the tiered-memory architecture rolled out 2026-06-22..23. Pre-v2 details are not covered.
 - Anywhere this doc says *Day 0*, that means the day the agent is seeded from the YouGov ground truth — before any broadcast or peer messaging. *Day 1* is the first day of real simulation.
 
@@ -28,11 +28,11 @@ This doc treats every Python file as a doorway: it tells you what the file is fo
 
 > **Five files, ~30 minutes, and you have the skeleton of the whole simulator.**
 >
-> 1. [src/cag/__main__.py](../src/cag/__main__.py) — *5 min.* How a researcher's `--flag` becomes a `SIM_CONFIG` key.
-> 2. [src/cag/presets.py](../src/cag/presets.py) — *3 min.* What a named run-bundle (e.g. `r14_canonical`) actually is.
-> 3. [src/cag/abm/sim.py](../src/cag/abm/sim.py) — *10 min.* `SIM_CONFIG` (~35 keys), `make_phases()`, the day loop in `_run_one_day` and `run_simulation`.
-> 4. [src/cag/abm/agent.py](../src/cag/abm/agent.py) — *8 min.* `assemble_context` 6-section order, `manage_memory` → `compress_daily_memory`, `administer_survey` debias branch.
-> 5. [src/cag/io/results.py](../src/cag/io/results.py) — *4 min.* `_RESULT_CSV_SCHEMAS` and `save_results`. Tells you what comes out of every run.
+> 1. [src/cag/__main__.py](../../src/cag/__main__.py) — *5 min.* How a researcher's `--flag` becomes a `SIM_CONFIG` key.
+> 2. [src/cag/presets.py](../../src/cag/presets.py) — *3 min.* What a named run-bundle (e.g. `r14_canonical`) actually is.
+> 3. [src/cag/abm/sim.py](../../src/cag/abm/sim.py) — *10 min.* `SIM_CONFIG` (~35 keys), `make_phases()`, the day loop in `_run_one_day` and `run_simulation`.
+> 4. [src/cag/abm/agent.py](../../src/cag/abm/agent.py) — *8 min.* `assemble_context` 6-section order, `manage_memory` → `compress_daily_memory`, `administer_survey` debias branch.
+> 5. [src/cag/io/results.py](../../src/cag/io/results.py) — *4 min.* `_RESULT_CSV_SCHEMAS` and `save_results`. Tells you what comes out of every run.
 >
 > The mental model after these five: **config → phases → day-loop → agent memory → end-of-day survey → output CSVs**. Everything else is detail.
 
@@ -71,13 +71,13 @@ src/cag/
 
 Each entry: **one sentence** · **key names** · **breadcrumb**.
 
-### C-1. [src/cag/__init__.py](../src/cag/__init__.py)
+### C-1. [src/cag/__init__.py](../../src/cag/__init__.py)
 
 The package marker. Holds `__version__` only. Skip.
 
 ---
 
-### C-2. [src/cag/__main__.py](../src/cag/__main__.py)
+### C-2. [src/cag/__main__.py](../../src/cag/__main__.py)
 
 **One sentence:** Headless CLI entry point (`python -m cag …`) that turns command-line flags into a fully-resolved `SIM_CONFIG`, builds the nation from the YouGov CSV, calls `run_simulation`, then writes results.
 
@@ -93,7 +93,7 @@ The package marker. Holds `__version__` only. Skip.
 
 ---
 
-### C-3. [src/cag/presets.py](../src/cag/presets.py)
+### C-3. [src/cag/presets.py](../../src/cag/presets.py)
 
 **One sentence:** Named bundles of partial `SIM_CONFIG` overrides — currently `smoke` (10 agents, 2 days, no peer messaging) and `r14_canonical` (50 agents, 5 days, ground-truth-seeded Day 0).
 
@@ -110,7 +110,7 @@ The package marker. Holds `__version__` only. Skip.
 
 ---
 
-### C-4. [src/cag/abm/sim.py](../src/cag/abm/sim.py) ★ (slow read)
+### C-4. [src/cag/abm/sim.py](../../src/cag/abm/sim.py) ★ (slow read)
 
 **One sentence:** Orchestrates a full run — validates config, sets up the network and political exposure, runs Day 0, loops days 1..N executing phases → memory compression → EOD survey, optionally writes per-day checkpoints, returns a dict of result DataFrames.
 
@@ -150,7 +150,7 @@ That's it. Everything you care about — the phases, the surveys, the memory com
 
 ---
 
-### C-5. [src/cag/abm/agent.py](../src/cag/abm/agent.py) ★ (slow read)
+### C-5. [src/cag/abm/agent.py](../../src/cag/abm/agent.py) ★ (slow read)
 
 **One sentence:** Defines `SurveyedCitizen` (one agent — holds demographics, opinions, reflections, memories) and `PoliticalAgent` (one of two broadcasters — pro-climate "A" and anti-climate "B"). All LLM-facing prompt construction happens here.
 
@@ -237,7 +237,7 @@ When `debias=False` (NB 11–12 baseline), it's one call, no reasoning step. NB 
 
 ---
 
-### C-6. [src/cag/abm/environment.py](../src/cag/abm/environment.py)
+### C-6. [src/cag/abm/environment.py](../../src/cag/abm/environment.py)
 
 **One sentence:** Holds `SurveyedNation` (the population owner) plus the political-exposure assignment machinery (affinity-score weights, exposure targets, top-K ranking).
 
@@ -255,7 +255,7 @@ When `debias=False` (NB 11–12 baseline), it's one call, no reasoning step. NB 
 
 ---
 
-### C-7. [src/cag/abm/networks.py](../src/cag/abm/networks.py) + [network_repair.py](../src/cag/abm/network_repair.py)
+### C-7. [src/cag/abm/networks.py](../../src/cag/abm/networks.py) + [network_repair.py](../../src/cag/abm/network_repair.py)
 
 **One sentence:** Pluggable peer-network factory supporting 5 topologies; default is a 2-block stochastic block model with `p_intra=0.15` and `p_inter=0.05` (a 3:1 within/cross-cutting ratio that matches the Bakshy 2015 / Halberstam & Knight 2016 empirical estimates).
 
@@ -270,7 +270,7 @@ When `debias=False` (NB 11–12 baseline), it's one call, no reasoning step. NB 
 
 ---
 
-### C-8. [src/cag/abm/political_messages.py](../src/cag/abm/political_messages.py)
+### C-8. [src/cag/abm/political_messages.py](../../src/cag/abm/political_messages.py)
 
 **One sentence:** Loads the curated offline broadcast pool from `data/political_messages/v1/messages_v1.csv` and serves messages in a seeded rotation, one per (side, policy) cell per call.
 
@@ -285,7 +285,7 @@ When `debias=False` (NB 11–12 baseline), it's one call, no reasoning step. NB 
 
 ---
 
-### C-9. [src/cag/abm/attributes/opinion.py](../src/cag/abm/attributes/opinion.py)
+### C-9. [src/cag/abm/attributes/opinion.py](../../src/cag/abm/attributes/opinion.py)
 
 **One sentence:** Defines the 6 climate policies, the A–G response scale (centred −3…+3), the `PACKAGE_SCOPE` sentinel, opinion-clamping, and the package-index computation.
 
@@ -305,19 +305,19 @@ When `debias=False` (NB 11–12 baseline), it's one call, no reasoning step. NB 
 
 ---
 
-### C-10. [src/cag/abm/attributes/narratives.py](../src/cag/abm/attributes/narratives.py)
+### C-10. [src/cag/abm/attributes/narratives.py](../../src/cag/abm/attributes/narratives.py)
 
 **One sentence:** The 7 value-scale attribute maps (`SelftranscMap`, `SelfenhMap`, `OpennessMap`, `ConformTradMap`, `SDOMap`, `EDOMap`, `RWAMap`) plus the helper functions that rescale Schwartz 1–6 / SDO-RWA 1–7 ordinals into agent state. Read the docstrings at the top of the file for the literature mapping.
 
 ---
 
-### C-11. [src/cag/abm/democracy/](../src/cag/abm/democracy/)
+### C-11. [src/cag/abm/democracy/](../../src/cag/abm/democracy)
 
 Election-specific maps (`elections/ukge2019.py` → `UKGE2019VoteMap`, `elections/brexit.py` → `BrexitVoteMap`). Loaded once during nation construction in `__main__.py::build_nation`. Not touched during a run.
 
 ---
 
-### C-12. [src/cag/io/llm.py](../src/cag/io/llm.py)
+### C-12. [src/cag/io/llm.py](../../src/cag/io/llm.py)
 
 **One sentence:** Unified `send_chat(system_prompt, user_prompt, …, provider)` dispatcher with resilient parameter negotiation; supports OpenAI, Anthropic, Google GenAI, and any OpenAI-compatible local server.
 
@@ -335,7 +335,7 @@ Election-specific maps (`elections/ukge2019.py` → `UKGE2019VoteMap`, `election
 
 ---
 
-### C-13. [src/cag/io/results.py](../src/cag/io/results.py)
+### C-13. [src/cag/io/results.py](../../src/cag/io/results.py)
 
 **One sentence:** Owns the CSV schemas, the DataFrame collection (`_collect_results`), the atomic CSV writes, and the public `save_results()` entry point.
 
@@ -352,7 +352,7 @@ Election-specific maps (`elections/ukge2019.py` → `UKGE2019VoteMap`, `election
 
 ---
 
-### C-14. [src/cag/io/checkpoint.py](../src/cag/io/checkpoint.py)
+### C-14. [src/cag/io/checkpoint.py](../../src/cag/io/checkpoint.py)
 
 **One sentence:** Per-day CSV snapshots of every agent's mutable state, plus the resume-validation rules.
 
@@ -369,7 +369,7 @@ Election-specific maps (`elections/ukge2019.py` → `UKGE2019VoteMap`, `election
 
 ---
 
-### C-15. [src/cag/io/aggregators.py](../src/cag/io/aggregators.py) + [plots.py](../src/cag/io/plots.py) + [survey.py](../src/cag/io/survey.py)
+### C-15. [src/cag/io/aggregators.py](../../src/cag/io/aggregators.py) + [plots.py](../../src/cag/io/plots.py) + [survey.py](../../src/cag/io/survey.py)
 
 **`aggregators.py` — pure DataFrame transforms:**
 
@@ -467,7 +467,7 @@ This entire prompt is captured into `survey_assembled_context.csv`. When debuggi
 
 ### E-1. Add a 7th climate policy
 
-1. Add to the enum in [src/cag/abm/attributes/opinion.py](../src/cag/abm/attributes/opinion.py): `ClimatePolicyID.MY_NEW_POLICY = 7`.
+1. Add to the enum in [src/cag/abm/attributes/opinion.py](../../src/cag/abm/attributes/opinion.py): `ClimatePolicyID.MY_NEW_POLICY = 7`.
 2. Add to `SURVEY_COLUMN_MAP` (the YouGov column name).
 3. Add to `SURVEY_QUESTIONS` (full 84-char preamble + the question).
 4. Add to `SURVEY_SHORT_LABELS` (8–16 char readable label).
@@ -477,11 +477,11 @@ This entire prompt is captured into `survey_assembled_context.csv`. When debuggi
 
 ### E-2. Swap LLM provider
 
-Change two `SIM_CONFIG` keys: `llm_provider` (`"openai"` / `"anthropic"` / `"genai"` / `"local"`) and `llm_model`. For `provider="local"`, also set `local_base_url`. For provider-specific quirks (thinking mode, parameter names), look at `_MODEL_REGISTRY` in [src/cag/io/llm.py](../src/cag/io/llm.py).
+Change two `SIM_CONFIG` keys: `llm_provider` (`"openai"` / `"anthropic"` / `"genai"` / `"local"`) and `llm_model`. For `provider="local"`, also set `local_base_url`. For provider-specific quirks (thinking mode, parameter names), look at `_MODEL_REGISTRY` in [src/cag/io/llm.py](../../src/cag/io/llm.py).
 
 ### E-3. Run with a new exposure preset
 
-Add a new entry to `TARGET_PRESETS` or `AFFINITY_WEIGHT_PRESETS` in [src/cag/abm/environment.py](../src/cag/abm/environment.py). Reference it from the CLI as `--exposure-targets my_new_preset` or `--affinity-weights my_new_preset`. Or pass a literal JSON dict.
+Add a new entry to `TARGET_PRESETS` or `AFFINITY_WEIGHT_PRESETS` in [src/cag/abm/environment.py](../../src/cag/abm/environment.py). Reference it from the CLI as `--exposure-targets my_new_preset` or `--affinity-weights my_new_preset`. Or pass a literal JSON dict.
 
 ### E-4. Add a new political-message set
 
@@ -502,7 +502,7 @@ Three CSVs in order:
 2. `survey_raw_response.csv` — the literal LLM output. Did it answer with a letter, or did it ramble?
 3. `survey_reasoning.csv` — for debias runs only, the Step-1 rationale. Does it commit to a position that contradicts the final letter?
 
-If the letter doesn't match the rationale, the issue is in `parse_letter_response` in [src/cag/io/llm.py](../src/cag/io/llm.py). If the rationale doesn't match the context, the issue is in `assemble_context` in [src/cag/abm/agent.py](../src/cag/abm/agent.py).
+If the letter doesn't match the rationale, the issue is in `parse_letter_response` in [src/cag/io/llm.py](../../src/cag/io/llm.py). If the rationale doesn't match the context, the issue is in `assemble_context` in [src/cag/abm/agent.py](../../src/cag/abm/agent.py).
 
 ---
 

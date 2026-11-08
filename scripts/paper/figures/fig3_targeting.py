@@ -4,7 +4,7 @@ All arms climate-sceptic-dominant (pro-climate side throttled to 25% reach on a
 BA hub network). Contrast = targeting mode - random: does aiming the throttled
 pro-climate broadcast at the persuadable / the well-connected beat aiming at
 random? Delta P relative to random, 95% CI, per-seed dots. Whole population +
-hear-both-sides. Asserted against docs/result_report.md. Neutral labels only.
+hear-both-sides. Asserted against documentation/research/result_report.md. Neutral labels only.
 """
 from pathlib import Path
 import glob

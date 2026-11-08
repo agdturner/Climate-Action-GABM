@@ -15,7 +15,7 @@ Skim the bold lines and you'll come out oriented. Read the indented notes and yo
 
 **Conventions**
 
-- File paths are workspace-relative so you can click them: [src/cag/abm/sim.py](src/cag/abm/sim.py).
+- File links are relative to this guide so you can click them: [src/cag/abm/sim.py](../../src/cag/abm/sim.py).
 - I give you **names to grep**, never line numbers — line numbers rot the moment anyone edits above them; `grep -n "def run_simulation" src/cag/abm/sim.py` never lies.
 - *Day 0* means the day each agent is seeded from its real YouGov answer, before any messaging. *Day 1* is the first simulated day.
 - Line counts are a snapshot (see [§8](#8-keeping-this-doc-honest) for the one-liner that regenerates them). They're here only as a "where's the weight" signal.
@@ -51,11 +51,11 @@ If you only have 90 seconds, that's the whole thing. Everything after this is de
 
 Five files, ~30 minutes, and you have the skeleton. In this order:
 
-1. [src/cag/__main__.py](src/cag/__main__.py) — how a `--flag` becomes a config dict.
-2. [src/cag/presets.py](src/cag/presets.py) — what a named run-bundle actually is.
-3. [src/cag/abm/sim.py](src/cag/abm/sim.py) — `SIM_CONFIG`, and the day loop in `_run_one_day` / `run_simulation`.
-4. [src/cag/abm/agent.py](src/cag/abm/agent.py) — `assemble_context` (the six-section prompt), `manage_memory`, `administer_survey`.
-5. [src/cag/io/results.py](src/cag/io/results.py) — `_RESULT_CSV_SCHEMAS` and `save_results`: everything a run produces.
+1. [src/cag/__main__.py](../../src/cag/__main__.py) — how a `--flag` becomes a config dict.
+2. [src/cag/presets.py](../../src/cag/presets.py) — what a named run-bundle actually is.
+3. [src/cag/abm/sim.py](../../src/cag/abm/sim.py) — `SIM_CONFIG`, and the day loop in `_run_one_day` / `run_simulation`.
+4. [src/cag/abm/agent.py](../../src/cag/abm/agent.py) — `assemble_context` (the six-section prompt), `manage_memory`, `administer_survey`.
+5. [src/cag/io/results.py](../../src/cag/io/results.py) — `_RESULT_CSV_SCHEMAS` and `save_results`: everything a run produces.
 
 But before you open any of them, read the next section. It's the part that makes the other four make sense.
 
@@ -65,17 +65,17 @@ But before you open any of them, read the next section. It's the part that makes
 
 This is the centre of the tour. Forget the directory tree for a moment and follow the code **in the order it actually fires** for a single run. Every function below is real; grep any of them.
 
-**The run begins in the CLI.** [src/cag/__main__.py](src/cag/__main__.py) `main()` parses your flags, merges them into a config (`build_config`: defaults ← preset ← CLI), and loads the survey.
+**The run begins in the CLI.** [src/cag/__main__.py](../../src/cag/__main__.py) `main()` parses your flags, merges them into a config (`build_config`: defaults ← preset ← CLI), and loads the survey.
 
-**The population is born from a spreadsheet.** `build_nation` hands the cleaned YouGov frame (from [io/survey.py](src/cag/io/survey.py) `load`) to `SurveyedNation` in [environment.py](src/cag/abm/environment.py). One row becomes one `SurveyedCitizen` ([agent.py](src/cag/abm/agent.py)) — its demographics, vote history, and Schwartz/SDO/RWA value scores all pulled in through the **vocabulary** maps in [attributes/](src/cag/abm/attributes/) and [democracy/](src/cag/abm/democracy/). At this point each citizen can already describe itself in the first person: that's `get_persona`.
+**The population is born from a spreadsheet.** `build_nation` hands the cleaned YouGov frame (from [io/survey.py](../../src/cag/io/survey.py) `load`) to `SurveyedNation` in [environment.py](../../src/cag/abm/environment.py). One row becomes one `SurveyedCitizen` ([agent.py](../../src/cag/abm/agent.py)) — its demographics, vote history, and Schwartz/SDO/RWA value scores all pulled in through the **vocabulary** maps in [attributes/](../../src/cag/abm/attributes) and [democracy/](../../src/cag/abm/democracy). At this point each citizen can already describe itself in the first person: that's `get_persona`.
 
-**Control passes to the orchestrator.** `run_simulation` ([sim.py](src/cag/abm/sim.py)) does its one-time setup, in this exact order — worth knowing because it's all the deterministic structure:
+**Control passes to the orchestrator.** `run_simulation` ([sim.py](../../src/cag/abm/sim.py)) does its one-time setup, in this exact order — worth knowing because it's all the deterministic structure:
 
-1. `_resolve_runtime(cfg)` — load the API key or ping the local server, resolve survey-vs-broadcast model overrides, and **load + validate the offline message pool** ([political_messages.py](src/cag/abm/political_messages.py)). If any `(side, policy)` cell is empty, the run aborts here, before Day 0.
+1. `_resolve_runtime(cfg)` — load the API key or ping the local server, resolve survey-vs-broadcast model overrides, and **load + validate the offline message pool** ([political_messages.py](../../src/cag/abm/political_messages.py)). If any `(side, policy)` cell is empty, the run aborts here, before Day 0.
 2. Create the two broadcasters: `PoliticalAgent("agent_a", "pro_climate")` and `("agent_b", "anti_climate")`.
 3. `assign_political_exposure` — score every citizen on green- and reform-affinity and sort them into the four exposure cells (A-only / B-only / both / neither). This decides who hears whom.
 4. `apply_audience_cap` then `apply_reach_subsample` — optional thinning of each broadcaster's audience.
-5. `create_network` + `assign_network_blocks` ([networks.py](src/cag/abm/networks.py)) — build the peer graph (default: a 2-block stochastic block model), then the safety net in [network_repair.py](src/cag/abm/network_repair.py) bridges any islands so nobody is isolated.
+5. `create_network` + `assign_network_blocks` ([networks.py](../../src/cag/abm/networks.py)) — build the peer graph (default: a 2-block stochastic block model), then the safety net in [network_repair.py](../../src/cag/abm/network_repair.py) bridges any islands so nobody is isolated.
 
 **Day 0 seeds opinions.** `_run_day0` dispatches on `day0_anchor`. The research default is `ground_truth_with_rationale`: take the citizen's *real* YouGov answer as the numeric opinion, then make one LLM call asking it to write a rationale for that position. The rationale is stored in `survey_reasoning` — and it becomes §2 of every future prompt. (No persuasion has happened yet; this is just the starting line.)
 
@@ -83,10 +83,10 @@ This is the centre of the tour. Forget the directory tree for a moment and follo
 
 1. **Phases.** For each phase letter in the day's schedule, it calls into the nation: `run_package_broadcast` for P-A and P-B (the pro and anti broadcasts), `run_package_peer_messaging` for C. A broadcast lands as `receive_package_political_message` on each citizen in that broadcaster's audience → the citizen writes a private reflection. Peer messaging is **simultaneous**: every citizen generates its message first, *then* an inbox is built and everyone reflects — so there's no accidental within-phase ordering effect.
 2. **Memory.** `agent.manage_memory(day, …)` runs on every citizen — *before* the survey, deliberately. If `day > 2` it compresses day `d−2` into a 4–5-sentence summary (`compress_daily_memory`). Days `d−1` and `d` stay verbatim in the "vivid window".
-3. **The end-of-day survey.** `run_end_of_day_survey` re-asks each policy. In package mode the six policies are asked in a per-day deterministic shuffle (so no policy is always asked last). For each, `agent.administer_survey` builds the prompt via `assemble_context` and calls `send_chat` ([io/llm.py](src/cag/io/llm.py)). Under the default `debias=True` this is a **two-step** call: Step 1 elicits reasoning behind an anti-sycophancy preamble, Step 2 asks for the A–G letter with that reasoning appended. The letter is parsed by `parse_letter_response`, mapped to a number on the −3…+3 scale, and recorded. **No clamping** — the opinion is whatever the model answered.
-4. **Checkpoint.** If enabled, the day's state is snapshotted ([io/checkpoint.py](src/cag/io/checkpoint.py)).
+3. **The end-of-day survey.** `run_end_of_day_survey` re-asks each policy. In package mode the six policies are asked in a per-day deterministic shuffle (so no policy is always asked last). For each, `agent.administer_survey` builds the prompt via `assemble_context` and calls `send_chat` ([io/llm.py](../../src/cag/io/llm.py)). Under the default `debias=True` this is a **two-step** call: Step 1 elicits reasoning behind an anti-sycophancy preamble, Step 2 asks for the A–G letter with that reasoning appended. The letter is parsed by `parse_letter_response`, mapped to a number on the −3…+3 scale, and recorded. **No clamping** — the opinion is whatever the model answered.
+4. **Checkpoint.** If enabled, the day's state is snapshotted ([io/checkpoint.py](../../src/cag/io/checkpoint.py)).
 
-**The run ends back in I/O.** `_collect_results` ([io/results.py](src/cag/io/results.py)) reads every citizen's state dicts into DataFrames; `save_results` writes them as CSVs and `save_result_plots` ([io/plots.py](src/cag/io/plots.py)) draws the figures, all under `--outdir`.
+**The run ends back in I/O.** `_collect_results` ([io/results.py](../../src/cag/io/results.py)) reads every citizen's state dicts into DataFrames; `save_results` writes them as CSVs and `save_result_plots` ([io/plots.py](../../src/cag/io/plots.py)) draws the figures, all under `--outdir`.
 
 That single walk — `load → build_nation → assign_political_exposure → _run_day0 → _run_one_day → broadcast → manage_memory → administer_survey → assemble_context → send_chat → _collect_results → save_results` — *is* the architecture. The rest of this doc just zooms in on each stop.
 
@@ -98,64 +98,64 @@ Now the file-by-file detail, grouped by layer.
 
 ### 4.1 Orchestration
 
-> **[src/cag/abm/sim.py](src/cag/abm/sim.py)** *(~853 ln)* — runs the show: validate config, build the world, seed Day 0, loop the days, return results.
+> **[src/cag/abm/sim.py](../../src/cag/abm/sim.py)** *(~853 ln)* — runs the show: validate config, build the world, seed Day 0, loop the days, return results.
 >   **Staying?** Read `SIM_CONFIG` end to end once — it's the ~33-key default dict, and the comments next to each key are load-bearing (e.g. the literature citation for `p_inter`). Then read `_run_one_day`: phases → memory → survey, ~100 lines. The actual day loop in `run_simulation` is *three lines*. **Breadcrumb:** `SIM_CONFIG`, then `_run_one_day`, and sim.py stops being a black box. Note: a pile of names re-exported at the bottom (`_collect_results`, `save_results`, …) are imported back from `cag.io` so old notebooks still find them here — the implementations live in `io/`.
 
 ### 4.2 Domain — the simulation engine
 
-> **[src/cag/abm/agent.py](src/cag/abm/agent.py)** *(~878 ln)* — one citizen: holds opinions, reflections and memory, and builds every prompt it sends.
+> **[src/cag/abm/agent.py](../../src/cag/abm/agent.py)** *(~878 ln)* — one citizen: holds opinions, reflections and memory, and builds every prompt it sends.
 >   **Staying?** The state lives in a handful of dicts: `opinion_history`, `survey_reasoning`, `reflections`, `daily_summaries`, and the diagnostic gold-mine `survey_assembled_context` (the exact prompt sent, per survey). The one method that matters is `assemble_context(day, policy_id, target_policy_id)` — the six-section prompt builder (see [§5.1](#51-policy_id-vs-target_policy_id)). `manage_memory` → `compress_daily_memory` does the compression; `administer_survey` does the debias two-step. `PoliticalAgent` lives at the bottom and is simple. **Breadcrumb:** read `assemble_context`, then open one row of `survey_assembled_context.csv` and find §1–§6 inside it.
 >   *In the output:* `reflections.csv`, `survey_reasoning.csv`, `survey_assembled_context.csv`, `opinion_trajectories.csv`.
 
-> **[src/cag/abm/environment.py](src/cag/abm/environment.py)** *(~1382 ln)* — the population: owns the network, runs the phases, and decides who hears whom.
+> **[src/cag/abm/environment.py](../../src/cag/abm/environment.py)** *(~1382 ln)* — the population: owns the network, runs the phases, and decides who hears whom.
 >   **Staying?** This file quietly does **two jobs** (see [§5.5](#55-the-cruft-and-the-gotchas)). Job one is the nation: `create_network` / `assign_network_blocks`, the four phase entry points `run_package_broadcast` / `run_package_peer_messaging` (+ single-policy `run_political_broadcast` / `run_peer_messaging`), and `run_end_of_day_survey`. Job two is **political-exposure assignment**: `_green_affinity_score` / `_reform_affinity_score` score each citizen, and `assign_political_exposure` does a deterministic top-K sort into the four cells. **Breadcrumb:** read the comment block above the affinity weights — every weight has a literature anchor — then `assign_political_exposure`. The full mechanism is walked in [Appendix A](#appendix-a--political-exposure-assignment-the-affinity-rank-story).
 >   *In the output:* `messages.csv`, `agent_attributes.csv` (exposure bucket per agent).
 
-> **[src/cag/abm/networks.py](src/cag/abm/networks.py)** *(~508 ln)* — builds the peer network; 5 topologies, default stochastic-block, plus diagnostics.
+> **[src/cag/abm/networks.py](../../src/cag/abm/networks.py)** *(~508 ln)* — builds the peer network; 5 topologies, default stochastic-block, plus diagnostics.
 >   **Staying?** `build_network(network_type, agents, params, seed)` returns a `networkx.Graph` keyed by agent ID; `compute_diagnostics` produces the edge/degree/component stats. **Breadcrumb:** if a network question ever comes up, find the `network: edges=… components=…` log line first.
 
-> **[src/cag/abm/network_repair.py](src/cag/abm/network_repair.py)** *(~263 ln)* — the connectivity safety net.
+> **[src/cag/abm/network_repair.py](../../src/cag/abm/network_repair.py)** *(~263 ln)* — the connectivity safety net.
 >   **Staying?** Three layers: `_adjust_network_params_for_small_n` bumps the edge probabilities when N is small, `_auto_connect_components` adds the minimum bridges if the graph still fragments, and `_log_network_summary` reports it. After this runs, you're guaranteed one connected component.
 
-> **[src/cag/abm/political_messages.py](src/cag/abm/political_messages.py)** *(~456 ln)* — loads the curated offline broadcast pool and serves one message per `(side, policy)`.
+> **[src/cag/abm/political_messages.py](../../src/cag/abm/political_messages.py)** *(~456 ln)* — loads the curated offline broadcast pool and serves one message per `(side, policy)`.
 >   **Staying?** `load_message_pool` reads the CSV and validates it; `MessagePool` serves messages in a seeded rotation. The validation in `_resolve_runtime` is what aborts the run early if a `(side, policy)` cell is empty. **Breadcrumb:** read the header of `data/political_messages/v1/messages_v1.csv` — the `(side, policy_id)` cell convention is the whole API. This is the *default* message source; the `PoliticalAgent.generate_*` methods only fire if you switch to `political_message_source="llm"` (see [§5.4](#54-offline-vs-llm-messages)).
 
 ### 4.3 Vocabulary — persona building blocks
 
 These are small, mostly-static, and you'll rarely touch them unless you add a policy or a demographic.
 
-> **[src/cag/abm/attributes/opinion.py](src/cag/abm/attributes/opinion.py)** *(~190 ln)* — the six policies, the A–G (−3…+3) scale, the package index.
+> **[src/cag/abm/attributes/opinion.py](../../src/cag/abm/attributes/opinion.py)** *(~190 ln)* — the six policies, the A–G (−3…+3) scale, the package index.
 >   **Staying?** `ClimatePolicyID` is the six-value enum; `PACKAGE_SCOPE` is the sentinel string for "the bundle, not one policy"; `survey_to_numeric` converts YouGov's 1–7 to the centred scale; `compute_package_index` averages the six. `SURVEY_QUESTIONS` / `SURVEY_COLUMN_MAP` / `SURVEY_SHORT_LABELS` are the four add-points for a new policy. **Heads-up:** `clamp_opinion_shift` is defined here but **never called** anywhere — dead code (see [§5.5](#55-the-cruft-and-the-gotchas)).
 
-> **[src/cag/abm/attributes/narratives.py](src/cag/abm/attributes/narratives.py)** *(~176 ln)* — value-scale maps (Schwartz, SDO, RWA) → the sentences describing a citizen's worldview. `get_narrative` is the lookup.
+> **[src/cag/abm/attributes/narratives.py](../../src/cag/abm/attributes/narratives.py)** *(~176 ln)* — value-scale maps (Schwartz, SDO, RWA) → the sentences describing a citizen's worldview. `get_narrative` is the lookup.
 
-> **[src/cag/abm/attributes/](src/cag/abm/attributes/) — the demographic maps** — `politics.py`, `region.py`, `education.py`, `income.py`, `family.py`, `ethnicity.py`: one small ID→string table each, used to write persona text.
+> **[src/cag/abm/attributes/](../../src/cag/abm/attributes) — the demographic maps** — `politics.py`, `region.py`, `education.py`, `income.py`, `family.py`, `ethnicity.py`: one small ID→string table each, used to write persona text.
 
-> **[src/cag/abm/democracy/elections/](src/cag/abm/democracy/elections/)** — `ukge2019.py` (`UKGE2019VoteMap`) and `brexit.py` (`BrexitVoteMap`): vote-choice maps used both in persona text and in affinity scoring.
+> **[src/cag/abm/democracy/elections/](../../src/cag/abm/democracy/elections)** — `ukge2019.py` (`UKGE2019VoteMap`) and `brexit.py` (`BrexitVoteMap`): vote-choice maps used both in persona text and in affinity scoring.
 
 ### 4.4 Persistence — the model and the files
 
-> **[src/cag/io/llm.py](src/cag/io/llm.py)** *(~740 ln)* — the only door to a model: one `send_chat()` for four providers, with self-healing retries.
+> **[src/cag/io/llm.py](../../src/cag/io/llm.py)** *(~740 ln)* — the only door to a model: one `send_chat()` for four providers, with self-healing retries.
 >   **Staying?** `send_chat(system_prompt, user_prompt, …, provider)` is the single name the whole simulator uses to talk to an LLM (OpenAI / Anthropic / Google GenAI / local vLLM or mlx). `_resolve_model_profile` maps `thinking=True` to the right per-backend parameter; `_resilient_call` strips a rejected parameter and retries (which is why the same code survives gpt-5, Qwen3 and Apertus). `parse_letter_response` extracts the A–G; `ping_local` fails fast if the server is down. **Breadcrumb:** for junk survey numerics, the chain is `survey_raw_response.csv` → `parse_letter_response` → the `RESPONSE_SCALE` in opinion.py.
 
-> **[src/cag/io/results.py](src/cag/io/results.py)** *(~512 ln)* — defines the CSV schemas and writes every artefact.
+> **[src/cag/io/results.py](../../src/cag/io/results.py)** *(~512 ln)* — defines the CSV schemas and writes every artefact.
 >   **Staying?** `_RESULT_CSV_SCHEMAS` is the canonical list of every output file — read it and you know what a run produces. `_collect_results` is the pure function that turns agent state into those DataFrames; `save_results` writes them atomically into a timestamped dir. **Footgun:** the default `output_dir` is *relative*, so a notebook that doesn't pass an absolute path writes into `notebooks/data/…`. `__main__.py` always passes `--outdir`, so real runs are fine.
 
-> **[src/cag/io/aggregators.py](src/cag/io/aggregators.py)** *(~506 ln)* — turns raw state into summary tables.
+> **[src/cag/io/aggregators.py](../../src/cag/io/aggregators.py)** *(~506 ln)* — turns raw state into summary tables.
 >   **Staying?** `build_opinion_shares` (support/neutral/against %), `build_calibration_table` (Day-0 vs Day-N shift), `build_message_flow`, and the star, `build_agent_timeline` — one agent's whole experience interleaved in true execution order. The `*_by_bucket` variants stratify by exposure cell.
 
-> **[src/cag/io/plots.py](src/cag/io/plots.py)** *(~555 ln)* — every figure, saved to disk (Agg backend, never shown). `save_result_plots` is the one entry point that fans out to all the `plot_*` functions.
+> **[src/cag/io/plots.py](../../src/cag/io/plots.py)** *(~555 ln)* — every figure, saved to disk (Agg backend, never shown). `save_result_plots` is the one entry point that fans out to all the `plot_*` functions.
 
-> **[src/cag/io/checkpoint.py](src/cag/io/checkpoint.py)** *(~366 ln)* — per-day state snapshots + resume rules. `_write_checkpoint` / `_load_checkpoint`, and `_validate_resume_config` enforces which config keys may change on resume (the hard/soft key split).
+> **[src/cag/io/checkpoint.py](../../src/cag/io/checkpoint.py)** *(~366 ln)* — per-day state snapshots + resume rules. `_write_checkpoint` / `_load_checkpoint`, and `_validate_resume_config` enforces which config keys may change on resume (the hard/soft key split).
 
-> **[src/cag/io/survey.py](src/cag/io/survey.py)** *(~179 ln)* — loads and cleans the YouGov CSV the whole model is seeded from. `load` reads, validates required columns, and drops/filters bad rows.
+> **[src/cag/io/survey.py](../../src/cag/io/survey.py)** *(~179 ln)* — loads and cleans the YouGov CSV the whole model is seeded from. `load` reads, validates required columns, and drops/filters bad rows.
 
 ### 4.5 CLI surface
 
-> **[src/cag/__main__.py](src/cag/__main__.py)** *(~631 ln)* — `python -m cag`: flags → config → nation → run → outputs. The headless entry point AIRE calls.
+> **[src/cag/__main__.py](../../src/cag/__main__.py)** *(~631 ln)* — `python -m cag`: flags → config → nation → run → outputs. The headless entry point AIRE calls.
 >   **Staying?** `build_config` is the precedence rule in one place (defaults ← preset ← CLI); `build_nation` constructs the population; `build_days` expands an integer day-count into the alternating P-A/P-B/C schedule; `_ARG_TO_SIM` covers the few flags whose names don't match their config keys. **Breadcrumb:** read `build_config`, then trace one `--dry-run` to see the fully-resolved config without launching anything.
 
-> **[src/cag/presets.py](src/cag/presets.py)** *(~73 ln)* — named flag-bundles. `RUN_BUNDLE_PRESETS` holds `smoke` (10×2) and `r14_canonical` (50×5). A preset is pure convenience — every knob is also a `--flag`, so new experiments never require a code change.
+> **[src/cag/presets.py](../../src/cag/presets.py)** *(~73 ln)* — named flag-bundles. `RUN_BUNDLE_PRESETS` holds `smoke` (10×2) and `r14_canonical` (50×5). A preset is pure convenience — every knob is also a `--flag`, so new experiments never require a code change.
 
 ---
 
@@ -177,13 +177,13 @@ The default `communication_mode="package"` means all six policies are broadcast 
 
 ### 5.4 Offline vs `llm` messages
 
-`political_message_source="offline"` (the default) serves broadcasts from a curated, validated CSV pool via [political_messages.py](src/cag/abm/political_messages.py). The consequence that trips people up: under the default, **`PoliticalAgent.generate_message` / `generate_package_message` never fire** — those methods only run if you flip the source to `"llm"`. If you're hunting for where broadcast text comes from, it's the CSV, not the agent.
+`political_message_source="offline"` (the default) serves broadcasts from a curated, validated CSV pool via [political_messages.py](../../src/cag/abm/political_messages.py). The consequence that trips people up: under the default, **`PoliticalAgent.generate_message` / `generate_package_message` never fire** — those methods only run if you flip the source to `"llm"`. If you're hunting for where broadcast text comes from, it's the CSV, not the agent.
 
 ### 5.5 The cruft and the gotchas
 
 The most valuable thing this doc can tell you is what to *ignore*:
 
-- **`clamp_opinion_shift` is dead.** It's defined in [opinion.py](src/cag/abm/attributes/opinion.py) but called nowhere. Opinions shift freely — the model moves each citizen as far as its own answer implies. (The earlier design clamped to ±1/day; that's gone.)
+- **`clamp_opinion_shift` is dead.** It's defined in [opinion.py](../../src/cag/abm/attributes/opinion.py) but called nowhere. Opinions shift freely — the model moves each citizen as far as its own answer implies. (The earlier design clamped to ±1/day; that's gone.)
 - **`attributes/opinion_suggested_edit.py` is a scratch copy** of opinion.py — not imported, not used. Ignore it.
 - **`environment.py` is secretly two files** — the nation *and* the affinity-scoring/exposure machinery. When it feels like two unrelated things, that's because it is.
 - **`day0_anchor` (the SIM_CONFIG key) ≠ the §2 anchor section.** The config key chooses how Day 0 is *seeded* (`llm_survey` / `ground_truth` / `ground_truth_with_rationale`); §2 in `assemble_context` is the text that seeding produces. Same word, two jobs.
@@ -196,9 +196,9 @@ The most valuable thing this doc can tell you is what to *ignore*:
 
 A reverse index for common tasks.
 
-- **Add a 7th policy** → [opinion.py](src/cag/abm/attributes/opinion.py): four add-points (the `ClimatePolicyID` enum, `SURVEY_COLUMN_MAP`, `SURVEY_QUESTIONS`, `SURVEY_SHORT_LABELS`), then add at least one message per `(side, new-policy)` to the message CSV. Everything downstream picks it up via `ALL_CLIMATE_POLICIES`.
-- **Swap LLM provider** → set `llm_provider` and `llm_model` (and `local_base_url` for `local`). Per-backend quirks live in `_resolve_model_profile` in [io/llm.py](src/cag/io/llm.py).
-- **Change who hears whom** → tune the exposure targets/weights in [environment.py](src/cag/abm/environment.py), or pass `--exposure-targets` / `--affinity-weights` (a preset name or a literal JSON dict).
+- **Add a 7th policy** → [opinion.py](../../src/cag/abm/attributes/opinion.py): four add-points (the `ClimatePolicyID` enum, `SURVEY_COLUMN_MAP`, `SURVEY_QUESTIONS`, `SURVEY_SHORT_LABELS`), then add at least one message per `(side, new-policy)` to the message CSV. Everything downstream picks it up via `ALL_CLIMATE_POLICIES`.
+- **Swap LLM provider** → set `llm_provider` and `llm_model` (and `local_base_url` for `local`). Per-backend quirks live in `_resolve_model_profile` in [io/llm.py](../../src/cag/io/llm.py).
+- **Change who hears whom** → tune the exposure targets/weights in [environment.py](../../src/cag/abm/environment.py), or pass `--exposure-targets` / `--affinity-weights` (a preset name or a literal JSON dict).
 - **Trace one agent end to end** → find its ID in `agent_attributes.csv`, filter `agent_timeline.csv` to it (sorted by `sim_step` in true order), and cross-reference `survey_assembled_context.csv` for the exact prompt of any survey.
 - **Debug a suspicious survey answer** → in order: `survey_assembled_context.csv` (did the prompt have the right anchor/reflections?), `survey_raw_response.csv` (did it answer with a letter or ramble?), `survey_reasoning.csv` (does the Step-1 reasoning contradict the final letter?). If the letter mismatches the reasoning, look at `parse_letter_response`; if the reasoning mismatches the context, look at `assemble_context`.
 
@@ -232,7 +232,7 @@ This file goes stale the moment the code moves, so a few habits keep it true:
 
 ## Appendix A — Political-exposure assignment (the affinity-rank story)
 
-This is the second-most-important mechanism in the codebase after the memory architecture, and the new map ([§4.2](#42-domain--the-simulation-engine)) only gestures at it. Here it is in full. It all lives in [environment.py](src/cag/abm/environment.py).
+This is the second-most-important mechanism in the codebase after the memory architecture, and the new map ([§4.2](#42-domain--the-simulation-engine)) only gestures at it. Here it is in full. It all lives in [environment.py](../../src/cag/abm/environment.py).
 
 1. **Score every citizen twice.** `_green_affinity_score` (using the weights under key `"A"`) and `_reform_affinity_score` (key `"B"`) each compute a weighted sum over eleven signals:
    - **values:** Schwartz openness + self-transcendence, and SDO / RWA / conformity-tradition;

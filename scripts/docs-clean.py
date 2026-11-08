@@ -7,7 +7,7 @@ This is meant to be run before building the documentation to ensure that any old
 """
 # Metadata
 __author__ = ["Andy Turner <agdturner@gmail.com>"]
-__version__ = "0.1.1"
+__version__ = "0.1.2"
 __copyright__ = "Copyright (c) 2026 Climate-Action-GABM contributors, University of Leeds"
 
 # Standard library imports
@@ -16,7 +16,7 @@ import logging
 from logging.handlers import RotatingFileHandler
 
 # Files to remove from docs/
-from docs_assets import DOC_FILES, STAGED_NAMES
+from docs_assets import DOC_FILES, STAGED_NAMES, GENERATED_DOC_FILES
 from docs_assets import GITHUB_DOC_FILES
 
 # Paths
@@ -37,7 +37,7 @@ if not logger.hasHandlers():
 
 # Remove old copies of doc files from docs/
 logger.info("Starting clean_docs_assets.py script")
-for fname in DOC_FILES + GITHUB_DOC_FILES:
+for fname in DOC_FILES + GITHUB_DOC_FILES + GENERATED_DOC_FILES:
     fpath = os.path.join(DOCS, STAGED_NAMES.get(fname, fname))
     try:
         if os.path.exists(fpath):

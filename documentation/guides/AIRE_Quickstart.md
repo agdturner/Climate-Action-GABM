@@ -198,7 +198,7 @@ cd Climate-Action-GABM
 <details>
 <summary>Details — org repo vs. your fork, and using a non-default SSH key</summary>
 
-**Org repo vs. your fork.** This clones the canonical **org** repo `compolis/Climate-Action-GABM` — the right choice for *running* canonical experiments on AIRE, since you want the merged source of truth. If instead you are *developing code* and following the fork-based contributor flow ([DEV_QUICKSTART](../DEV_QUICKSTART.md)), clone your own fork — `git@github.com:<your-github-username>/Climate-Action-GABM.git` — and add the org repo as `upstream` (`git remote add upstream git@github.com:compolis/Climate-Action-GABM.git`). Either way the SSH-key setup is identical, and `scripts/aire/run.sh` doesn't care which remote you cloned from.
+**Org repo vs. your fork.** This clones the canonical **org** repo `compolis/Climate-Action-GABM` — the right choice for *running* canonical experiments on AIRE, since you want the merged source of truth. If instead you are *developing code* and following the fork-based contributor flow ([DEV_QUICKSTART](../../DEV_QUICKSTART.md)), clone your own fork — `git@github.com:<your-github-username>/Climate-Action-GABM.git` — and add the org repo as `upstream` (`git remote add upstream git@github.com:compolis/Climate-Action-GABM.git`). Either way the SSH-key setup is identical, and `scripts/aire/run.sh` doesn't care which remote you cloned from.
 
 **If your AIRE key isn't the default `~/.ssh/id_ed25519`** (e.g. you keep a dedicated `~/.ssh/aire_repo`), the bare `git clone git@...` form won't pick it up. Use:
 
@@ -544,7 +544,7 @@ If you need to change a hard key, start a fresh run instead of resuming.
 
 For ≥3 related jobs (different exposure targets, different reach values, etc.), use the sweep wrapper: one text file lists the per-job flag suffix on each line, the wrapper submits one `sbatch` per line.
 
-The shipped example, [scripts/aire/sweeps/r14_v2.txt](../scripts/aire/sweeps/r14_v2.txt):
+The shipped example, [scripts/aire/sweeps/r14_v2.txt](../../scripts/aire/sweeps/r14_v2.txt):
 
 ```text
 --preset r14_canonical --exposure-targets split50
@@ -570,7 +570,7 @@ bash scripts/aire/sweep.sh scripts/aire/sweeps/r14_v2.txt --time=06:00:00 --mem=
 - **Sweep is better:** ≥3 related jobs; you want a single artefact (the `.log`) recording the whole experiment grid; you want identical Slurm settings.
 - **Plain sbatch is better:** one-off, or each job needs different Slurm settings.
 
-To author a new sweep, drop a new `.txt` file under [scripts/aire/sweeps/](../scripts/aire/sweeps/) — one line per job, `#` for comments. No code change.
+To author a new sweep, drop a new `.txt` file under [scripts/aire/sweeps/](../../scripts/aire/sweeps/) — one line per job, `#` for comments. No code change.
 </details>
 
 **Next:** errors? §12.
