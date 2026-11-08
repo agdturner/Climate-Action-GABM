@@ -20,6 +20,18 @@ Notable changes are to be documented in this file.
 
 ## [Unreleased]
 
+- **Real-nation refactor baseline (2026-11-08).** Added
+  [tests/test_integration_baseline.py](tests/test_integration_baseline.py) and
+  [versioned golden data](data/fixtures/cag_integration_baseline.json) for
+  repeatable package/single-policy runs with real citizens, real nation logic,
+  and deterministic mocked LLM transport. Covers prompts, seeded/repaired
+  networks, exposure/reach, peer messages, surveys, memory, CSV/JSON outputs,
+  checkpoint hydration, and controlled continuation. Two strict expected
+  failures expose the existing offline-message cursor resume limitation.
+  Published GABM 0.2.18 validation: 686 passed, 1 skipped, 2 expected failures.
+  Runtime code and dependency pins are unchanged; detailed evidence and
+  checkpoint limitations are in [GABM_Refactor_Plan.md](GABM_Refactor_Plan.md).
+
 - **CAG to GABM refactor plan (2026-11-08).** Added
   [GABM_Refactor_Plan.md](GABM_Refactor_Plan.md) with the published
   dependency audit, generic/domain ownership boundaries, phased extraction

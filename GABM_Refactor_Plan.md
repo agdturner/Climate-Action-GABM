@@ -104,6 +104,85 @@ single-policy behaviour and checkpoint/resume in companion checks.
 pre/post comparison evidence. Keep synthetic fixtures in tests; do not commit
 credentials, private survey records, or large generated run directories.
 
+#### Baseline implementation and evidence (2026-11-08)
+
+[tests/test_integration_baseline.py](tests/test_integration_baseline.py) now runs
+eight real synthetic citizens in a real nation for three days, in both
+six-policy package mode and single-policy carbon-tax mode. The scenarios use
+the real offline political-message set, all four exposure buckets, asymmetric
+reach, peer exchange, seeded stochastic-block graph generation and connectivity
+repair, ground-truth Day-0 rationale, two-step surveys, and Day-1 memory
+compression on Day 3. Citizen/nation logic is not mocked.
+
+The versioned reference is
+[data/fixtures/cag_integration_baseline.json](data/fixtures/cag_integration_baseline.json).
+It records dependency provenance, the complete serialized configurations,
+explicit graph snapshots and diagnostics, per-table row counts and SHA-256
+fingerprints, ordered transport-request fingerprints, agent-state fingerprints,
+and final saved-file manifests and fingerprints. Table fingerprints include
+CSV headers, row order, values, and exact text. Large prompt/run outputs are
+created only in temporary test directories. This tests CSV/JSON output, not
+plot image equivalence.
+
+Only LLM transport, local-server setup/health checks, and the persona clock are
+replaced. Responses are deterministic functions of exact prompts and request
+options, rather than a constant answer or an invocation counter. The persona
+date is fixed to 2026-11-08; Python's process-wide random state is seeded and
+restored around each scenario. Elapsed diagnostic time and the timestamped
+output-directory name are excluded. Political-exposure assortativity is rounded
+to 12 decimal places to remove sub-picounit categorical reduction-order noise
+across Python hash seeds; no other compared numerical or text fields are
+normalized.
+
+Run in an environment installed from the pinned runtime requirements:
+
+```bash
+PYTHONPATH=src:scripts MPLBACKEND=Agg python -m pytest -q tests/test_integration_baseline.py
+PYTHONPATH=src:scripts MPLBACKEND=Agg python -m pytest -q
+```
+
+Validation against published GABM 0.2.18:
+
+- Targeted tests: **6 passed, 2 expected failures**, independently verified
+  with `PYTHONHASHSEED=0` and `PYTHONHASHSEED=17`.
+- Full suite: **686 passed, 1 skipped, 2 expected failures**, 23 subtests passed,
+  and the same 6 warnings observed in the initial full baseline.
+- Independent developer validation (2026-11-08): `make test` in the `cag`
+  Conda environment, Python 3.12.12 and pytest 9.0.2, reported **686 passed,
+  1 skipped, 2 expected failures, 6 warnings** in 11.43 seconds. This matches
+  the isolated-environment result; the supplied output did not report the
+  installed GABM version.
+- Repeated fresh scenarios match the fixed reference, not just each other:
+  package mode has 192 opinion rows and 406 transport calls; single-policy
+  mode has 32 opinion rows and 126 transport calls. Both have 51 message rows
+  and 8 daily summaries.
+
+#### Characterized checkpoint limitations
+
+Completed-checkpoint hydration restores the core citizen state, event counter,
+graph, and core CSV serialization, and repeated hydration is idempotent.
+However, existing behaviour is not full fresh-process replay:
+
+- Full prompt logs are final-output-only and are not hydrated.
+- CSV hydration stringifies mixed sender IDs; their CSV text remains equal,
+  but timeline JSON metadata changes type. Separate fixed timeline fingerprints
+  characterize the restored output rather than concealing that difference.
+- Peer selection uses process-wide Python random state, which the checkpoint
+  does not save. The passing continuation tests explicitly preserve that state
+  outside the checkpoint and use stateless mocked LLM political broadcasts.
+- Offline message-pool cursors are not restored: resumed broadcasts restart
+  their rotation. Package and single-policy offline continuation equivalence
+  tests are marked **strict expected failures** for this known limitation.
+  Unexpected success requires updating the tests; unrelated exceptions do not
+  satisfy the expected assertion-failure condition.
+
+No runtime fixes or dependency upgrades are part of this checkpoint. Address
+resume reproducibility in a separate, explicitly tested slice before claiming
+uninterrupted-versus-resumed equivalence for production offline runs.
+Do not refresh golden fingerprints merely to make a refactor pass: inspect the
+changed surface, compare actual temporary outputs, and obtain a separate
+decision for any intentional behaviour change.
+
 ### 2. Resolve published 0.3.0 compatibility
 
 - Define CAG survey attribute types using GABM's generic attribute primitives,
@@ -179,7 +258,7 @@ separately from structural refactor regressions.
 | Checkpoint | Status |
 |---|---|
 | Published-package audit and unchanged 0.2.18 baseline | Complete, 2026-11-08 |
-| Golden real-nation integration fixture | Not started |
+| Golden real-nation integration fixture | Implemented and validated, 2026-11-08; 6 passing tests and 2 strict expected failures characterize offline continuation limitations |
 | Published 0.3.0 compatibility | Not started |
 | Generic network extraction and CAG wiring | Proposed first upstream extraction |
 | LLM transport adaptation | Pending network slice; boundary review required |
