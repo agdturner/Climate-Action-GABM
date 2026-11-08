@@ -18,6 +18,7 @@ requirements-dev.md
 requirements.md
 API_KEYS.md
 ROADMAP.md
+GABM_Refactor_Plan.md
 CHANGE_LOG.md
 DEVELOPMENT_HISTORY.md
 Simulation_Configuration_Guide.md

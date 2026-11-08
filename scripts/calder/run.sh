@@ -112,7 +112,6 @@ module load cuda/13.3.0
 module load nccl/2.29.7-1
 module load miniforge3
 
-WORKING_DIR="/scratch-calder/calder-uat/geoagdt/gabm"
 echo "=== WORKING_DIR ==="
 echo ${WORKING_DIR}
 
@@ -126,11 +125,14 @@ SIF_IMAGE="${WORKING_DIR}/${SIF_FILE}"
 
 # Avoid PORT collisions rather than setting PORT=8000
 PORT=$((10000 + SLURM_JOB_ID % 50000))
+echo "=== PORT ==="
+echo ${PORT}
 
 BASE_URL="http://localhost:${PORT}/v1"
 REPO_DIR="${SLURM_SUBMIT_DIR}"
 cd "${REPO_DIR}"
-
+echo "=== REPO_DIR ==="
+echo ${REPO_DIR}
 
 # Default
 OUTDIR="${WORKING_DIR}/cag_runs/run_${SLURM_JOB_ID}"

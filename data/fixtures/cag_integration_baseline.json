@@ -1,0 +1,739 @@
+{
+  "schema_version": 1,
+  "provenance": {
+    "captured_on": "2026-11-08",
+    "runtime_commit": "327bb88",
+    "python": "3.12.12",
+    "gabm": "0.2.18 (published PyPI wheel)",
+    "numpy": "2.4.2",
+    "pandas": "3.0.1",
+    "networkx": "3.6.1",
+    "scipy": "1.17.1",
+    "inputs": "Eight synthetic survey rows constructed in tests/test_integration_baseline.py; real offline political message set v1.",
+    "transport": "SHA-256 of canonical JSON containing exact system/user prompts and options; A-G by first eight hex digits modulo seven for survey answers, otherwise Synthetic response followed by first sixteen hex digits.",
+    "clock": "cag.abm.agent.date.today fixed to 2026-11-08",
+    "rng": "Python random seeded to 42; previous process state restored after each scenario",
+    "excluded": [
+      "network_diagnostics.elapsed_s",
+      "timestamped output directory name"
+    ],
+    "normalization": "Political-exposure assortativity rounded to 12 decimal places to remove sub-picounit NetworkX reduction-order variation across Python hash seeds; all other compared values and text unchanged."
+  },
+  "checkpoint_timelines": {
+    "package": {
+      "rows": 805,
+      "sha256": "7f0d61d20892082eb68fb8ff8e19dc78b054d8e31cf37a7f4a5a244705293f4e"
+    },
+    "single_policy": {
+      "rows": 245,
+      "sha256": "f59f3e6eb36ffd6f8bcc2cae60fbfeb323a8e480ef22e88a72270f92de5b7fab"
+    }
+  },
+  "scenarios": {
+    "package": {
+      "agent_state_sha256": "a4b983f2f9b912bf6e5288485dd0913aa5d0c7db7c33bce521d46a8bdd890e84",
+      "config": {
+        "affinity_weights": null,
+        "audience_cap": null,
+        "block_sizes": null,
+        "communication_mode": "package",
+        "day0_anchor": "ground_truth_with_rationale",
+        "days": [
+          {
+            "phases": [
+              "P-A",
+              "P-B",
+              "C"
+            ]
+          },
+          {
+            "phases": [
+              "P-B",
+              "P-A",
+              "C"
+            ]
+          },
+          {
+            "phases": [
+              "P-A",
+              "C",
+              "P-B"
+            ]
+          }
+        ],
+        "diagnostics_timeout_s": null,
+        "k_peers_per_day": 2,
+        "llm_model": "deterministic-test-model",
+        "llm_provider": "local",
+        "llm_temperature": 0.0,
+        "local_base_url": null,
+        "local_extra_body": null,
+        "local_timeout_s": null,
+        "memory": "default",
+        "memory_resolved": {
+          "daily_summaries": {
+            "enabled": true
+          },
+          "day0_anchor": {
+            "enabled": true,
+            "ttl_days": null
+          },
+          "opinion_trajectory": {
+            "enabled": false
+          },
+          "own_reasoning": {
+            "enabled": true
+          },
+          "persona": {
+            "enabled": true
+          },
+          "recent_reflections": {
+            "enabled": true
+          },
+          "stages": {
+            "peer_message": {},
+            "reflection": {},
+            "survey": {}
+          },
+          "today_so_far": {
+            "enabled": true
+          },
+          "verbatim_window_days": 2
+        },
+        "n_citizens": 8,
+        "network_params": {
+          "p_inter": 0.1
+        },
+        "network_type": "stochastic_block",
+        "p_inter": 0.1,
+        "p_intra": 0.15,
+        "package_policies": [
+          "ClimatePolicyID(1)",
+          "ClimatePolicyID(2)",
+          "ClimatePolicyID(3)",
+          "ClimatePolicyID(4)",
+          "ClimatePolicyID(5)",
+          "ClimatePolicyID(6)"
+        ],
+        "peer_fanout_budget": "additive",
+        "peer_fanout_kmax": 10,
+        "peer_fanout_mode": "constant",
+        "persona_mode": "real",
+        "political_exposure_mode": "rule_affinity_rank",
+        "political_exposure_targets": {
+          "A-only": 0.25,
+          "B-only": 0.25,
+          "both": 0.25,
+          "neither": 0.25
+        },
+        "political_message_set": "v1",
+        "political_message_source": "offline",
+        "random_seed": 42,
+        "reach_a": 0.75,
+        "reach_b": 0.5,
+        "reach_targeting_a": "random",
+        "reach_targeting_b": "random",
+        "survey_model": null,
+        "survey_provider": null,
+        "thinking": false,
+        "timeline_sample_agent_ids": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "timeline_sample_size": 8
+      },
+      "network_diagnostics": {
+        "assortativity_political_exposure": 0.014084507042,
+        "auto_connected_edges": 4,
+        "average_clustering": 0.0,
+        "average_shortest_path_length": 2.4285714285714284,
+        "degree_histogram": {
+          "bin_edges": [
+            1.0,
+            1.1,
+            1.2,
+            1.3,
+            1.4,
+            1.5,
+            1.6,
+            1.7000000000000002,
+            1.8,
+            1.9,
+            2.0,
+            2.1,
+            2.2,
+            2.3,
+            2.4000000000000004,
+            2.5,
+            2.6,
+            2.7,
+            2.8,
+            2.9000000000000004,
+            3.0
+          ],
+          "counts": [
+            4,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            2,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            2
+          ]
+        },
+        "density": 0.25,
+        "diameter": 5,
+        "largest_component_size": 8,
+        "max_degree": 3,
+        "mean_degree": 1.75,
+        "median_degree": 1.5,
+        "n_connected_components": 1,
+        "n_edges": 7,
+        "n_nodes": 8,
+        "network_params": {
+          "p_inter": 0.1,
+          "p_intra": 0.15
+        },
+        "network_type": "stochastic_block",
+        "timed_out": false
+      },
+      "network_snapshot": {
+        "edges": [
+          [
+            "2",
+            "0"
+          ],
+          [
+            "2",
+            "3"
+          ],
+          [
+            "2",
+            "6"
+          ],
+          [
+            "0",
+            "4"
+          ],
+          [
+            "0",
+            "5"
+          ],
+          [
+            "1",
+            "4"
+          ],
+          [
+            "3",
+            "7"
+          ]
+        ],
+        "nodes": [
+          {
+            "bucket": "A-only",
+            "degree": 3,
+            "id": "2"
+          },
+          {
+            "bucket": "A-only",
+            "degree": 1,
+            "id": "6"
+          },
+          {
+            "bucket": "both",
+            "degree": 3,
+            "id": "0"
+          },
+          {
+            "bucket": "neither",
+            "degree": 1,
+            "id": "5"
+          },
+          {
+            "bucket": "B-only",
+            "degree": 1,
+            "id": "1"
+          },
+          {
+            "bucket": "B-only",
+            "degree": 2,
+            "id": "3"
+          },
+          {
+            "bucket": "both",
+            "degree": 2,
+            "id": "4"
+          },
+          {
+            "bucket": "neither",
+            "degree": 1,
+            "id": "7"
+          }
+        ]
+      },
+      "requests": {
+        "count": 406,
+        "sha256": "7b630487c303575d0bee458bc7dc205734e8c96d7044f814d640f92c91d698a2"
+      },
+      "saved_files": [
+        "agent_attributes.csv",
+        "agent_prompts.csv",
+        "agent_timeline.csv",
+        "bucket_summary.csv",
+        "calibration.csv",
+        "config.json",
+        "daily_summaries.csv",
+        "day0_vs_dayN_shifts.csv",
+        "ground_truth.csv",
+        "message_flow.csv",
+        "messages.csv",
+        "network_diagnostics.json",
+        "network_snapshot.json",
+        "opinion_shares.csv",
+        "opinion_shares_by_bucket.csv",
+        "opinion_trajectories.csv",
+        "package_ground_truth.csv",
+        "package_index_by_bucket.csv",
+        "package_index_shares.csv",
+        "package_index_trajectories.csv",
+        "persona_map.csv",
+        "reflections.csv",
+        "survey_assembled_context.csv",
+        "survey_raw_response.csv",
+        "survey_reasoning.csv",
+        "targeting_diagnostics.csv"
+      ],
+      "saved_files_sha256": "ea35e0900aed3b5ddac5316fe1d1278a3c0db64ea3e2ceaa6d44a7e1d596c0c8",
+      "sim_step": 577,
+      "tables": {
+        "agent_attributes": {
+          "rows": 8,
+          "sha256": "98ee464ccdcca622cd6db74b74e469c3ecceea915af6eb95ab95ca46ba8e2bd5"
+        },
+        "agent_prompts": {
+          "rows": 398,
+          "sha256": "41c0f37620dc1eee2d0777870f36dbf9764960d04928cfed4a02dd4588d04e26"
+        },
+        "agent_timeline": {
+          "rows": 805,
+          "sha256": "ce222216eb881c0292b0b5f22236eff208b41176d81f30f6b092828880abffc7"
+        },
+        "daily_summaries": {
+          "rows": 8,
+          "sha256": "91214dcd1d8bc34af9f440fb7f4c43286bfd6c9ee9fab078da75f7f39c22b6ef"
+        },
+        "ground_truth": {
+          "rows": 48,
+          "sha256": "3a939d998bb5ec92c45b6a7994042059277b820f30b57ee4bf887a444a5b289a"
+        },
+        "messages": {
+          "rows": 51,
+          "sha256": "6031f18d20fdea50d9d5d42acbe2900acedb7adbdaabe9bcb5ee7fdd4222963f"
+        },
+        "opinion_trajectories": {
+          "rows": 192,
+          "sha256": "9f70e0416106059809f6299d79b95293cfc80002b6179bd466cc056cc0aa29cc"
+        },
+        "package_ground_truth": {
+          "rows": 8,
+          "sha256": "054411e5fd872f36b0344e26e996b0df8d4706ad8749e33d0b6f6b8a876a0ff3"
+        },
+        "package_index_trajectories": {
+          "rows": 32,
+          "sha256": "1540e27dcb920507aeb2119cc971e63295e2a911070594375cc77ed4d28c9925"
+        },
+        "persona_map": {
+          "rows": 8,
+          "sha256": "ba5f3e21ec1d4e6c0b54d40d2fd3c600e5e1b8b4537c0edd1a790f426612d6a1"
+        },
+        "reflections": {
+          "rows": 38,
+          "sha256": "b924dc9c6447f4763c1816ea57d92fbc9ad7d3b045b71b9d9062d2cd64e7e613"
+        },
+        "survey_assembled_context": {
+          "rows": 144,
+          "sha256": "f1d563b36775925eefb4ba6f6759add7cd7c0bace1393db63432588468225816"
+        },
+        "survey_raw_response": {
+          "rows": 144,
+          "sha256": "c230354c27520189ffb177b65a4b9bc1737886b9e39755aa20b658b1969c4207"
+        },
+        "survey_reasoning": {
+          "rows": 192,
+          "sha256": "c1d0efd6718fd37623b7be361fb6e3dacf905ae388d34439c7964b871c6df2b6"
+        }
+      }
+    },
+    "single_policy": {
+      "agent_state_sha256": "3025a48d769667d4aa674fde2f89e8f871b2cc21c9631eb5acb7761660f66f99",
+      "config": {
+        "affinity_weights": null,
+        "audience_cap": null,
+        "block_sizes": null,
+        "communication_mode": "single_policy",
+        "day0_anchor": "ground_truth_with_rationale",
+        "days": [
+          {
+            "phases": [
+              "P-A",
+              "P-B",
+              "C"
+            ],
+            "policy": "ClimatePolicyID(5)"
+          },
+          {
+            "phases": [
+              "P-B",
+              "P-A",
+              "C"
+            ],
+            "policy": "ClimatePolicyID(5)"
+          },
+          {
+            "phases": [
+              "P-A",
+              "C",
+              "P-B"
+            ],
+            "policy": "ClimatePolicyID(5)"
+          }
+        ],
+        "diagnostics_timeout_s": null,
+        "k_peers_per_day": 2,
+        "llm_model": "deterministic-test-model",
+        "llm_provider": "local",
+        "llm_temperature": 0.0,
+        "local_base_url": null,
+        "local_extra_body": null,
+        "local_timeout_s": null,
+        "memory": "default",
+        "memory_resolved": {
+          "daily_summaries": {
+            "enabled": true
+          },
+          "day0_anchor": {
+            "enabled": true,
+            "ttl_days": null
+          },
+          "opinion_trajectory": {
+            "enabled": false
+          },
+          "own_reasoning": {
+            "enabled": true
+          },
+          "persona": {
+            "enabled": true
+          },
+          "recent_reflections": {
+            "enabled": true
+          },
+          "stages": {
+            "peer_message": {},
+            "reflection": {},
+            "survey": {}
+          },
+          "today_so_far": {
+            "enabled": true
+          },
+          "verbatim_window_days": 2
+        },
+        "n_citizens": 8,
+        "network_params": {
+          "p_inter": 0.1
+        },
+        "network_type": "stochastic_block",
+        "p_inter": 0.1,
+        "p_intra": 0.15,
+        "package_policies": [
+          "ClimatePolicyID(1)",
+          "ClimatePolicyID(2)",
+          "ClimatePolicyID(3)",
+          "ClimatePolicyID(4)",
+          "ClimatePolicyID(5)",
+          "ClimatePolicyID(6)"
+        ],
+        "peer_fanout_budget": "additive",
+        "peer_fanout_kmax": 10,
+        "peer_fanout_mode": "constant",
+        "persona_mode": "real",
+        "political_exposure_mode": "rule_affinity_rank",
+        "political_exposure_targets": {
+          "A-only": 0.25,
+          "B-only": 0.25,
+          "both": 0.25,
+          "neither": 0.25
+        },
+        "political_message_set": "v1",
+        "political_message_source": "offline",
+        "random_seed": 42,
+        "reach_a": 0.75,
+        "reach_b": 0.5,
+        "reach_targeting_a": "random",
+        "reach_targeting_b": "random",
+        "survey_model": null,
+        "survey_provider": null,
+        "thinking": false,
+        "timeline_sample_agent_ids": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "timeline_sample_size": 8
+      },
+      "network_diagnostics": {
+        "assortativity_political_exposure": 0.014084507042,
+        "auto_connected_edges": 4,
+        "average_clustering": 0.0,
+        "average_shortest_path_length": 2.4285714285714284,
+        "degree_histogram": {
+          "bin_edges": [
+            1.0,
+            1.1,
+            1.2,
+            1.3,
+            1.4,
+            1.5,
+            1.6,
+            1.7000000000000002,
+            1.8,
+            1.9,
+            2.0,
+            2.1,
+            2.2,
+            2.3,
+            2.4000000000000004,
+            2.5,
+            2.6,
+            2.7,
+            2.8,
+            2.9000000000000004,
+            3.0
+          ],
+          "counts": [
+            4,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            2,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            2
+          ]
+        },
+        "density": 0.25,
+        "diameter": 5,
+        "largest_component_size": 8,
+        "max_degree": 3,
+        "mean_degree": 1.75,
+        "median_degree": 1.5,
+        "n_connected_components": 1,
+        "n_edges": 7,
+        "n_nodes": 8,
+        "network_params": {
+          "p_inter": 0.1,
+          "p_intra": 0.15
+        },
+        "network_type": "stochastic_block",
+        "timed_out": false
+      },
+      "network_snapshot": {
+        "edges": [
+          [
+            "2",
+            "0"
+          ],
+          [
+            "2",
+            "3"
+          ],
+          [
+            "2",
+            "6"
+          ],
+          [
+            "0",
+            "4"
+          ],
+          [
+            "0",
+            "5"
+          ],
+          [
+            "1",
+            "4"
+          ],
+          [
+            "3",
+            "7"
+          ]
+        ],
+        "nodes": [
+          {
+            "bucket": "A-only",
+            "degree": 3,
+            "id": "2"
+          },
+          {
+            "bucket": "A-only",
+            "degree": 1,
+            "id": "6"
+          },
+          {
+            "bucket": "both",
+            "degree": 3,
+            "id": "0"
+          },
+          {
+            "bucket": "neither",
+            "degree": 1,
+            "id": "5"
+          },
+          {
+            "bucket": "B-only",
+            "degree": 1,
+            "id": "1"
+          },
+          {
+            "bucket": "B-only",
+            "degree": 2,
+            "id": "3"
+          },
+          {
+            "bucket": "both",
+            "degree": 2,
+            "id": "4"
+          },
+          {
+            "bucket": "neither",
+            "degree": 1,
+            "id": "7"
+          }
+        ]
+      },
+      "requests": {
+        "count": 126,
+        "sha256": "7184f2d20c6b8926da383b12e351cce92c5c371a20c0a025e967268b3184ad05"
+      },
+      "saved_files": [
+        "agent_attributes.csv",
+        "agent_prompts.csv",
+        "agent_timeline.csv",
+        "calibration.csv",
+        "config.json",
+        "daily_summaries.csv",
+        "day0_vs_dayN_shifts.csv",
+        "ground_truth.csv",
+        "message_flow.csv",
+        "messages.csv",
+        "network_diagnostics.json",
+        "network_snapshot.json",
+        "opinion_shares.csv",
+        "opinion_shares_by_bucket.csv",
+        "opinion_trajectories.csv",
+        "package_ground_truth.csv",
+        "persona_map.csv",
+        "reflections.csv",
+        "survey_assembled_context.csv",
+        "survey_raw_response.csv",
+        "survey_reasoning.csv",
+        "targeting_diagnostics.csv"
+      ],
+      "saved_files_sha256": "e1d30ee203e9a38cc8a25ac7579de213cd5e785d295d0380fd2289f01280d3a2",
+      "sim_step": 177,
+      "tables": {
+        "agent_attributes": {
+          "rows": 8,
+          "sha256": "98ee464ccdcca622cd6db74b74e469c3ecceea915af6eb95ab95ca46ba8e2bd5"
+        },
+        "agent_prompts": {
+          "rows": 118,
+          "sha256": "8e19ae60fc870c5743803d3c975ae7412650554fd40c716083d61495a930fc23"
+        },
+        "agent_timeline": {
+          "rows": 245,
+          "sha256": "2e48c6ca5d32f5f5882f013132c530fc8e6cc3fc2e32a22051abd7b709b5c20a"
+        },
+        "daily_summaries": {
+          "rows": 8,
+          "sha256": "415f4b425a34fecca8d068651441f390676b415e79278eadc676c68cc77c029d"
+        },
+        "ground_truth": {
+          "rows": 48,
+          "sha256": "3a939d998bb5ec92c45b6a7994042059277b820f30b57ee4bf887a444a5b289a"
+        },
+        "messages": {
+          "rows": 51,
+          "sha256": "95b3afa9afbae7e6b7c0d2a86f3e524616fc2c30266a442eb4053a7389d72138"
+        },
+        "opinion_trajectories": {
+          "rows": 32,
+          "sha256": "1e104108648beb1f403c12b2d603eaae11bc48190edd58d42f06e2af82ecb0b0"
+        },
+        "package_ground_truth": {
+          "rows": 8,
+          "sha256": "054411e5fd872f36b0344e26e996b0df8d4706ad8749e33d0b6f6b8a876a0ff3"
+        },
+        "package_index_trajectories": {
+          "rows": 0,
+          "sha256": "0e89b14c7fd4f6b7c25ac7e2d4d5f2de075551f653b75588a98c29a8a249f850"
+        },
+        "persona_map": {
+          "rows": 8,
+          "sha256": "ba5f3e21ec1d4e6c0b54d40d2fd3c600e5e1b8b4537c0edd1a790f426612d6a1"
+        },
+        "reflections": {
+          "rows": 38,
+          "sha256": "c3587bd6fb2e8c4216a4ed74093a9275e55a5641e31e25bdb612488d4c31452a"
+        },
+        "survey_assembled_context": {
+          "rows": 24,
+          "sha256": "ea648266c12c3065700d16cd48cadcf7074da4b8d2ad0f2600c059e710fb7a19"
+        },
+        "survey_raw_response": {
+          "rows": 24,
+          "sha256": "a807338faf81ccb53ac3daf807eb0c0d2ccde2e8b74a412ba497ec99b0a290be"
+        },
+        "survey_reasoning": {
+          "rows": 32,
+          "sha256": "1d511c8a56687e3b76d0406fad131603baef608d8ab87de4ae38b5f9f136c05b"
+        }
+      }
+    }
+  }
+}
