@@ -18,6 +18,7 @@ DOC_FILES = [
     #"requirements-dev.txt",
     "API_KEYS.md",
     "ROADMAP.md",
+    "GABM_Refactor_Plan.md",
     "CHANGE_LOG.md",
     "DEVELOPMENT_HISTORY.md",
 ]

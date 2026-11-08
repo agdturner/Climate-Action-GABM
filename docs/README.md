@@ -22,6 +22,7 @@ Pick the doc that matches what you want to do:
 | Understand the files a run produces | [Run_Output_Guide.md](Run_Output_Guide.md) |
 | See the exact prompts and personas sent to the LLM | [Prompts_and_Personas_Guide_v2.md](Prompts_and_Personas_Guide_v2.md) |
 | Find my way around the source code | [Code_Tour.md](Code_Tour.md) |
+| Refactor CAG to reuse and extend the GABM framework | [GABM_Refactor_Plan.md](../GABM_Refactor_Plan.md) |
 | Run a fully local LLM backend | [Local_LLM_Setup_Guide.md](Local_LLM_Setup_Guide.md) |
 | Run on the AIRE HPC cluster | [AIRE_Quickstart.md](AIRE_Quickstart.md) |
 | Check what past experiments found | [result_report.md](result_report.md) |
@@ -59,6 +60,7 @@ Pick the doc that matches what you want to do:
 | File | Role | Use it when… |
 |---|---|---|
 | [Code_Tour.md](Code_Tour.md) | A guided, two-layer walk through `src/cag/` — bold lines for a fast pass, "Staying?" notes for depth, with grep breadcrumbs instead of line numbers. | You know the science but haven't opened the code. |
+| [GABM_Refactor_Plan.md](../GABM_Refactor_Plan.md) | Root-authored two-repository refactor plan: audit evidence, ownership boundaries, extraction sequence, and acceptance gates. | You're moving generic CAG capabilities into GABM or wiring CAG to framework APIs. |
 
 ## HPC (AIRE)
 

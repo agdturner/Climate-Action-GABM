@@ -2,6 +2,7 @@
 
 ## Table of Contents
 1. [Overview](#overview)
+   - [CAG to GABM refactor track](#cag-to-gabm-refactor-track)
 2. [1.0](#10)
 3. [0.9 — Persona-Null Ablation, Broadcast-Frequency CLI, and Affinity-Weight Ladder](#09--persona-null-ablation-broadcast-frequency-cli-and-affinity-weight-ladder)
 4. [0.8 — Refactor Track: `sim.py` Split, v2 Memory Architecture, and Operational Polish](#08--refactor-track-simpy-split-v2-memory-architecture-and-operational-polish)
@@ -21,6 +22,21 @@ Version 0.5 was opened mid-stream rather than as a single planned sprint; this r
 The full design specification lives in [docs/Model_Design.md](docs/Model_Design.md).
 Detailed issue descriptions and acceptance criteria are in [docs/github_issues.md](docs/github_issues.md).
 Experiment results and analysis are in [docs/result_report.md](docs/result_report.md).
+
+### CAG to GABM refactor track
+
+Move generic capabilities upstream into GABM and make CAG a thinner consumer,
+without changing its research behaviour. The maintained scope, audit evidence,
+ownership boundaries, sequencing, and acceptance gates are in the
+[CAG to GABM Refactor Plan](GABM_Refactor_Plan.md).
+
+The 2026-11-08 audit established a passing baseline against published GABM
+0.2.18 (680 passed, 1 skipped), but unchanged CAG is not compatible with 0.3.0.
+Start with a deterministic real-nation integration fixture and API compatibility,
+then extract seeded graph generation and diagnostics as the first bounded
+upstream slice. LLM transport and memory follow only after their boundaries are
+validated. This is planned work toward 1.0, not a completed migration or a
+behaviour-bearing release.
 
 
 ## 0.9 — Persona-Null Ablation, Broadcast-Frequency CLI, and Affinity-Weight Ladder
@@ -285,6 +301,8 @@ Issues 1, 2  (independent)
 
 
 ## 1.0
+- Generic framework extraction and GABM integration, following the gates in
+  [GABM_Refactor_Plan.md](GABM_Refactor_Plan.md)
 - Longer simulation campaigns (10+ days) to study equilibrium and oscillation
 - Larger-N and multi-seed reach-asymmetry sweeps
 - Per-exposure-group analysis tooling and visualisation

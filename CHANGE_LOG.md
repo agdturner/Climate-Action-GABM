@@ -3,6 +3,7 @@
 
 ## Table of Contents
 - [Overview](#overview)
+- [Unreleased](#unreleased)
 - [0.9](#09)
 - [0.8](#08)
 - [0.7](#07)
@@ -15,6 +16,23 @@
 
 ## Overview
 Notable changes are to be documented in this file.
+
+
+## [Unreleased]
+
+- **CAG to GABM refactor plan (2026-11-08).** Added
+  [GABM_Refactor_Plan.md](GABM_Refactor_Plan.md) with the published
+  dependency audit, generic/domain ownership boundaries, phased extraction
+  sequence, and behaviour-preservation gates. Linked it from the roadmap,
+  developer guide, and documentation navigation. Documentation only; no
+  runtime code or dependency pins changed.
+- Clarified documentation ownership in the developer guide: author prose
+  outside `docs/`, retain Sphinx configuration/navigation there, and migrate
+  existing guides incrementally. Registered the root refactor plan in the
+  shared documentation copy/cleanup manifest.
+- Distinguished the forward-looking roadmap, release-oriented change log,
+  dated development history, and detailed implementation plans in the developer
+  guide. Historical roadmap cleanup is deferred to a separate change.
 
 
 ## [0.9]
@@ -178,4 +196,3 @@ v0.7 consolidates a long block of work that had been accumulating under the in-p
 
 ## Pre-versioning
 - Exploratory code in modules and sandbox directories
-

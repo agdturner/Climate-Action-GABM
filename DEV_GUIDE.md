@@ -6,6 +6,7 @@
 - [Contributing and Communicating](#contributing-and-communicating)
 - [Project Directories](#project-directories)
 - [Testing](#testing)
+- [Cross-Repository Refactoring](#cross-repository-refactoring)
 - [Python Package Entry Point](#python-package-entry-point)
 - [Makefile Targets](#makefile-targets)
 - [Developing Documentation](#developing-documentation)
@@ -107,6 +108,25 @@ Please add or update tests when modifying or adding features. Aim for high test 
 - See `.github/workflows/test.yml` for Continuous Integration (CI) details.
 
 
+## Cross-Repository Refactoring
+
+For work that moves reusable CAG capabilities into GABM, follow the
+[CAG to GABM Refactor Plan](GABM_Refactor_Plan.md). It records the published
+dependency audit, ownership boundaries, implementation sequence, and validation
+gates; the [roadmap](ROADMAP.md#cag-to-gabm-refactor-track) records the strategic
+goal.
+
+Establish deterministic integration evidence before runtime edits. Develop
+generic APIs and tests in GABM, retain CAG-specific research logic and tests
+here, and wire one bounded extraction at a time. An isolated editable GABM
+checkout is appropriate for development, but validate CAG against the built
+wheel and the subsequent published release before updating production pins.
+Do not change prompts, random-number usage, cache policy, output schemas, or
+checkpoint/resume behaviour incidentally during extraction.
+
+Update the plan's progress with test and comparison evidence after each slice.
+
+
 ## Python Package Entry Point
 
 The main entry point for the Climate-Action-GABM package is `src/cag/__main__.py`. This allows the application to be run using:
@@ -166,6 +186,61 @@ Please refer to the Makefile for full details.
 
 
 ## Developing Documentation
+
+### Authored sources and Sphinx staging
+
+Create and maintain prose documentation outside `docs/`. The repository root
+is the default location for new Markdown documents. `docs/` is the staging
+directory where documentation is copied and pre-processed for Sphinx, not a
+second place to author guides or plans.
+
+The exceptions are Sphinx configuration and navigation sources, such as
+`docs/conf.py`, `docs/index.md`, and API directives in `docs/api.rst`; these
+belong in `docs/` and may be edited directly. Generated documentation copies,
+autosummary files, and rendered output are not authoritative sources.
+
+Some existing authored guides still live in `docs/`. Until each is migrated,
+edit its existing source rather than deleting it or creating a second copy.
+Move these guides incrementally, updating links, staging, navigation, and
+cleanup together; no bulk relocation is required.
+
+For a new root Markdown document intended for the Sphinx site:
+
+1. Create the authoritative file in the repository root and link it from an
+   appropriate entry-point document.
+2. Add its filename to `DOC_FILES` in
+   [scripts/docs_assets.py](scripts/docs_assets.py), the shared copy/cleanup
+   manifest. Do not register an authored file that exists only in `docs/`:
+   cleanup would delete it.
+3. Add the staged filename to the Project Documents toctree in
+   [docs/index.md](docs/index.md).
+4. Check links in both the authored source and the rendered site. Paths valid
+   at the repository root may need adjustment during staging.
+5. Run `make docs` in the development environment. Confirm the source remains
+   intact and cleanup removes its staged copy after a successful build.
+
+Only authoritative sources and intentional Sphinx inputs should be committed,
+not generated copies or `docs/_build/`.
+
+### Root documents
+
+Keep planning and history separate:
+
+- [ROADMAP.md](ROADMAP.md) is forward-looking: priorities, intended outcomes,
+  unfinished work, and dependencies. It is not a release log. When work lands,
+  remove or update the relevant planned item and record the delivered change
+  in the change log. Historical release tables currently in the roadmap will
+  be reconciled incrementally, preserving outstanding work.
+- [CHANGE_LOG.md](CHANGE_LOG.md) records delivered changes by release, with an
+  Unreleased section for changes awaiting release. Preserve unique historical
+  details when moving material from the roadmap; do not duplicate entries.
+- [DEVELOPMENT_HISTORY.md](DEVELOPMENT_HISTORY.md) records dated milestones,
+  development context, and reflections, rather than duplicating the release
+  log or acting as the current plan.
+- Detailed implementation plans, such as
+  [GABM_Refactor_Plan.md](GABM_Refactor_Plan.md), hold scope, acceptance gates,
+  and progress evidence. Link them from the roadmap instead of repeating them.
+
 Markdown files in the root directory, each serving a specific purpose:
   - [README.md](README.md): A general [README](https://en.wikipedia.org/wiki/README) that links to much of the documentation outlined below including the developer and user guides. It is included in the Sphinx documentation and forms the basis for the main Sphinx documentation page.
   - [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md): Provides details on expected behavior of developers and reporting procedures.
@@ -173,11 +248,11 @@ Markdown files in the root directory, each serving a specific purpose:
   - [DEV_QUICKSTART.md](DEV_QUICKSTART.md) Provides step-by-step instructions for developers to get set up for contributing to GABM development.
   - [DEV_GUIDE.md](DEV_GUIDE.md): Explains how to contribute to GABM as a developer. It provides details about project structure, and workflow guidance.
   - [API_KEYS.md](API_KEYS.md): Explains how to create a file containing API keys for communicating with LLMs.
-  - [ROADMAP.md](ROADMAP.md): Document to outline planned features and future development goals.
-  - [CHANGE_LOG.md](CHANGE_LOG.md): Document to describe changes and updates.
-  - [DEVELOPMENT_HISTORY.md]: Document about development, milestones, and reflections.
+  - [ROADMAP.md](ROADMAP.md): Forward-looking priorities, planned features, and unfinished development goals.
+  - [GABM_Refactor_Plan.md](GABM_Refactor_Plan.md): Maintained plan and acceptance gates for extracting reusable CAG capabilities into GABM.
+  - [CHANGE_LOG.md](CHANGE_LOG.md): Delivered changes and updates organised by release.
+  - [DEVELOPMENT_HISTORY.md](DEVELOPMENT_HISTORY.md): Dated development milestones, context, and reflections.
 
-- If you add a new Markdown file in the root directory, please update entries to `doc_assets.py` DOC_FILES and `docs/index.md` Project Documents to include them in Sphinx documentation.
 - Add API docs via `docs/index.md` or `docs/api.rst`.
 
 
