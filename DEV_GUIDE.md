@@ -215,7 +215,7 @@ edit its existing source rather than deleting it or creating a second copy.
 Move these guides incrementally, updating links, staging, navigation, and
 cleanup together; no bulk relocation is required.
 
-The AIRE guides, code tour, local LLM setup, prompts/personas V2, output guide,
+The Aire guides, code tour, local LLM setup, prompts/personas V2, output guide,
 and configuration guide now have authoritative sources in
 `documentation/guides/`. Their original filenames under `docs/` are temporary
 staging copies only. The design history, research notes, results report, and
@@ -223,7 +223,7 @@ survey documentation now live in `documentation/research/` and are staged
 under their original page names. Preserve their research provenance and
 historical claims during ownership moves; the design history is not a current
 model specification. Supplementary literature/parameterisation notes also live
-in `documentation/research/`. Superseded prompts/code tours, older AIRE article
+in `documentation/research/`. Superseded prompts/code tours, older Aire article
 notes, and issue-planning snapshots live in `documentation/archive/`.
 Archive placement preserves context; it does not establish that all planned
 items were completed or that older cluster advice remains valid.
@@ -249,7 +249,7 @@ For a new authored Markdown document intended for the Sphinx site:
    manifest. Do not register an authored file that exists only in `docs/`:
    cleanup would delete it. For a nested source, add a `STAGED_NAMES` entry
    mapping its source path to the desired filename under `docs/`. Keep staged
-   filenames unique. The AIRE guides demonstrate this mapping while retaining
+   filenames unique. The Aire guides demonstrate this mapping while retaining
    their existing Sphinx page names.
    Staged paths may include subdirectories; staging creates their parents,
    link rewriting resolves relative to the staged document, and cleanup
@@ -281,9 +281,10 @@ When an unmigrated legacy guide in `docs/` references a migrated source, use
 its upstream repository URL until that guide is migrated too. This keeps the
 link usable both on GitHub and in Sphinx without creating a second authored
 copy. Links from migrated sources should be relative to those sources and
-are rewritten for Sphinx during staging. The AIRE migration changes ownership
-and links only; consolidation and cluster-policy/command verification remain
-separate work.
+are rewritten for Sphinx during staging. The Aire reference now records cited public Leeds guidance and the current
+launcher contract. Repository/CLI validation is not an on-cluster deployment
+test; account-specific access, image/model compatibility, and scheduled smoke
+validation remain required.
 
 Autosummary does not overwrite existing stubs during ordinary builds. New
 generated stubs are ignored by Git; explicit API directives in `docs/api.rst`

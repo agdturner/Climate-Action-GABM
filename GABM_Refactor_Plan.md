@@ -4,13 +4,13 @@
 generic framework extraction not started.
 
 **Documentation ownership checkpoint (2026-11-08):** before generic extraction,
-the AIRE quickstart and primer were moved to `documentation/guides/`.
+the Aire quickstart and primer were moved to `documentation/guides/`.
 The five maintained usage/code/configuration guides were subsequently moved
 to the same authored location. Their Sphinx pages retain the same names
 through explicit staging mappings.
 Nested-source link resolution and cleanup are covered by 19 documentation
 tests; a fresh build after the maintained-guide slice succeeds with 339
-remaining warnings (393 after AIRE alone). The moves preserve guide content
+remaining warnings (393 after Aire alone). The moves preserve guide content
 except relocation-related links and one sentence clarifying link locations.
 The design history, research notes, experiment report, and survey documentation
 were subsequently moved to `documentation/research/`, retaining historical
@@ -22,7 +22,7 @@ Independent developer `make docs` succeeded with 161 warnings; that separate
 build count does not replace the fresh-build warning baseline.
 Seven supplementary sources were subsequently moved: literature and policy
 parameterisation drafts to `documentation/research/`, and historical guides,
-AIRE article notes, and issue-planning snapshots to `documentation/archive/`.
+Aire article notes, and issue-planning snapshots to `documentation/archive/`.
 Their bodies are preserved except links, and original nested Sphinx page paths
 are retained. A fresh build succeeds with 225 warnings; all eighteen authored
 pages, cross-links, and source-preserving cleanup were verified.
@@ -41,6 +41,19 @@ full suite 722 passed, 1 skipped, 2 expected failures, same 6 warnings.
 Published presentation bytes match the original exactly, the documentation
 index renders, dependency mirrors match their root manifests, and cleanup
 preserves authored sources. Remaining warnings are not suppressed.
+
+**Aire content checkpoint (2026-11-08):** the quickstart is now the maintained
+setup/submission recipe, and the primer is a concrete CAG launcher reference
+with cited Leeds guidance and explicit verification limits. Duplicated flag
+tables now defer to the configuration guide and CLI. Output day/row counts,
+dynamic ports, startup limits, scratch logs, sweep parsing, credential handling,
+and account-access assumptions were corrected against local sources/public
+documentation. The older article retains its body and credits below a
+historical-use warning; its distinct distributed-inference/socket/cache/flash/
+energy topics remain follow-ups. No launcher behaviour changed.
+Local documentation/CLI tests pass; a scheduled cluster smoke job, compatible
+cached image/model, data approval, and service-binding/access advice are still
+deployment gates. This is not fresh evidence of checkpoint replay equivalence.
 
 **Audit date:** 2026-11-08.
 

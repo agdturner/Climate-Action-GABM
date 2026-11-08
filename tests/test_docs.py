@@ -1,7 +1,10 @@
-"""Contracts for root-authored documentation staging and cleanup."""
+"""Contracts for documentation staging, cleanup, and maintained CLI recipes."""
 
-import subprocess
+import json
 import os
+import re
+import shlex
+import subprocess
 import sys
 from pathlib import Path
 
@@ -127,3 +130,50 @@ def test_nested_staged_archive_links(target, expected):
     assert docs.update_links(
         f"[link]({target})", "documentation/archive/github_issues.md",
     ) == f"[link]({expected})"
+
+
+def _aire_submission_examples():
+    root = Path(__file__).resolve().parents[1]
+    examples = []
+    for filename in ("AIRE_Quickstart.md", "AIRE_HPC_repo_primer.md"):
+        text = (root / "documentation/guides" / filename).read_text()
+        for block in re.findall(r"```bash\n(.*?)```", text, re.DOTALL):
+            for line in block.replace("\\\n", " ").splitlines():
+                tokens = shlex.split(line, comments=True)
+                if "sbatch" not in tokens or "scripts/aire/run.sh" not in tokens:
+                    continue
+                index = tokens.index("scripts/aire/run.sh")
+                examples.append((filename, tokens[index + 1:]))
+    return examples
+
+
+@pytest.mark.parametrize("filename,arguments", _aire_submission_examples())
+def test_aire_documented_submissions_resolve_without_llm(filename, arguments):
+    root = Path(__file__).resolve().parents[1]
+    result = subprocess.run(
+        [sys.executable, "-m", "cag", *arguments, "--dry-run"],
+        cwd=root, capture_output=True, text=True,
+    )
+    assert result.returncode == 0, f"{filename}: {result.stderr}"
+    config = json.loads(result.stdout)
+    if "--preset" in arguments:
+        preset = arguments[arguments.index("--preset") + 1]
+        citizens, days = {"smoke": (10, 2), "r14_canonical": (50, 5)}[preset]
+        if "--n-citizens" in arguments:
+            citizens = int(arguments[arguments.index("--n-citizens") + 1])
+        if "--days" in arguments:
+            days = int(arguments[arguments.index("--days") + 1])
+        peers = (
+            int(arguments[arguments.index("--k-peers") + 1])
+            if "--k-peers" in arguments else 0
+        )
+        assert (config["n_citizens"], len(config["days"])) == (citizens, days)
+        assert config["k_peers_per_day"] == peers
+
+
+def test_aire_archive_body_is_preserved():
+    root = Path(__file__).resolve().parents[1]
+    text = (root / "documentation/archive/RunningLLMsOnAire.md").read_text()
+    assert "Historical Aire article draft" in text
+    assert "John Hodrien, Jo Kershaw, Andy Turner" in text
+    assert "UKRI2043" in text

@@ -1,31 +1,47 @@
-# AIRE Quickstart — run Climate-Action-GABM on Leeds's HPC
+# Aire Quickstart — run Climate-Action-GABM on Leeds's HPC
 
-A repo-specific, copy-pasteable recipe for running Climate-Action-GABM on Leeds's [AIRE](https://arc.leeds.ac.uk/aire/) HPC: from a fresh account to a completed **smoke** job and a canonical **split50 Run-14**, then results back on your laptop.
+A repo-specific, copy-pasteable recipe for running Climate-Action-GABM on Leeds's [Aire](https://arc.leeds.ac.uk/aire/) HPC: from a fresh account to a completed **smoke** job and a canonical **split50 Run-14**, then results back on your laptop.
 
-For generic AIRE / Slurm fundamentals (account setup, storage rules, `#SBATCH` reference, partitions), see the companion primer: [AIRE_HPC_repo_primer.md](AIRE_HPC_repo_primer.md). This quickstart is the recipe; the primer is the reference.
+For cited Leeds guidance, storage/data constraints, and the CAG launcher
+contract, see [AIRE_HPC_repo_primer.md](AIRE_HPC_repo_primer.md).
+This quickstart is the recipe; the primer is the reference.
+
+**Review scope (2026-11-08).** Commands were checked against the repository
+launcher and local CLI, not executed on Aire. Read the primer's
+[sources and verification limits](AIRE_HPC_repo_primer.md#1-scope-sources-and-verification)
+before using this recipe: Leeds is transitioning its HPC documentation during
+an Aire upgrade. Confirm account access, data suitability, current resources,
+and container/model compatibility with Research IT. Live timing estimates below
+are historical, not guarantees.
 
 ---
 
 ## Golden path
 
-If you've set up before, this is all you need. **🔧 = do once per AIRE account · 🔁 = every run.** Section numbers point to the detail below.
+If you've set up before, this is all you need. **🔧 = do once per Aire account · 🔁 = every run.** Section numbers point to the detail below.
 
 ```bash
-# 🔧 ONE-TIME per AIRE account (details in §§2–3)
+# 🔧 ONE-TIME per Aire account (details in §§2–3)
 ssh <you>@<aire-login-host>                                          # §2 (first-time login help linked there)
 cd ~ && git clone git@github.com:compolis/Climate-Action-GABM.git && cd Climate-Action-GABM   # §3.3
 module load miniforge && conda env create -f environment.yaml         # §3.4 — builds the `cag` env
 mkdir -p ~/.cache/huggingface && read -rsp 'HF token: ' T && \
+    (umask 077; touch ~/.cache/huggingface/token) && \
+    chmod 600 ~/.cache/huggingface/token && \
     printf '%s' "$T" > ~/.cache/huggingface/token && \
     chmod 600 ~/.cache/huggingface/token && unset T                   # §3.5
 cd ~ && module add apptainer && apptainer pull docker://vllm/vllm-openai:v0.8.5   # §3.6 — vLLM image
+# Complete §3.7 to cache the chosen model before submitting.
 ```
 
 ```bash
 # 🔁 EVERY run
 cd ~/Climate-Action-GABM
-sbatch scripts/aire/run.sh --preset smoke                                      # §5 — cheap canary
-sbatch scripts/aire/run.sh --preset r14_canonical --exposure-targets split50   # §6 — real run
+mkdir -p "$SCRATCH/cag/slurm"
+sbatch --output="$SCRATCH/cag/slurm/%x_%j.out" --error="$SCRATCH/cag/slurm/%x_%j.err" \
+    scripts/aire/run.sh --preset smoke                              # §5 — cheap canary
+sbatch --output="$SCRATCH/cag/slurm/%x_%j.out" --error="$SCRATCH/cag/slurm/%x_%j.err" \
+    scripts/aire/run.sh --preset r14_canonical --exposure-targets split50   # §6
 squeue --me                                                                    # §9 — watch it
 # then, on your LAPTOP:
 rsync -avP aire:/mnt/scratch/<user>/cag/runs/ ~/src/aire-runs/                  # §8 — pull results
@@ -35,7 +51,7 @@ rsync -avP aire:/mnt/scratch/<user>/cag/runs/ ~/src/aire-runs/                  
 flowchart TD
     subgraph ONE["One-time setup — once per account"]
         direction LR
-        S1[Log in to AIRE] --> S2[Clone repo] --> S3[Build cag env] --> S4[Save HF token] --> S5[Pull vLLM image]
+        S1[Log in to Aire] --> S2[Clone repo] --> S3[Build cag env] --> S4[Save HF token] --> S5[Pull vLLM image]
     end
     subgraph RUN["Every run"]
         direction LR
@@ -50,10 +66,11 @@ flowchart TD
 - **`sbatch`** — submit a job to the Slurm queue; it returns a job id and runs when a GPU is free.
 - **`squeue` / `scancel`** — list / cancel your queued jobs.
 - **Slurm** — the scheduler that hands your job a GPU node.
-- **`$SCRATCH`** — fast scratch storage on AIRE (`/mnt/scratch/<user>`); runs are written here, not in your home dir.
+- **`$SCRATCH`** — fast scratch storage on Aire (`/mnt/scratch/<user>`); runs are written here, not in your home dir.
 - **SIF / apptainer** — a Singularity/Apptainer container image (`.sif`); we run vLLM inside one for reproducibility.
 - **vLLM** — the server that hosts the LLM on the GPU node and answers the simulation's prompts.
-- **`rash` bastion / Duo** — Leeds routes off-campus SSH through the `rash` gateway and prompts for Duo two-factor.
+- **SSH gateway / MFA** — offsite access uses an approved gateway or VPN route;
+  obtain hosts and authentication steps from Leeds's account-specific guidance.
 - **preset** — a named bundle of run settings (`smoke`, `r14_canonical`); `--preset NAME` applies it.
 - **`cag`** — both the conda environment name and the Python package (`python -m cag`).
 </details>
@@ -61,7 +78,7 @@ flowchart TD
 <details>
 <summary><strong>Mac local-dev sidebar</strong> — most steps work locally too</summary>
 
-On a Mac, start `mlx_lm.server --port 8080` with `mlx-community/Qwen3-8B-4bit`, then run `PYTHONPATH=src python -m cag --preset smoke --outdir data/output/smoke`. `SIM_CONFIG` defaults already point at `http://localhost:8080/v1`, so nothing else is needed. The rest of this guide assumes AIRE.
+On a Mac, start `mlx_lm.server --port 8080` with `mlx-community/Qwen3-8B-4bit`, then run `PYTHONPATH=src python -m cag --preset smoke --outdir data/output/smoke`. `SIM_CONFIG` defaults already point at `http://localhost:8080/v1`, so nothing else is needed. The rest of this guide assumes Aire.
 </details>
 
 ---
@@ -69,8 +86,8 @@ On a Mac, start `mlx_lm.server --port 8080` with `mlx-community/Qwen3-8B-4bit`, 
 ## Table of contents
 
 1. [Prerequisites](#1-prerequisites)
-2. [SSH into AIRE](#2-ssh-into-aire)
-3. [One-time prep on AIRE](#3-one-time-prep-on-aire)
+2. [SSH into Aire](#2-ssh-into-aire)
+3. [One-time prep on Aire](#3-one-time-prep-on-aire)
 4. [Free sanity checks (no GPU)](#4-free-sanity-checks-no-gpu)
 5. [First sbatch — the smoke job](#5-first-sbatch--the-smoke-job)
 6. [First real experiment — split50 Run-14](#6-first-real-experiment--split50-run-14)
@@ -80,9 +97,9 @@ On a Mac, start `mlx_lm.server --port 8080` with `mlx-community/Qwen3-8B-4bit`, 
 10. [Resume a killed job](#10-resume-a-killed-job)
 11. [Multi-job sweep](#11-multi-job-sweep)
 12. [Common errors and fixes](#12-common-errors-and-fixes)
-13. [Updating the repo on AIRE later](#13-updating-the-repo-on-aire-later)
+13. [Updating the repo on Aire later](#13-updating-the-repo-on-aire-later)
 14. [Re-clone the repo from scratch](#14-re-clone-the-repo-from-scratch)
-- [Appendix A. Flag reference — every SIM_CONFIG knob](#appendix-a-flag-reference--every-sim_config-knob)
+- [Appendix A. Flag reference](#appendix-a-flag-reference)
 - [Cheat sheet](#cheat-sheet)
 
 ---
@@ -91,16 +108,16 @@ On a Mac, start `mlx_lm.server --port 8080` with `mlx-community/Qwen3-8B-4bit`, 
 
 | You need | Why | How |
 | --- | --- | --- |
-| An AIRE account | To `ssh` and run jobs | Request via the Leeds RSE / ARC team (see [primer §1](AIRE_HPC_repo_primer.md)) |
+| An Aire account | To `ssh` and run jobs | Request via the Leeds RSE / ARC team (see [primer §1](AIRE_HPC_repo_primer.md)) |
 | GitHub access to the repo | To `git clone` | Account with read access to `compolis/Climate-Action-GABM` |
 | A Hugging Face account | To download the model weights | Free at <https://huggingface.co>; create a **read** token at *Settings → Access Tokens* |
-| An SSH client locally | To reach AIRE | macOS/Linux: built-in `ssh`. Windows: WSL or PuTTY. First-time login help in §2 |
+| An SSH client locally | To reach Aire | macOS/Linux: built-in `ssh`. Windows: WSL or PuTTY. First-time login help in §2 |
 
-If anything is missing, fix it before continuing. The rest of this guide assumes you can `ssh` into AIRE.
+If anything is missing, fix it before continuing. The rest of this guide assumes you can `ssh` into Aire.
 
 ---
 
-## 2. SSH into AIRE
+## 2. SSH into Aire
 
 From your laptop:
 
@@ -108,21 +125,26 @@ From your laptop:
 ssh <your-username>@<aire-login-host>
 ```
 
-You should land in your `$HOME` on a login node. Everything below runs on AIRE unless marked **(on your laptop)**.
+You should land in your `$HOME` on a login node. Everything below runs on Aire unless marked **(on your laptop)**.
 
-> **First time connecting?** Leeds IT's step-by-step login guide covers the exact SSH command for macOS / Windows / Linux and the on- vs off-campus (VPN / `rash` bastion) differences: <https://it.leeds.ac.uk/it?id=kb_article_view&sysparm_article=KB0018284>. **It requires a University login**, so external collaborators can't open it — ask your Leeds contact for the login host and VPN details instead.
+> **First time connecting?** Start with Leeds's
+> [public login page](https://arcdocs.leeds.ac.uk/aire/getting_started/logging_on.html),
+> which links platform-specific instructions for Linux/Mac, Windows, gateway,
+> and VPN access. Those articles **require a University login**; obtain your
+> approved host/route from Leeds rather than guessing it.
 
-> **Tip.** Set up the SSH-config alias in §8 so you can just type `ssh aire` and skip the Duo prompt on repeat connections within a short window.
+> **Tip.** Use an SSH-config alias (§8) after checking your approved connection
+> route. Authentication and gateway requirements remain those of the service.
 
-**Next:** verify your shell is on AIRE (`hostname` reports a login node), then continue to §3.
+**Next:** verify your shell is on Aire (`hostname` reports a login node), then continue to §3.
 
 ---
 
-## 3. One-time prep on AIRE
+## 3. One-time prep on Aire
 
-Do these once per AIRE account. If you later re-clone the repo, you only repeat §3.3 (clone) and possibly §3.4 (env) — see §14.
+Do these once per Aire account. If you later re-clone the repo, you only repeat §3.3 (clone) and possibly §3.4 (env) — see §14.
 
-> **⚠ Every new login shell needs `module load miniforge`.** AIRE does **not** auto-load conda — in a fresh shell `conda activate cag` gives `conda: command not found` until you load the module. Same for `module add apptainer` before re-pulling the SIF. To make it automatic, append `module load miniforge` to `~/.bashrc`.
+> **⚠ Every new login shell needs `module load miniforge`.** Aire does **not** auto-load conda — in a fresh shell `conda activate cag` gives `conda: command not found` until you load the module. Same for `module add apptainer` before re-pulling the SIF. To make it automatic, append `module load miniforge` to `~/.bashrc`.
 
 ### 3.1 Move to your home directory
 
@@ -132,10 +154,13 @@ cd ~
 
 ### 3.2 Generate an SSH key and add it to GitHub
 
-The repo is private, so AIRE needs an SSH key registered with GitHub. Generate one on the login node, register the **public** half with GitHub, then verify:
+For SSH cloning, register a GitHub key on Aire. This key authenticates **to
+GitHub**, not to the Aire login service; private repository access depends on
+your GitHub permissions. Check for an existing key before generating one and
+do not overwrite it. Use a passphrase and an agent where appropriate:
 
 ```bash
-ssh-keygen -t ed25519 -C "you@example.com"     # press Enter at every prompt
+ssh-keygen -t ed25519 -C "you@example.com"
 cat ~/.ssh/id_ed25519.pub                       # copy this whole line into GitHub
 ssh -T git@github.com                           # expect: "Hi <user>! You've successfully authenticated"
 ```
@@ -145,7 +170,9 @@ Register the printed public key at GitHub → *Settings → SSH and GPG keys* (a
 <details>
 <summary>Details — step-by-step, expected output, and the HTTPS-token alternative</summary>
 
-**Step 1 — generate the key pair on AIRE.** Press Enter at every prompt to accept defaults (no passphrase is fine on a personal AIRE account; add one if you prefer).
+**Step 1 — generate the key pair on Aire.** Choose an unused filename if a key
+already exists, and follow University credential-protection advice. Do not
+share or commit the private key.
 
 ```bash
 ssh-keygen -t ed25519 -C "you@example.com"
@@ -171,7 +198,7 @@ Copy the **entire line** (starts with `ssh-ed25519`, ends with your email commen
 - For account-wide access: <https://github.com/settings/keys> → *New SSH key* → paste → save.
 - For repo-only access (deploy key): the repo's *Settings → Deploy keys → Add deploy key* → paste → save (leave write access off).
 
-**Step 4 — verify from AIRE.**
+**Step 4 — verify from Aire.**
 
 ```bash
 ssh -T git@github.com
@@ -185,7 +212,10 @@ Hi <your-github-username>! You've successfully authenticated, but GitHub does no
 
 If you see "Permission denied (publickey).", the key wasn't registered correctly — go back to step 3.
 
-**Alternative — HTTPS + PAT.** If you can't use SSH, clone over HTTPS with a [GitHub Personal Access Token](https://github.com/settings/tokens) (fine-grained, "Contents: Read" on the repo): `git clone https://<token>@github.com/compolis/Climate-Action-GABM.git`. We recommend SSH because the token doesn't end up baked into your remote URL.
+**Alternative — HTTPS.** Use `git clone https://github.com/compolis/Climate-Action-GABM.git`.
+If authentication is needed, use an approved credential helper or interactive
+credential prompt with a narrowly scoped token. Never embed a token in the URL,
+shell history, a script, or repository configuration.
 </details>
 
 ### 3.3 Clone the repo
@@ -198,9 +228,9 @@ cd Climate-Action-GABM
 <details>
 <summary>Details — org repo vs. your fork, and using a non-default SSH key</summary>
 
-**Org repo vs. your fork.** This clones the canonical **org** repo `compolis/Climate-Action-GABM` — the right choice for *running* canonical experiments on AIRE, since you want the merged source of truth. If instead you are *developing code* and following the fork-based contributor flow ([DEV_QUICKSTART](../../DEV_QUICKSTART.md)), clone your own fork — `git@github.com:<your-github-username>/Climate-Action-GABM.git` — and add the org repo as `upstream` (`git remote add upstream git@github.com:compolis/Climate-Action-GABM.git`). Either way the SSH-key setup is identical, and `scripts/aire/run.sh` doesn't care which remote you cloned from.
+**Org repo vs. your fork.** This clones the canonical **org** repo `compolis/Climate-Action-GABM` — the right choice for *running* canonical experiments on Aire, since you want the merged source of truth. If instead you are *developing code* and following the fork-based contributor flow ([DEV_QUICKSTART](../../DEV_QUICKSTART.md)), clone your own fork — `git@github.com:<your-github-username>/Climate-Action-GABM.git` — and add the org repo as `upstream` (`git remote add upstream git@github.com:compolis/Climate-Action-GABM.git`). Either way the SSH-key setup is identical, and `scripts/aire/run.sh` doesn't care which remote you cloned from.
 
-**If your AIRE key isn't the default `~/.ssh/id_ed25519`** (e.g. you keep a dedicated `~/.ssh/aire_repo`), the bare `git clone git@...` form won't pick it up. Use:
+**If your Aire key isn't the default `~/.ssh/id_ed25519`** (e.g. you keep a dedicated `~/.ssh/aire_repo`), the bare `git clone git@...` form won't pick it up. Use:
 
 ```bash
 git clone -c core.sshCommand="ssh -i ~/.ssh/aire_repo -o IdentitiesOnly=yes" \
@@ -219,36 +249,51 @@ module load miniforge
 conda env create -f environment.yaml
 ```
 
-This creates a conda env named `cag` with every Python dependency. First-time build takes ~5–10 minutes. If it ever drifts (someone added a dependency), update with `conda env update -f environment.yaml --prune` from inside the repo.
+This creates the `cag` simulation-client environment, including GABM 0.3.0;
+vLLM runs separately in the container. The YAML does not install the Sphinx
+documentation toolchain. Build times vary. Keep dependency manifests aligned;
+update with `conda env update -f environment.yaml --prune` from the repo.
 
 ### 3.5 Hugging Face token
 
-`scripts/aire/run.sh` reads the token from the file `~/.cache/huggingface/token` (preferred — it survives logins and never lands in shell history) or the `HF_TOKEN` env var. Grab a **read** token at <https://huggingface.co/settings/tokens>, and while signed in accept the model licence at <https://huggingface.co/Qwen/Qwen3-14B> (otherwise the first job 401s on download even with a valid token).
+`scripts/aire/run.sh` uses `HF_TOKEN` first, otherwise
+`${HF_HOME:-$HOME/.cache/huggingface}/token`. The default file survives logins.
+Use a **read** token from <https://huggingface.co/settings/tokens>. Check the
+chosen model's licence and access requirements; accept any gating agreement
+if required. The launcher currently requires a token even for ungated models.
 
 Write it (silent paste, no history leak), then verify:
 
 ```bash
 mkdir -p ~/.cache/huggingface && \
     read -rsp 'Paste HF token: ' HF_TOKEN_VAL && \
+    (umask 077; touch ~/.cache/huggingface/token) && \
+    chmod 600 ~/.cache/huggingface/token && \
     printf '%s' "$HF_TOKEN_VAL" > ~/.cache/huggingface/token && \
     chmod 600 ~/.cache/huggingface/token && unset HF_TOKEN_VAL && echo
 
-wc -c ~/.cache/huggingface/token   # ~37 bytes = fresh token; ~74 = double-pasted, rerun the write
+test -s ~/.cache/huggingface/token && echo "Non-empty token file present"
 ```
 
 <details>
 <summary>Details — why each flag, and the env-var / huggingface-cli alternatives</summary>
 
-`read -rsp` reads silently (your token is not echoed and not stored in `~/.bash_history`); `printf '%s'` writes the token with no trailing newline; `chmod 600` locks it to your user only; `unset` clears it from the shell. To also inspect the contents: `cat ~/.cache/huggingface/token; echo` (the file is `chmod 600`, so only you can read it). If the byte count or contents look wrong, just rerun the write command — it overwrites cleanly.
+`read -rsp` reads silently; restrictive permissions are set before writing,
+and `unset` clears the temporary shell variable. Do not print the token or
+paste it into logs/chats. Non-empty is only a file check, not proof of token
+validity; token lengths vary. Validate access through the model download.
 
-**Alternative — environment variable.** `echo 'export HF_TOKEN=hf_...' >> ~/.bashrc && source ~/.bashrc`. Works, but the token now sits plaintext in your dotfile and any subprocess can see it via `env`. Prefer the file form above.
+**Alternative — environment variable.** Read it silently with
+`read -rsp 'HF token: ' HF_TOKEN; export HF_TOKEN; echo`, then unset it when
+finished. Do not save it in a tracked file or a literal shell-history command.
 
 **Alternative — `huggingface-cli login`.** Writes the same file. Requires installing `huggingface_hub` (`pip install huggingface_hub` inside the `cag` env). Skip it unless you want the CLI for other reasons — the sim itself doesn't need it.
 </details>
 
 ### 3.6 Pull the vLLM container
 
-`scripts/aire/run.sh` defaults to `$HOME/vllm-openai-v0.8.5.sif` — pulled once, reused forever. Pinned at `v0.8.5` for reproducibility.
+`scripts/aire/run.sh` defaults to `$HOME/vllm-openai-v0.8.5.sif` — pulled once,
+then reused for compatible deployments. Pinned at `v0.8.5` for reproducibility.
 
 ```bash
 cd ~
@@ -258,13 +303,52 @@ apptainer pull docker://vllm/vllm-openai:v0.8.5
 
 You'll get `vllm-openai-v0.8.5.sif` (~6 GB) in `$HOME`. The script finds it there by default; override with `SIF_IMAGE=/path/to/other.sif sbatch ...` if you put it elsewhere.
 
+This is the launcher's pinned image, not a statement that v0.8.5 supports every
+model or future cluster driver. Check compatibility and record the image digest
+or checksum for research runs. Newer model architectures may require a different
+validated image; changing `HF_MODEL` alone does not ensure compatibility.
+
+For Apertus/Calder serving context, see the primer's
+[related GABM guidance](AIRE_HPC_repo_primer.md#6-related-gabm-guidance-and-calder-portability).
+Those historical multi-GPU settings are not a drop-in replacement for this
+one-GPU Aire recipe.
+
+### 3.7 Cache model weights before submitting
+
+Avoid relying on a compute job to download weights: compute-node network access
+was not verified in this review, and downloads consume the readiness timeout.
+Follow Research IT's approved download route. If downloads/container execution
+are permitted on the login node, use the same container/cache layout as the
+launcher (no GPU inference is performed by this command):
+
+```bash
+module add apptainer
+HF_MODEL="${HF_MODEL:-Qwen/Qwen3-14B}"
+SIF_IMAGE="${SIF_IMAGE:-$HOME/vllm-openai-v0.8.5.sif}"
+LOCAL_HF_CACHE="${LOCAL_HF_CACHE:-$SCRATCH/HF_cache}"
+mkdir -p "$LOCAL_HF_CACHE"
+HF_TOKEN="$(<"${HF_HOME:-$HOME/.cache/huggingface}/token")"
+export APPTAINERENV_HF_TOKEN="$HF_TOKEN"
+apptainer exec -B "$LOCAL_HF_CACHE:/root/.cache/huggingface" \
+    --env HF_HOME=/root/.cache/huggingface "$SIF_IMAGE" \
+    python -c 'import sys; from huggingface_hub import snapshot_download; snapshot_download(repo_id=sys.argv[1])' \
+    "$HF_MODEL"
+unset APPTAINERENV_HF_TOKEN HF_TOKEN
+```
+
+If you already supply `HF_TOKEN` through an approved environment mechanism,
+omit the file-read line. Check the download exit status; do not submit after a
+failed or interrupted download. For an alternative approved download tool,
+ensure its cache is compatible with the container's `HF_HOME` binding.
+
 **Next:** all one-time prep is done. Return to the repo (`cd ~/Climate-Action-GABM`) and continue to §4.
 
 ---
 
 ## 4. Free sanity checks (no GPU)
 
-Confirm the env is healthy before spending GPU time. These run on the login node in milliseconds and burn zero compute budget:
+Confirm the environment and CLI before spending GPU time. These lightweight
+checks do not call an LLM or execute a simulation; startup time varies:
 
 ```bash
 cd ~/Climate-Action-GABM
@@ -304,7 +388,9 @@ r14_canonical
 
 ## 5. First sbatch — the smoke job
 
-A 10-agent, 2-day run that exercises every code path (server bring-up, prompt chain, surveys, CSV write, plot render). Use it as a cheap canary before a real run.
+A 10-agent, 2-day run that exercises the basic server/client, surveys, CSV, and
+plot path. It does not cover every branch: peer messaging is disabled. Use it
+as a small canary before a real run.
 
 ```bash
 cd ~/Climate-Action-GABM
@@ -312,18 +398,25 @@ sbatch scripts/aire/run.sh --preset smoke
 # -> Submitted batch job 12345
 ```
 
-Wall-clock: **~5–15 min**. The very first sbatch also downloads the model weights (a few GB), adding 10–20 min.
+Historical runtime estimate: **~5–15 min**, excluding queueing and model setup.
+Pre-cache the model (§3.7); scheduled smoke validation is still required.
 
 <details>
 <summary>Which model it uses, and what <code>run.sh</code> actually does</summary>
 
-**Which model does the smoke run use?** The `smoke` preset does **not** pin a model — it's a pure run-shape bundle. On AIRE, `scripts/aire/run.sh` hardcodes `--model "$HF_MODEL"`, and `HF_MODEL` defaults to `Qwen/Qwen3-14B` (served by vLLM inside the SIF). To test a different model, prefix the sbatch line: `HF_MODEL=other/model sbatch scripts/aire/run.sh --preset smoke`.
+**Which model does the smoke run use?** The `smoke` preset does **not** pin a model — it's a pure run-shape bundle. On Aire, `scripts/aire/run.sh` hardcodes `--model "$HF_MODEL"`, and `HF_MODEL` defaults to `Qwen/Qwen3-14B` (served by vLLM inside the SIF). To test a different model, prefix the sbatch line: `HF_MODEL=other/model sbatch scripts/aire/run.sh --preset smoke`.
 
 **What the command does:**
 
-- `scripts/aire/run.sh` is a thin Slurm script. It boots a vLLM server on this node, waits until `http://localhost:8000/v1/models` answers, then runs `python -m cag --provider local --base-url ... --outdir $SCRATCH/cag/runs/run_<jobid> <your flags>`. The trailing `--preset smoke` is forwarded verbatim.
+- `scripts/aire/run.sh` starts vLLM on a job-derived port (or `PORT` override),
+  waits for a successful chat completion for `HF_MODEL`, then runs
+  `python -m cag` using that model/endpoint. `MAX_WAIT_SECONDS` defaults to 1500.
+  Caller research flags are forwarded. Do not override the injected
+  `--provider`, `--model`, `--base-url`, or `--outdir` through caller flags.
 - Output goes to `$SCRATCH/cag/runs/run_<jobid>/`.
-- The Slurm stdout/stderr files (`LLM-cag-run_<jobid>.out`/`.err`) land in the directory you submitted from (the repo root).
+- With the golden-path `--output`/`--error` overrides, Slurm logs go to
+  `$SCRATCH/cag/slurm`. Bare `sbatch` examples use the launcher's default logs
+  in the submission directory; apply the same scratch-log overrides to them.
 </details>
 
 **Next:** monitor it (§9); once it finishes cleanly, go to §6.
@@ -340,19 +433,27 @@ sbatch scripts/aire/run.sh --preset r14_canonical --exposure-targets split50
 
 | Token | What it does |
 | --- | --- |
-| `sbatch scripts/aire/run.sh` | Queue the AIRE launcher script (vLLM bring-up + `python -m cag` + cleanup) |
+| `sbatch scripts/aire/run.sh` | Queue the Aire launcher script (vLLM bring-up + `python -m cag` + cleanup) |
 | `--preset r14_canonical` | Apply the Run-14 baseline bundle (50 agents, 5 days, `k_peers_per_day=0`, `day0_anchor=ground_truth_with_rationale`, `thinking=False`, default `memory` preset; the Condition-B two-step survey is always on) |
 | `--exposure-targets split50` | Pin the political-exposure mix to a `{A-only: 0.5, B-only: 0.5}` split (everyone gets exactly one side's broadcasts). The canonical persuasion test condition |
 
-Wall-clock: **~40–90 min** depending on prompt yield with Qwen3-14B.
+Historical wall-clock estimate: **~40–90 min** with Qwen3-14B, excluding queueing
+and model setup. Validate timings on your current cluster/model combination.
 
-> **Important — first-time model download.** The first time you submit with a model that isn't already in the Hugging Face cache, the download can exceed the **1500 s** vLLM-readiness wait baked into `run.sh`, and the job fails before any LLM call. Use **`--time=06:00:00`** on that first submission. Once cached, subsequent runs warm up in < 2 min and the standard wall-clock is fine.
+> **Two independent limits.** Pre-cache weights (§3.7). If model initialisation
+> still exceeds the 1500-second readiness limit, inspect the server log and,
+> if justified, increase `MAX_WAIT_SECONDS`. A longer Slurm `--time` **does not**
+> increase that readiness limit. Allocate enough wall-clock for both startup
+> and simulation, subject to current partition limits.
 
 ```bash
-sbatch --time=06:00:00 scripts/aire/run.sh --preset r14_canonical --exposure-targets split50
+MAX_WAIT_SECONDS=3000 sbatch --time=06:00:00 scripts/aire/run.sh \
+    --preset r14_canonical --exposure-targets split50
 ```
 
-Per-day checkpointing is **on by default**, so a wall-clock kill always leaves the last completed day on disk to `--resume` (§10).
+Per-day checkpointing is on by default. A completed checkpoint may allow
+continuation (§10); a kill before the first checkpoint or during a failing write
+does not guarantee recoverable state, and exact replay has known limitations.
 
 **The three flags you'll change most** (full list in [Appendix A](#appendix-a-flag-reference--every-sim_config-knob)):
 
@@ -379,10 +480,13 @@ Each run lands in `$SCRATCH/cag/runs/run_<jobid>/`. When a run finishes, check t
 1. **`run.log` final TIMING block** — simulation time, per-agent-day cost, no late crashes.
 2. **`config.json`** — the exact resolved configuration (the run's fingerprint). If two runs disagree, diff their `config.json`s — that's the ground truth, not your sbatch line.
 3. **`vllm_server.log` first ~50 lines** — confirms `Loading model 'Qwen/Qwen3-14B'` (or whatever you intended); catches the "asked for X, got Y" class of bugs.
-4. **`opinion_trajectories.csv`** — non-empty, `days × agents × 6 policies` rows (1500 for a default r14 run). Sanity: `agents.unique()` = 50, `days.max()` = 4 (zero-indexed).
+4. **`opinion_trajectories.csv`** — non-empty, with columns `agent_id`, `day`,
+   `policy_id`, `opinion`. For a completed fresh R14 run with Day-0 anchoring,
+   expect `(5 + 1) × 50 × 6 = 1800` rows, 50 distinct `agent_id` values, and
+   days 0 through 5. The five simulated days are 1-indexed; Day 0 is the anchor.
 
 <details>
-<summary>Full run-directory layout (every CSV / JSON / PNG)</summary>
+<summary>Core run-directory layout (not an exhaustive manifest)</summary>
 
 ```text
 run_<jobid>/
@@ -400,22 +504,25 @@ run_<jobid>/
 ├── daily_summaries.csv              # per-day per-agent compressed memory
 ├── ground_truth.csv                 # YouGov anchor values per (agent, policy)
 ├── package_ground_truth.csv         # YouGov anchor index (package mode only)
-├── opinion_trajectory.png           # plot
+├── opinion_trajectories.png         # plot
 ├── package_index_trajectories.png   # plot
 ├── opinion_shares.png               # plot
 ├── package_index_shares.png         # plot
-└── checkpoints/                     # always (default-on); use --no-checkpoint-every-day to suppress
+└── checkpoints/                     # after a completed checkpoint; default-on
     └── checkpoint_meta.json + per-day CSV dumps
 ```
 </details>
 
-**Next:** pull results to your laptop (§8), or compose your next experiment from [Appendix A](#appendix-a-flag-reference--every-sim_config-knob).
+For conditional files and exact schemas, use the maintained
+[Run Output Guide](Run_Output_Guide.md), not this abbreviated listing.
+
+**Next:** pull results to your laptop (§8), or compose your next experiment from [Appendix A](#appendix-a-flag-reference).
 
 ---
 
 ## 8. Pull results back to your laptop
 
-> **⚠ Run this on your LAPTOP, not inside the AIRE ssh session.** The destination path lives on your laptop; if you run `rsync` while still ssh'd into AIRE you'll get `mkdir failed: No such file or directory`. Either `exit` the AIRE shell first, or open a fresh terminal on your laptop.
+> **⚠ Run this on your LAPTOP, not inside the Aire ssh session.** The destination path lives on your laptop; if you run `rsync` while still ssh'd into Aire you'll get `mkdir failed: No such file or directory`. Either `exit` the Aire shell first, or open a fresh terminal on your laptop.
 
 **Mirror every run in one go** — the command to reuse day to day. `-avP` archives, prints a progress bar, and resumes partial transfers:
 
@@ -423,35 +530,37 @@ run_<jobid>/
 rsync -avP aire:/mnt/scratch/<user>/cag/runs/ ~/src/aire-runs/
 ```
 
-- Replace `<user>` with your Leeds AIRE username (run `whoami` on AIRE if unsure — e.g. `vbwt265`).
+- Replace `<user>` with your Leeds Aire username (run `whoami` on Aire if unsure — e.g. `vbwt265`).
+- First run `echo "$SCRATCH"` on Aire and substitute that actual absolute path
+  for `/mnt/scratch/<user>` in laptop commands; the path shown is a documented
+  example, not an account lookup.
 - Replace `~/src/aire-runs/` with wherever you keep runs on your laptop; `rsync` creates it if the parent exists.
 - The `aire:` shorthand relies on the SSH-config alias below. Without it, use the full form `<user>@<aire-login-host>:/mnt/scratch/<user>/cag/runs/`.
 - The trailing slash on `runs/` copies its *contents*, so each run lands as `~/src/aire-runs/run_<jobid>/`. Re-running is cheap — `rsync` only transfers what changed.
 
 <details>
-<summary>SSH-config alias — type <code>ssh aire</code> and skip repeat Duo prompts</summary>
+<summary>SSH-config alias — use the approved account connection route</summary>
 
-Leeds AIRE goes through the `rash` bastion. Put this once in `~/.ssh/config` on your laptop:
+Leeds documents direct access from the wired campus network and gateway or VPN
+access offsite (including Eduroam). Obtain the exact hosts and authentication
+steps from the University-only login articles (§2). This is a template, not a
+verified host configuration:
 
-```sshconfig
-Host rash
-    HostName rash.leeds.ac.uk
+```text
+Host leeds-gateway
+    HostName <approved-gateway-host>
     User <your-leeds-username>
-    ControlMaster auto
-    ControlPath ~/.ssh/cm-%r@%h:%p
-    ControlPersist 10m
 
 Host aire
-    HostName aire.leeds.ac.uk
+    HostName <approved-aire-login-host>
     User <your-leeds-username>
-    ProxyJump rash
-    ControlMaster auto
-    ControlPath ~/.ssh/cm-%r@%h:%p
-    ControlPersist 10m
+    ProxyJump leeds-gateway
 ```
 
-- `ProxyJump rash` — AIRE login nodes aren't directly reachable from outside Leeds; ssh hops through `rash.leeds.ac.uk` automatically. No more manual bastion shell.
-- `ControlMaster auto` + `ControlPath` + `ControlPersist 10m` — reuses one TCP connection (and one Duo authentication) for 10 min. The first `ssh aire` triggers Duo; the next `rsync aire:...` or `ssh aire` inside that window is instant.
+Omit the gateway stanza and `ProxyJump` when your approved route is direct/VPN.
+Do not assume SSH key login or MFA bypass is supported. SSH connection reuse
+can reduce repeat prompts only where allowed by service policy; it does not
+change authentication requirements.
 
 After saving the config, every command shortens to `aire:/mnt/scratch/<user>/cag/runs/...`.
 </details>
@@ -463,7 +572,7 @@ For a single run, append its folder: `.../cag/runs/run_<jobid>/ ~/src/aire-runs/
 
 ```bash
 LOCAL_DIR=~/cag_results/run_12345                          # on your laptop
-REMOTE_DIR=<user>@<aire-login-host>:/mnt/scratch/<user>/cag/runs/run_12345
+REMOTE_DIR="aire:/mnt/scratch/<user>/cag/runs/run_12345"
 
 mkdir -p "$LOCAL_DIR"
 rsync -avh \
@@ -473,11 +582,13 @@ rsync -avh \
     "$REMOTE_DIR"/ "$LOCAL_DIR"/
 ```
 
-- **Use the literal `/mnt/scratch/<user>/...` path, not `$SCRATCH`.** `$SCRATCH` only expands on AIRE; from your laptop it's an empty string and rsync silently picks the wrong source.
+- **Use the literal remote path obtained from `echo "$SCRATCH"` on Aire.**
+  Do not rely on the laptop's `$SCRATCH`, which is unset or unrelated.
 - **`mkdir -p` first.** rsync creates the leaf directory but not its parents, so `~/cag_results/` must exist first or you'll get `mkdir failed`.
 - **Trailing slash on `$REMOTE_DIR/`** copies the *contents* of the run dir into `$LOCAL_DIR`; drop it to nest the run dir inside instead.
 - **Want the vLLM server log too?** It's already covered by `*.log`. To skip it explicitly, add `--exclude='vllm_server.log'`.
-- **Off-campus / Duo MFA:** rsync over SSH triggers the same Duo two-factor prompt your interactive `ssh` does. Respond once and rsync proceeds. The SSH-config alias above skips it on repeat connections.
+- **Off-campus / MFA:** rsync follows the same approved SSH route and
+  authentication requirements as interactive access.
 </details>
 
 **Next:** open the CSVs in your notebook of choice (`notebooks/19_full_simulation.ipynb` is the canonical analysis pattern).
@@ -489,33 +600,43 @@ rsync -avh \
 ```bash
 squeue --me                                  # all your queued/running jobs
 squeue -j <jobid>                            # one job
-tail -f LLM-cag-run_<jobid>.out              # live stdout (the .out file is in your submit dir)
+tail -f "$SCRATCH/cag/slurm/LLM-cag-run_<jobid>.out"   # golden-path scratch logs
 sacct -j <jobid> --format=JobID,State,Elapsed,MaxRSS,ExitCode   # post-mortem accounting
 scancel <jobid>                              # cancel a job
 ```
 
 <details>
-<summary>More — cancel all cag jobs, tail the latest, watch GPU</summary>
+<summary>More — inspect one job before cancellation and watch its GPU</summary>
 
 ```bash
-# Cancel every running cag job you submitted:
-scancel --user="$USER" --name=LLM-cag-run
+# Inspect and cancel only the intended job:
+squeue -j <jobid>
+scancel <jobid>
 
-# Tail the most recently submitted job:
-tail -f $(ls -t LLM-cag-run_*.out | head -1)
+# Tail that job's golden-path stdout:
+tail -f "$SCRATCH/cag/slurm/LLM-cag-run_<jobid>.out"
 
 # Track GPU utilisation on a running job (jump onto the node):
 srun --jobid=<jobid> --pty nvidia-smi
 ```
 </details>
 
-See the [primer §4](AIRE_HPC_repo_primer.md) for the full Slurm reference.
+For resource guidance, see [primer §4](AIRE_HPC_repo_primer.md#4-resource-requests-sweeps-and-reproducibility)
+and its official Slurm links. With bare submissions, monitor logs in the
+submission directory instead.
 
 ---
 
 ## 10. Resume a killed job
 
-If a job hits the wall-clock limit (or is cancelled, or the node dies), resume from the last completed day — checkpoints are on by default, so this works for every run unless you passed `--no-checkpoint-every-day`:
+If a valid completed checkpoint exists, continuation can start after its
+last completed day. Use the same run configuration and a directory under
+scratch. Checkpointing defaults on, but **exact fresh-process replay is not
+guaranteed**: the offline message cursor, peer RNG state, and prompt-log/timeline
+hydration limitations are recorded in the
+[refactor plan](../../GABM_Refactor_Plan.md). In particular, the default offline
+message path has expected-failure continuation tests. Do not treat a resumed
+run as scientifically equivalent without an appropriate equivalence check.
 
 ```bash
 RESUME_FROM=$SCRATCH/cag/runs/run_<old_jobid> sbatch scripts/aire/run.sh \
@@ -530,8 +651,11 @@ The new job writes back into the **same** `OUTDIR` (`$RESUME_FROM` — don't pas
 
 Checked at startup, fails loudly on mismatch:
 
-- **Hard keys (must match exactly):** `n_citizens`, `random_seed`, `network_type`, `communication_mode`, `package_policies`, `day0_anchor`, `reach_a`, `reach_b`, `audience_cap`, `political_exposure_mode`, `political_exposure_targets`, `affinity_weights`, `political_message_source`, `political_message_set`, `memory`. Structural — changing these would invalidate prior agent state. (`memory` is hard because the verbatim window drives which days get compressed into `daily_summaries`, so a mid-run change would make the stored summaries inconsistent.)
-- **Soft keys (changeable; warning emitted):** `llm_model`, `llm_provider`, `survey_model`, `survey_provider`, `thinking`, `llm_temperature`, `local_base_url`, `local_extra_body`, `local_timeout_s`.
+The authoritative hard/soft key lists and resolved network-parameter comparison
+are in [checkpoint.py](../../src/cag/io/checkpoint.py). Hard keys include
+persona mode, reach-targeting modes, and memory configuration as well as
+population/exposure/message settings; mismatches abort. Tolerated transport
+changes can still alter research results even when only a warning is emitted.
 
 If you need to change a hard key, start a fresh run instead of resuming.
 </details>
@@ -564,6 +688,16 @@ Each line becomes one `sbatch scripts/aire/run.sh <that line>`. The wrapper prin
 bash scripts/aire/sweep.sh scripts/aire/sweeps/r14_v2.txt --time=06:00:00 --mem=120G
 ```
 
+Use the golden-path scratch-log `--output` and `--error` overrides here too.
+An optional `LABEL=<filename-safe-token>` prefix sets `RUN_LABEL` for one job.
+These are separate jobs, not a Slurm array. The wrapper splits on whitespace
+without shell quote interpretation: JSON inside a sweep file must be compact
+and unquoted, unlike JSON passed directly from an interactive shell:
+
+```text
+LABEL=split50_s42 --preset r14_canonical --seed 42 --exposure-targets {"A-only":0.5,"B-only":0.5,"both":0,"neither":0}
+```
+
 <details>
 <summary>When to use sweep vs. plain <code>sbatch</code>, and authoring a new sweep</summary>
 
@@ -581,9 +715,9 @@ To author a new sweep, drop a new `.txt` file under [scripts/aire/sweeps/](../..
 
 | Symptom (in `LLM-cag-run_<jobid>.err` or `.out`) | Cause | Fix |
 | --- | --- | --- |
-| `ERROR: HF_TOKEN is not set` | Token missing on this account | Write `~/.cache/huggingface/token` (§3.5), OR `export HF_TOKEN=hf_...` in `~/.bashrc` |
+| `ERROR: HF_TOKEN is not set` | Token missing on this account or custom `HF_HOME` changed the lookup | Use the protected file or silently supplied environment variable (§3.5); do not print the token |
 | `ERROR: vLLM container not found at: $HOME/vllm-openai-v0.8.5.sif` | Image not pulled, or in wrong place | Re-do §3.6, or `SIF_IMAGE=/your/path.sif sbatch ...` |
-| `[wait] ERROR: server not ready after 1500s` | First run downloading multi-GB weights | Re-submit with `--time=06:00:00` (or `MAX_WAIT_SECONDS=3000 sbatch ...`). Subsequent runs reuse the cache |
+| `[wait] ERROR: server not ready after 1500s` | Missing weights, slow initialisation, or incompatible model/container | Inspect `vllm_server.log`, pre-cache weights (§3.7), validate compatibility; increase `MAX_WAIT_SECONDS` only if justified. `--time` alone does not fix this |
 | `ERROR: src/cag not found under REPO_DIR=...` | You submitted `sbatch` from outside the repo | `cd ~/Climate-Action-GABM && sbatch ...` |
 | `Cannot resume: config key 'X' changed` | You changed a hard key while passing `--resume` | Either revert the key, or start a fresh run (drop `--resume` and `RESUME_FROM`) |
 | `ModuleNotFoundError: No module named 'cag'` | Conda env not activated, or `PYTHONPATH` not set | `conda activate cag`; for local invocations include `PYTHONPATH=src` |
@@ -594,9 +728,9 @@ Anything else: open `LLM-cag-run_<jobid>.out` and search for `ERROR` from the bo
 
 ---
 
-## 13. Updating the repo on AIRE later
+## 13. Updating the repo on Aire later
 
-The repo will change. To pull updates into your AIRE clone:
+The repo will change. To pull updates into your Aire clone:
 
 ```bash
 cd ~/Climate-Action-GABM
@@ -606,6 +740,7 @@ git pull
 If `environment.yaml` changed:
 
 ```bash
+module load miniforge
 conda env update -f environment.yaml --prune
 ```
 
@@ -624,12 +759,17 @@ Sometimes a `git pull` (§13) isn't enough — a rebased or force-pushed history
 **Step 1 — back up the old clone (don't delete it outright).**
 
 ```bash
-cd ~ && mv Climate-Action-GABM Climate-Action-GABM.bak.$(date +%Y%m%d_%H%M%S) 2>/dev/null; ls -d Climate-Action-GABM* 2>/dev/null
+cd ~
+mv Climate-Action-GABM "Climate-Action-GABM.bak.$(date +%Y%m%d_%H%M%S)"
+ls -d Climate-Action-GABM*
 ```
 
-Renames the checkout to a timestamped `Climate-Action-GABM.bak.YYYYMMDD_HHMMSS` folder and lists `$HOME` matches so you can confirm. `2>/dev/null` hushes the error if there was nothing to move. Once the fresh clone works, **delete the backup** to reclaim home quota: `rm -rf ~/Climate-Action-GABM.bak.*`.
+Renames the checkout to a timestamped backup and lists matches so you can
+confirm. Stop if the move fails. After the fresh clone works, inspect the
+specific backup for uncommitted work before removing that exact directory;
+do not use wildcard deletion of all backups.
 
-**Step 2 — fresh clone (with the AIRE deploy key).**
+**Step 2 — fresh clone (with the Aire deploy key).**
 
 ```bash
 cd ~ && git clone -c core.sshCommand="ssh -i ~/.ssh/aire_repo -o IdentitiesOnly=yes" git@github.com:compolis/Climate-Action-GABM.git && cd Climate-Action-GABM && git log --oneline -3
@@ -661,93 +801,27 @@ The token file survives a reclone, so usually you just check it. If it's missing
 
 ---
 
-## Appendix A. Flag reference — every SIM_CONFIG knob
+(appendix-a-flag-reference--every-sim_config-knob)=
+## Appendix A. Flag reference
 
-Every `SIM_CONFIG` knob is a `--flag`. To test a new hypothesis, compose flags on the sbatch line — **do not edit the script**. Tables below group every available flag by category. Defaults marked "SIM_CONFIG" mean: omit the flag and `cag.abm.sim.SIM_CONFIG` supplies the value. Preset values override SIM_CONFIG; CLI flags override the preset.
-
-### A.1 Run shape
-
-How long and how big the run is.
-
-| Flag | Type | Default | Use when you want to... |
-| --- | --- | --- | --- |
-| `--n-citizens N` | int | (required) | Change the agent pool size. R14 used 50; smoke uses 10 |
-| `--days D` | int | (required) | Change the number of simulated days. Expands to alternating P-A/P-B/C |
-| `--k-peers K` | int | SIM_CONFIG (`3`) | Set peer-messaging count per agent per day. `0` disables peer messaging (broadcast-only research mode) |
-| `--peer-fanout-mode M` | enum | SIM_CONFIG (`constant`) | Scale each citizen's peer relay count by a network measure: `constant` (flat `--k-peers` for all), `degree`, or `betweenness`. No-op at `--k-peers 0` |
-| `--peer-fanout-budget B` | enum | SIM_CONFIG (`additive`) | For degree/betweenness: `additive` (default) lets the well-connected relay to more people so total peer talk grows (realistic posting-network model); `preserve` holds mean fan-out at `--k-peers` and redistributes it by the measure |
-| `--peer-fanout-kmax N` | int | SIM_CONFIG (`10`) | Ceiling on per-citizen fan-out; caps hub blow-ups on high-degree nodes |
-| `--seed N` | int | SIM_CONFIG (`42`) | Vary the random seed (different agent sample + RNG paths) |
-
-### A.2 LLM
-
-Which model serves the prompts and how.
-
-| Flag | Type | Default | Use when you want to... |
-| --- | --- | --- | --- |
-| `--provider P` | str | SIM_CONFIG (`local`) | Swap provider (`local`, `openai`, `anthropic`, `genai`). On AIRE, `run.sh` already forces `local` |
-| `--model M` | str | SIM_CONFIG (`mlx-community/Qwen3-8B-4bit`) | Tell the client which model name to ask for. On AIRE, `run.sh` already forces `$HF_MODEL` |
-| `--base-url URL` | str | SIM_CONFIG (Mac `:8080/v1`) | Point at a non-default local endpoint. On AIRE `run.sh` injects `http://localhost:8000/v1` |
-| `--temperature T` | float | SIM_CONFIG (`0.5`) | Tune sampling stochasticity. Higher = more diverse, more failure modes |
-| `--thinking` / `--no-thinking` | bool | SIM_CONFIG (`False`) | Enable / disable model "thinking" reasoning. Slows runs; rarely a research win |
-| `--survey-model M` | str | None | Use a different model just for end-of-day surveys (dual-model runs) |
-| `--survey-provider P` | str | None | Same, but for the provider |
-| `--local-timeout S` | float | SIM_CONFIG | Bump the per-request HTTP timeout for slow models |
-| `--local-extra-body '{"k":v}'` | JSON | None | Inject vLLM-specific request body kwargs (e.g. `top_k`) |
-
-To swap the served model on AIRE, set `HF_MODEL` (an env var read by `run.sh`):
+Use the maintained [Simulation Configuration Guide](Simulation_Configuration_Guide.md)
+for research settings and the current checkout's CLI for exact supported flags:
 
 ```bash
-HF_MODEL=swiss-ai/Apertus-8B-2509 sbatch scripts/aire/run.sh --preset r14_canonical --exposure-targets split50
+PYTHONPATH=src python -m cag --help
+PYTHONPATH=src python -m cag --preset r14_canonical --exposure-targets split50 --dry-run
 ```
 
-### A.3 Exposure
+This replaces the duplicated, incomplete default-value tables. Configuration
+precedence is `SIM_CONFIG`, then a preset, then CLI overrides. A preset is
+convenient, not a prerequisite for a new experiment. Preserve the resolved
+`config.json` and source/environment/container versions with results.
 
-Which agents see which political broadcasts.
-
-| Flag | Type | Default | Use when you want to... |
-| --- | --- | --- | --- |
-| `--exposure-mode M` | enum | SIM_CONFIG (`rule_affinity_rank`) | Pick the assignment algorithm (`rule_priority_chain`, `rule_signal_count`, `rule_affinity_rank`) |
-| `--exposure-targets X` | preset OR JSON | SIM_CONFIG (`committed_minority_symmetric`) | Set the target mix. Preset names: `split50`, `neither`, `committed_minority_symmetric`, `committed_minority_uk_2024`, `legacy_v05`. OR a JSON dict like `'{"A-only":0.5,"B-only":0.5,"both":0,"neither":0}'` |
-| `--affinity-weights W` | preset OR JSON | SIM_CONFIG (`balanced`) | Pick the affinity-score weighting (`balanced`, `vote_dominant`, `values_dominant`) or supply a literal dict |
-
-### A.4 Broadcast / audience
-
-How political broadcasts reach the agents they're matched to.
-
-| Flag | Type | Default | Use when you want to... |
-| --- | --- | --- | --- |
-| `--reach-a R` | float (0–1) | SIM_CONFIG (`1.0`) | Subsample agent_a's audience each broadcast (reach asymmetry experiments) |
-| `--reach-b R` | float (0–1) | SIM_CONFIG (`1.0`) | Same, for agent_b |
-| `--audience-cap N` | int or `none` | SIM_CONFIG (`none`) | Hard-cap each political agent's audience size before reach subsampling |
-| `--message-source S` | enum | SIM_CONFIG (`offline`) | `offline` = use the curated message pool; `llm` = generate per-day on the fly |
-| `--message-set V` | str | SIM_CONFIG (`v1`) | Pick a versioned offline pool under `data/political_messages/` |
-
-### A.5 Structure
-
-Higher-level shape of the experiment.
-
-| Flag | Type | Default | Use when you want to... |
-| --- | --- | --- | --- |
-| `--communication-mode M` | enum | SIM_CONFIG (`package`) | `package` = broadcast all policies together; `single_policy` = one policy per phase |
-| `--package-policies P` | `all` or `1,3,5` | SIM_CONFIG (`all`) | Restrict the package to a subset of policy IDs |
-| `--day0-anchor A` | enum | SIM_CONFIG (`ground_truth_with_rationale`) | Pick Day-0 seeding (`llm_survey`, `ground_truth`, `ground_truth_with_rationale`) |
-| `--memory X` | preset OR JSON | SIM_CONFIG (`default`) | Set the agent memory / prompt-assembly config. Preset names: `default`, `short_memory`, `wide_memory`, `no_compression`, `no_anchor`, `anchor_ttl2`, `no_own_reasoning`, `reflections_only`, `persona_only`. OR a JSON dict of section toggles / `verbatim_window_days` / per-stage overrides |
-| `--network-type T` | str | SIM_CONFIG (`stochastic_block`) | Peer network factory (`stochastic_block`, `watts_strogatz`, `barabasi_albert`, `erdos_renyi`) |
-| `--network-params '{...}'` | JSON | None | Per-factory parameter dict |
-| `--p-intra X` | float | SIM_CONFIG (`0.15`) | Legacy stochastic-block intra-block edge probability |
-| `--p-inter X` | float | SIM_CONFIG (`0.02`) | Legacy stochastic-block inter-block edge probability |
-| `--diagnostics-timeout S` | float | SIM_CONFIG (`30.0`) | Wall-clock cap on the network-diagnostics block |
-
-### A.6 Checkpoint / resume
-
-Per-day checkpointing is on by default so any wall-clock kill is recoverable.
-
-| Flag | Type | Default | Use when you want to... |
-| --- | --- | --- | --- |
-| `--checkpoint-every-day` | flag | **on** | Default. Dumps full CSV bundle to `<outdir>/checkpoints/` after every day |
-| `--no-checkpoint-every-day` | flag | — | Opt out (throwaway smoke tests; saves a small per-day I/O cost) |
-| `--resume` | flag | off | Pick up where a killed run left off (see §10). Implies checkpointing on |
+The launcher serves one model: set `HF_MODEL` to select it. Do not pass
+`--model`, `--provider`, `--base-url`, or `--outdir` as caller overrides through
+`sbatch`. A different `--survey-model` is not automatically hosted by this server.
+For ports, image/cache choices, readiness timeouts, labels, and resume, see the
+[launcher contract](AIRE_HPC_repo_primer.md#3-current-launcher-contract) and §10.
 
 ### Worked examples
 
@@ -757,12 +831,6 @@ sbatch --time=06:00:00 scripts/aire/run.sh \
     --preset r14_canonical \
     --exposure-targets split50 \
     --reach-a 0.5 --reach-b 1.0
-
-# Single-policy mode on Carbon Tax (id=5), 30 agents, smaller network:
-sbatch scripts/aire/run.sh \
-    --n-citizens 30 --days 5 --k-peers 0 \
-    --communication-mode single_policy --package-policies 5 \
-    --exposure-targets split50
 
 # Bypass the offline message pool and have the LLM generate political text:
 sbatch scripts/aire/run.sh \
@@ -818,7 +886,7 @@ sbatch scripts/aire/run.sh --preset r14_canonical --exposure-targets split50
 # Same run, longer wall-clock + per-day checkpointing:
 sbatch --time=06:00:00 scripts/aire/run.sh --preset r14_canonical --exposure-targets split50 --checkpoint-every-day
 
-# 2july2026 run sample sbatch codes
+# Historical 2026-07-02 submission examples (not the current canonical preset)
 sbatch --time=06:00:00 scripts/aire/run.sh \
     --n-citizens 50 --days 5 --k-peers 2 --seed 42 \
     --exposure-targets '{"A-only":0.05,"B-only":0.05,"both":0.60,"neither":0.30}' \
@@ -841,10 +909,10 @@ bash scripts/aire/sweep.sh scripts/aire/sweeps/r14_v2.txt
 
 # Monitoring:
 squeue --me
-tail -f $(ls -t LLM-cag-run_*.out | head -1)
+tail -f "$SCRATCH/cag/slurm/LLM-cag-run_<jobid>.out"
 sacct -j <jobid> --format=JobID,State,Elapsed,MaxRSS,ExitCode
 
-# Pull results back (on your laptop, NOT inside the AIRE ssh session):
+# Pull results back (on your laptop, NOT inside the Aire ssh session):
 rsync -avP aire:/mnt/scratch/<user>/cag/runs/ ~/src/aire-runs/
 ```
 

@@ -1,295 +1,210 @@
-# AIRE HPC — Context Primer for an LLM Assistant
+# Aire HPC reference for Climate-Action-GABM
 
-> **How to use this file.** Paste the whole thing into a new chat with the assistant that will modify your repository, or keep it in the repo (e.g. as `AIRE.md` / part of `CLAUDE.md`). It tells the assistant how the cluster is configured and what the repository must look like to run there. Sections marked `<FILL IN>` are the only things you need to customise.
+This reference explains the cluster assumptions and the current CAG launcher
+contract. For setup and submission commands, use [AIRE_Quickstart.md](AIRE_Quickstart.md).
+It replaces the generic assistant-facing template; it is not a request to
+generate alternative launchers or change the simulation.
 
----
+## 1. Scope, sources, and verification
 
-## 0. Your role (read first)
+Reviewed on **2026-11-08** against the repository launcher and the public Leeds
+documentation listed below. Leeds states that its documentation is transitioning
+to the new Leeds HPC site during the Calder launch and Aire upgrade. Check the
+service's current advice before a new account setup or resource request:
 
-You are helping prepare a Python simulation repository to run on **AIRE**, the University of Leeds HPC cluster. Your job is to make code and configuration changes so the repo runs **unattended, as scheduled batch jobs, on shared compute nodes** — not interactively on a laptop. When you propose changes, conform to the rules and the repository contract below. These rules are **enforced by the cluster administrators**; violating the storage rules in particular can get the account suspended, so treat them as hard constraints, not suggestions.
+- [Aire documentation and transition notice](https://arcdocs.leeds.ac.uk/aire/welcome.html)
+- [Logging on](https://arcdocs.leeds.ac.uk/aire/getting_started/logging_on.html)
+- [Rules and regulations](https://arcdocs.leeds.ac.uk/aire/getting_started/rules_regulations.html)
+- [Storage and filesystems](https://arcdocs.leeds.ac.uk/aire/system/storage_filesystem.html)
+- [Software environments](https://arcdocs.leeds.ac.uk/aire/usage/software_env_management.html)
+- [Job types and Slurm examples](https://arcdocs.leeds.ac.uk/aire/usage/job_type.html)
+- [System overview](https://arcdocs.leeds.ac.uk/aire/system/start.html)
 
-Repository specifics:
-- Repo name: `<FILL IN>`
-- Main simulation entry point (current): `<FILL IN, e.g. src/main.py>`
-- What one run produces: `<FILL IN, e.g. CSV time series + a few PNG figures>`
-- Parallelism today: `<FILL IN: single-threaded? multiprocessing? numpy/BLAS-threaded? GPU?>`
-- Typical sweep: `<FILL IN, e.g. 200 random seeds × 3 policy scenarios>`
+The Linux/Mac, Windows, VPN, and SSH gateway knowledge-base articles linked
+from Leeds's login page require University authentication. Their exact host
+names and account-specific connection steps were **not verified** in this
+review. Use those articles or ask Research IT; do not copy a guessed hostname.
+Leeds's public login page states that SSH key authentication for **Aire login**
+is no longer supported. This is separate from an SSH key used **on Aire to
+authenticate to GitHub**.
 
----
+No Aire job, model download, GPU inference, or environment creation was executed
+for this review. Local CLI checks cannot establish that a container/model pair
+works on the current cluster. Historical timing estimates are not guarantees.
 
-## 1. How AIRE is configured
+## 2. Shared-system use and storage
 
-**Scheduler.** AIRE uses **Slurm**. You never run heavy work directly; you submit a *job script* and Slurm queues it, then runs it on a compute node when resources free up. Allocation is fair-share, not first-come-first-served.
+Leeds requires Slurm for compute-node processes and efficient, considerate use
+of shared resources. Use login nodes for lightweight setup, transfers, editing,
+and submission; submit inference and simulation workloads to compute nodes.
+Follow current Research IT advice for expensive environment/container builds.
+The public system overview describes three NVIDIA L40S GPUs per GPU node
+(February 2025 configuration); this is not a promise about upgraded hardware.
 
-**Node types you interact with:**
-- **Login node** — where you SSH in. Use it only to edit files, manage data, build environments, and submit jobs. Do **not** run simulations here.
-- **Compute nodes** — where jobs actually run. Standard nodes have **168 cores** and ~773 GB total (~4601 MB/core). You get a slice via Slurm, never by SSH-ing in directly.
-- **GPU nodes** — request explicitly (see §5). Ordinary CPU code will not use a GPU.
-- **High-memory nodes** — 2.32 TB each; request explicitly only if a job genuinely exceeds standard-node memory.
+The public storage guide lists:
 
-**Critical environment fact:** modules and conda environments loaded on the **login node do NOT carry over to a compute node.** Every job script must re-run its `module load` and `conda activate` lines itself. A new login shell is created for each job/interactive session and runs `.bashrc`.
-
-**Software / Python.** Python is provided through the **Miniforge** module (conda/mamba, defaulting to the conda-forge channel — Anaconda is disallowed for licensing reasons). Load it with:
-```bash
-module load miniforge/24.7.1   # `module load miniforge` also works
-```
-
----
-
-## 2. Storage rules (HARD CONSTRAINTS)
-
-There are two locations that matter. Verify the exact paths once on the cluster with `echo $HOME` and `echo $SCRATCH`.
-
-| Location | Path | Env var | Quota | Backed up? | Use for |
-|---|---|---|---|---|---|
-| **Home** | `/users/<username>` | `$HOME` (`~`) | 65 GB, 1.5M files | **Yes** | Code, scripts, **conda environments** |
-| **Scratch** | `/mnt/scratch/<username>` (some docs show `/mnt/scratch/users/<username>`) | `$SCRATCH` | 1 TB, 1.5M files | **No** | **All simulation output / large data** |
-
-**Rules to obey in code and scripts:**
-1. **Conda environments must live in `$HOME`.** Do not relocate `.conda`.
-2. **All run output must be written under `$SCRATCH`,** never into `$HOME` and never inside the repo working tree. Writing job output into home can degrade the system for everyone and risks account suspension.
-3. Scratch is **not backed up** and is **not auto-cleaned** — code should write self-describing, organised output (e.g. one subdirectory per run/parameter set) so results can be found and pruned later. Anything precious must be copied to home or off-cluster afterwards.
-
----
-
-## 3. Repository contract (what you must ensure exists)
-
-Make the repo satisfy all of the following. If something is missing, add it.
-
-### 3.1 `environment.yaml` at the repo root
-AIRE builds environments from a conda YAML file, not `requirements.txt`. Create/maintain `environment.yaml`:
-```yaml
-name: <env-name>
-dependencies:
-  - python=3.12          # pin the interpreter
-  - numpy
-  - pandas
-  - <other conda-forge packages>
-  - pip
-  - pip:
-      - <packages only available via pip>
-```
-- Pin anything where a version change would break behaviour; leave the rest flexible.
-- Keep this file authoritative: add packages **here** and rebuild, rather than via ad-hoc `conda install`. Update an existing env with `conda env update --file environment.yaml --prune` (the `--prune` prevents the env from bloating the 65 GB home quota).
-- If a current `requirements.txt` exists, translate its contents into this file (conda-forge names where possible, otherwise under the `pip:` block).
-
-### 3.2 A single, parameterised entry point
-The main simulation file must be runnable **headless from the command line with all parameters passed as arguments** (or a config file path) — no interactive prompts, no editing source to change parameters. Use `argparse`:
-```python
-import argparse, os
-
-def parse_args():
-    p = argparse.ArgumentParser()
-    p.add_argument("--seed", type=int, default=0)
-    p.add_argument("--scenario", type=str, default="baseline")
-    # ... all other run parameters ...
-    p.add_argument("--outdir", type=str, required=True,
-                   help="Output directory (point at $SCRATCH at submit time)")
-    return p.parse_args()
-
-def main():
-    args = parse_args()
-    os.makedirs(args.outdir, exist_ok=True)   # never assume the dir exists
-    # ... run simulation, write all artefacts under args.outdir ...
-
-if __name__ == "__main__":
-    main()
-```
-Requirements for this entry point:
-- **Output location comes from `--outdir`** and nothing is hardcoded. The submit script sets `--outdir` to a path under `$SCRATCH`.
-- **`os.makedirs(outdir, exist_ok=True)`** so a fresh compute node doesn't fail on a missing folder.
-- **Seed/parameters fully controllable via args** so the same code runs across a parameter sweep (see array jobs, §5).
-- **Determinism:** seed all RNGs (`random`, `numpy`, framework RNGs) from `--seed` for reproducibility.
-
-### 3.3 Headless execution
-- If matplotlib is used, force a non-interactive backend **before** importing pyplot, and save figures instead of showing them:
-  ```python
-  import matplotlib
-  matplotlib.use("Agg")
-  import matplotlib.pyplot as plt
-  # ... plt.savefig(os.path.join(args.outdir, "fig.png")) ...  # never plt.show()
-  ```
-- No Jupyter/Spyder/RStudio-style interactive development on the cluster — it is explicitly discouraged. Code must be runnable as `python entry_point.py <args>`.
-
-### 3.4 Logging
-- Write progress/log messages to **stdout/stderr** (use the `logging` module or prints). Slurm captures these into the job's `.out`/`.err` files automatically, which is how runs are monitored and debugged. Do not depend on a live terminal.
-
-### 3.5 Tests (recommended)
-- Keep the test suite runnable with `pytest`. A green suite is what lets the environment be updated safely without silently breaking results.
-
----
-
-## 4. End-to-end workflow on AIRE
-
-This is the full sequence from empty account to results. Steps 1–4 happen once (or when dependencies change); steps 5–7 happen per experiment.
-
-```bash
-# 1. Get the code (run on the login node)
-cd ~
-git clone <repo-url>            # private repo: use a PAT or an SSH key added to GitHub
-cd <repo>
-
-# 2. Build the conda environment (lives in $HOME)
-module load miniforge/24.7.1
-conda env create -f environment.yaml
-conda activate <env-name>
-
-# 3. Smoke-test ONCE, interactively, on a compute node (not the login node)
-srun -t 00:30:00 --pty /bin/bash      # grabs an interactive compute node
-module load miniforge/24.7.1          # re-load: login-node env does NOT carry over
-conda activate <env-name>
-python <entry_point> --seed 0 --outdir $SCRATCH/<repo>/smoketest
-exit                                  # releases the interactive node
-
-# 4. Make a scratch output area for real runs
-mkdir -p $SCRATCH/<repo>/runs
-
-# 5. Submit a batch job (see template in §5)
-sbatch run_job.sh                     # returns a job ID, e.g. "Submitted batch job 42"
-
-# 6. Monitor
-squeue --me                           # R = running, PD = pending/queued
-tail -f $SCRATCH/<repo>/runs/slurm-<jobid>.out   # watch live output
-scancel <jobid>                       # cancel if needed
-
-# 7. Collect results from $SCRATCH; copy anything to keep into $HOME or off-cluster
-```
-
----
-
-## 5. Slurm job-script templates
-
-### 5.1 Single batch job (`run_job.sh`)
-```bash
-#!/bin/bash
-#SBATCH --job-name=sim_run
-#SBATCH --time=02:00:00            # REQUIRED. hh:mm:ss (or d-hh:mm:ss). Add ~20% margin; job is killed if exceeded.
-#SBATCH --cpus-per-task=1          # Set to the number of cores the code actually uses. Default 1.
-#SBATCH --mem=4G                   # Memory per node. Default 1G. Don't over-request.
-#SBATCH --ntasks=1
-#SBATCH --output=%x_%j.out         # %x = job name, %j = job id
-#SBATCH --error=%x_%j.err
-
-module load miniforge/24.7.1       # MUST be in the script; login-node modules don't carry over
-conda activate <env-name>
-
-OUTDIR=$SCRATCH/<repo>/runs/run_${SLURM_JOB_ID}
-python <entry_point> --seed 0 --scenario baseline --outdir "$OUTDIR"
-```
-
-### 5.2 Parameter sweep via task array (`run_array.sh`)
-Use this to run the **same code many times with different parameters** in one submission — this is the main reason to use the cluster for simulation work. Slurm sets `$SLURM_ARRAY_TASK_ID` for each task; map it to a parameter (here, a seed).
-```bash
-#!/bin/bash
-#SBATCH --job-name=sim_sweep
-#SBATCH --time=02:00:00
-#SBATCH --cpus-per-task=1
-#SBATCH --mem=4G
-#SBATCH --array=0-199              # 200 tasks; $SLURM_ARRAY_TASK_ID runs 0..199
-#SBATCH --output=%x_%A_%a.out      # %A = array job id, %a = task index
-#SBATCH --error=%x_%A_%a.err
-
-module load miniforge/24.7.1
-conda activate <env-name>
-
-OUTDIR=$SCRATCH/<repo>/runs/sweep_${SLURM_ARRAY_JOB_ID}/task_${SLURM_ARRAY_TASK_ID}
-python <entry_point> --seed ${SLURM_ARRAY_TASK_ID} --scenario baseline --outdir "$OUTDIR"
-```
-Submit with a single `sbatch run_array.sh`; cancel all tasks with a single `scancel <array_job_id>`. For sweeps over multiple dimensions (e.g. seed × scenario), either widen the array and compute both indices from `$SLURM_ARRAY_TASK_ID`, or read a parameter table line keyed by the task id.
-
-### 5.3 GPU job (only if the code is GPU-enabled)
-```bash
-#SBATCH --partition=gpu
-#SBATCH --gres=gpu:1
-# also: module load cuda   (or provide CUDA via the conda env), inside the script
-```
-
-### 5.4 High-memory job (only if standard-node memory is insufficient)
-```bash
-#SBATCH --partition=himem
-```
-
-### Key `#SBATCH` options
-| Option | Meaning | Default |
+| Area | Variable and documented path | Lifecycle and intended use |
 |---|---|---|
-| `--time=hh:mm:ss` / `-t` | Wall-clock limit. **Required.** Job killed if exceeded; large over-estimates delay scheduling. | — |
-| `--cpus-per-task=N` / `-c` | Cores per task (for threaded code). | 1 |
-| `--mem=<size>` | Memory per node (e.g. `8G`). | 1G |
-| `--mem-per-cpu=<size>` | Memory per core (alternative to `--mem`). | 1G |
-| `--ntasks=N` / `-n` | Number of tasks/processes (MPI). | 1 |
-| `--array=<a>-<b>` | Task array; sets `$SLURM_ARRAY_TASK_ID`. | — |
-| `--partition=<name>` / `-p` | Non-standard pool: `gpu`, `himem`. | standard |
-| `--gres=gpu:N` | Request N GPUs (with `--partition=gpu`). | — |
-| `--output` / `--error` | Stdout/stderr file patterns (`%x` name, `%j` id, `%A`/`%a` array). | — |
-| `--mail-type=END,FAIL` + `--mail-user=...@leeds.ac.uk` | Email on job events. | — |
+| Home | `$HOME`, `/users/<username>` | Backed up; 65 GB and 1.5 million files. Code, configuration, credentials, and small persistent files. |
+| Scratch | `$SCRATCH`, `/mnt/scratch/<username>` | Not backed up; 1 TB and 1.5 million files. Model weights and active run data; manual cleanup required. |
+| Shared job flash | `$TMP_SHARED`, `/mnt/flash/tmp/job.<JOB-ID>` | Not backed up; removed at job completion. Job-scoped I/O-intensive work. |
+| Node-local temporary | `$TMP_LOCAL` / `$TMPDIR` | Not backed up; removed at job completion; not shared between nodes. |
 
-### 5.5 This repo's CLI + sbatch pattern (`scripts/aire/run.sh`)
+Check the actual variables and quotas on your account. Scratch has no routine
+automatic deletion, but Leeds reserves emergency deletion when filesystems fill;
+it is not archival storage. Copy important results to approved backed-up storage.
+Keep large model caches and simulation I/O off the home filesystem.
 
-> For a step-by-step novice walkthrough (clone → sbatch → results retrieval), see [AIRE_Quickstart.md](AIRE_Quickstart.md). This section is the design reference; the quickstart is the recipe.
+CAG's documented convention is the `cag` client environment and pinned container
+in home, with weights and run data in scratch. This is a **repository convention**,
+not a claim that Leeds mandates one environment filename or package manager
+manifest. Miniforge is Leeds's recommended alternative to Anaconda.
 
-The simulation entry point (`python -m cag`) takes every research knob as a flag, so the sbatch script does **not** hardcode experiment parameters. A submission line looks like:
+**Data approval comes before submission.** Leeds prohibits personal or sensitive
+data on Aire; de-identification may make data suitable, but removing names alone
+does not demonstrate this. Check the YouGov input, generated personas, prompts,
+and outputs against the project's permissions and University data classification.
+Seek advice if suitability is uncertain.
+
+## 3. Current launcher contract
+
+The implementation sources are [run.sh](../../scripts/aire/run.sh),
+[sweep.sh](../../scripts/aire/sweep.sh), and
+[environment.yaml](../../environment.yaml).
+
+The client is `PYTHONPATH=src python -m cag`; it does not itself serve the model.
+The default launcher requests one node, one task, eight CPUs, one GPU, 80 GB
+node memory, and four hours in the `gpu` partition. It runs one vLLM server
+and the simulation client on the same node. Extra CPU allocation does not
+make CAG a distributed or multi-node simulation.
+
+| Setting | Current launcher behaviour |
+|---|---|
+| `HF_MODEL` | Default `Qwen/Qwen3-14B`; selects the served model and the client model name. |
+| `SIF_IMAGE` | Default `$HOME/vllm-openai-v0.8.5.sif`; a pinned repository choice, not a current-version recommendation. |
+| `PORT` | Override if needed; otherwise `10000 + SLURM_JOB_ID % 50000`. Derived ports reduce collisions but do not reserve a free socket. |
+| `MAX_WAIT_SECONDS` | Default `1500`; separate from Slurm's wall-clock limit. |
+| `LOCAL_HF_CACHE` | Default `$SCRATCH/HF_cache`, bound to `/root/.cache/huggingface` inside the container. |
+| `HF_TOKEN` | Environment takes precedence; otherwise read `${HF_HOME:-$HOME/.cache/huggingface}/token`. Required by this launcher even for an ungated model. |
+| `RUN_LABEL` | Optional filename-safe suffix on `run_<jobid>_<label>`. |
+| `RESUME_FROM` | Existing run directory with `checkpoints/`; reuses that output directory and injects `--resume`. |
+
+Submit **from the repository root**: the launcher uses `SLURM_SUBMIT_DIR` to
+locate `src/cag`. It loads Apptainer for the server, then explicitly loads
+Miniforge and activates `cag` for the client. Do not rely on an interactive
+shell's environment state being enough for a batch job.
+
+Readiness is a successful **chat completion for `HF_MODEL`**, not merely
+`/v1/models`. The server is stopped when the client/job script exits.
+The launcher does not enable vLLM API authentication or restrict it with a
+loopback `--host` argument. `localhost` in the client URL is **not an access-control
+guarantee**. Follow Research IT advice on service binding/access before processing
+approved data; do not expose the endpoint publicly. The archived article's Unix
+socket suggestion is not implemented by this launcher or the CAG client.
+
+The launcher injects `--provider`, `--model`, `--base-url`, and `--outdir` before
+forwarding caller arguments. Argparse can accept a later duplicate override:
+**do not pass these plumbing flags through `sbatch`**. Use `HF_MODEL`,
+`PORT`, and `RESUME_FROM` where appropriate. A separate survey model is not
+automatically served by this one-model container.
+
+New runs write to `$SCRATCH/cag/runs/run_<jobid>[_<label>]`; resume uses exactly
+`RESUME_FROM`. The launcher does not enforce that a supplied resume path is in
+scratch. Slurm `.out`/`.err` default to the submission directory, while
+`run.log` and `vllm_server.log` live in the run directory. The quickstart shows
+explicit scratch paths for Slurm logs.
+
+## 4. Resource requests, sweeps, and reproducibility
+
+Pass Slurm options **before** the script path, and CAG options **after** it:
 
 ```bash
-sbatch scripts/aire/run.sh --preset r14_canonical --exposure-targets split50
+sbatch --time=06:00:00 --mem=120G scripts/aire/run.sh \
+    --preset r14_canonical --exposure-targets split50
 ```
 
-Three layers compose to give the final config (lowest → highest precedence):
+Inspect current partitions/limits through Leeds guidance and local Slurm tools;
+do not copy generic `himem`, CUDA-module, memory-default, or array-job templates
+as a CAG deployment recipe. The maintained launcher is the supported starting
+point, and resource overrides should reflect measured usage.
 
-1. `SIM_CONFIG` defaults in `src/cag/abm/sim.py`.
-2. Optional preset bundle in `src/cag/presets.py`, selected with `--preset NAME`.
-3. Individual `--flag` overrides on the sbatch command line.
+The shipped sweep wrapper submits **one separate job per line**, not a Slurm
+array. It supports an optional `LABEL=<token>` prefix and common Slurm overrides.
+Its whitespace splitting does not implement shell quoting: keep per-line JSON
+compact, without surrounding shell quotes or internal spaces. Do not put shell
+commands, substitutions, or redirections in a sweep file. Submit from the repo
+root. The wrapper appends job IDs to `<sweep_file>.log`.
 
-Common patterns:
+Configuration precedence is `SIM_CONFIG` defaults, then a preset, then CLI
+overrides. Use the [configuration guide](Simulation_Configuration_Guide.md)
+and `python -m cag --help` for research settings instead of maintaining a
+second complete flag table here.
 
-```bash
-# List available presets / inspect the resolved config without running:
-PYTHONPATH=src python3 -m cag --list-presets
-PYTHONPATH=src python3 -m cag --preset r14_canonical --exposure-targets split50 --dry-run
+Preserve resolved `config.json`, input/message-set provenance, source commit,
+container identity, and environment versions alongside results. A pinned SIF
+name alone is not a container digest. Fixed seeds do not guarantee identical
+live LLM responses or exact checkpoint replay: the
+[refactor plan](../../GABM_Refactor_Plan.md) records outstanding random-state,
+offline-message cursor, and prompt-log/timeline hydration limitations.
 
-# Override Slurm headers at submit time (no script edit required):
-sbatch --time=06:00:00 --mem=120G scripts/aire/run.sh --preset r14_canonical --exposure-targets neither
+## 5. Archived article: retained context and unresolved work
 
-# Swap the served model (env var, not a CLI flag):
-HF_MODEL=swiss-ai/Apertus-8B-2509 sbatch scripts/aire/run.sh --preset r14_canonical --exposure-targets split50
+[RunningLLMsOnAire.md](../archive/RunningLLMsOnAire.md) remains a dated article
+draft credited to John Hodrien, Jo Kershaw, and Andy Turner, not current CAG
+setup instructions. Its distinct research/service topics remain useful:
 
-# Multi-job sweep from a one-line-per-job text file:
-bash scripts/aire/sweep.sh scripts/aire/sweeps/r14_v2.txt
+- Multi-node Ray inference and alternative model deployments require a separate
+  validated design; its two-node script, external tunnel hostname, and missing
+  wrapper are not dependencies of the one-node CAG launcher.
+- Filesystem-permission-controlled Unix sockets are an alternative deployment
+  idea; performance/access claims and client support need verification.
+- Shared model caches need licensing, permissions, and Research IT agreement.
+  Job flash is documented as `$TMP_SHARED`, not an assumed persistent `$FLASH`.
+  CAG currently uses scratch; flash staging/copy-back is not implemented.
+- Energy monitoring and the `LLM-` job-name convention are attributed to the
+  dated article/RSE request. The launcher retains the prefix; this review did
+  not establish a public site-wide mandatory naming policy.
+- The draft's authorship, publication-review intention, and UKRI acknowledgement
+  are preserved in the archive; its unfinished prose is not folded into
+  operational guidance.
 
-# Resume a killed run (writes back into the same OUTDIR):
-RESUME_FROM=$SCRATCH/cag/runs/run_<old_jobid> sbatch scripts/aire/run.sh --preset r14_canonical --exposure-targets split50
-```
+Before declaring an Aire deployment validated, confirm current login/resource
+and data permissions with Leeds, prepare a compatible cached model/container,
+run a scheduled smoke job, check both server and client logs, and retain the
+result/provenance records. This local documentation review is not that deployment
+validation.
 
-JSON literals are accepted in-place for any dict-valued flag (`--exposure-targets`, `--affinity-weights`, `--network-params`, `--local-extra-body`) so one-off configurations stay on the sbatch line:
+## 6. Related GABM guidance and Calder portability
 
-```bash
-sbatch scripts/aire/run.sh --preset r14_canonical \
-    --exposure-targets '{"A-only":0.5,"B-only":0.5,"both":0,"neither":0}'
-```
+GABM owns the general model-serving/HPC guidance; CAG owns this application's
+launch, research configuration, and output checks. Consult upstream rather than
+copying another generic serving guide into CAG:
 
-The `--preset` flag is convenience only; new experiments compose flags directly and never require a code change. See [scripts/aire/run.sh](../../scripts/aire/run.sh) and [scripts/aire/sweep.sh](../../scripts/aire/sweep.sh) for the full plumbing.
+- [Running On HPC Systems](https://github.com/compolis/gabm/blob/main/Running_On_HPC_Systems.md):
+  Slurm/Apptainer/vLLM workflow, portability checklist, monitoring, and provenance.
+- [RunningApertusOnCalder.md](https://github.com/compolis/gabm/blob/main/RunningApertusOnCalder.md):
+  a redirect to that active guide and its archived Calder/Apertus snapshot.
+- [Archived Calder/Apertus snapshot](https://github.com/compolis/gabm/blob/main/archive/RunningApertusOnCalder.md):
+  historical serving observations, not current CAG submission instructions.
 
----
+These were read from the adjacent GABM checkout at
+[`2ea3f5f`](https://github.com/compolis/gabm/tree/2ea3f5f01b6b610fd92274be16b57484d9f2a553)
+on 2026-11-08. They are repository evidence, not independently verified cluster
+policy or fresh deployment tests. Their contents are not installed by the
+`gabm==0.3.0` dependency pin.
 
-## 6. Gotchas to avoid
+The active guide records historical Apertus-v1.5-70B serving on four Calder
+H200 GPUs with vLLM 0.23.1/0.23.1rc1 and tensor parallelism of four. This differs
+from CAG's current one-GPU, vLLM v0.8.5 Aire launcher. Do not transplant its
+resource/context settings or claim that changing `HF_MODEL` and `SIF_IMAGE`
+alone makes the CAG launcher Calder-ready. The archive also contains conflicting
+GPU, context-length, and memory descriptions; use the active guide as the
+starting reference and revalidate resource choices.
 
-- **Resource requests must match reality.** A single-threaded Python script uses one core regardless of `--cpus-per-task`; requesting many cores just wastes the allocation and lengthens the queue wait. If the code is parallel (multiprocessing / threaded BLAS / Dask), set `--cpus-per-task` to match and configure the library's worker/thread count accordingly.
-- **Re-load modules in every script** — login-node setup does not persist to compute nodes.
-- **Windows line endings break scripts** (`/bin/bash^M: bad interpreter`). If a `.sh` file is edited on Windows, run `dos2unix run_job.sh` on the cluster.
-- **Never write output into `$HOME` or the repo tree** — only under `$SCRATCH`.
-- **Scratch is not backed up.** Copy anything that must survive into `$HOME` or off-cluster.
-- **Snapshot the environment with results** for reproducibility, e.g. add to the job script:
-  `conda env export > "$OUTDIR/env-record.yaml"`.
-
----
-
-## 7. Definition of done (verify before declaring the repo ready)
-
-- [ ] `environment.yaml` exists at repo root and builds cleanly with `conda env create -f environment.yaml`.
-- [ ] A single CLI entry point runs the simulation headless with all parameters as arguments.
-- [ ] Output directory is taken from `--outdir`; nothing is hardcoded; the entry point `makedirs(..., exist_ok=True)`.
-- [ ] No interactive plotting / no `plt.show()`; matplotlib (if used) set to `Agg`.
-- [ ] RNGs seeded from `--seed`; a fixed seed reproduces a run.
-- [ ] Logging goes to stdout/stderr.
-- [ ] `run_job.sh` and `run_array.sh` exist, load the module + activate the env inside the script, and point `--outdir` at `$SCRATCH`.
-- [ ] A 30-minute interactive smoke test (`srun --pty`) completes one run end-to-end.
-- [ ] `pytest` passes.
+A future CAG Calder slice should adapt serving from GABM's maintained examples
+while retaining `python -m cag`, the CAG client environment, readiness checks,
+scratch output layout, and research configuration. Check current hardware/
+container architecture, partition directives, model/cache access, endpoint
+reachability, and service binding before a scheduled smoke test. CAG-specific
+output and golden-baseline acceptance gates still apply. This review neither
+changes the Aire launcher nor adds Calder support.
