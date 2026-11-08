@@ -62,10 +62,13 @@ validation gates in [GABM_Refactor_Plan.md](GABM_Refactor_Plan.md).
   and open issues before consolidating unfinished items into the roadmap.
   Verify supplementary research citations and preserve historical evidence;
   relocation alone does not validate their claims.
-- Review and consolidate the AIRE quickstart, generic primer, and older
-  operational notes, preserving unique information and checking current
-  commands against the launcher and cluster guidance. Ownership migration
-  alone does not establish that historical instructions are current.
+- Review and consolidate the Aire quickstart, generic primer, and older
+  operational notes as deployment evidence evolves. Next, validate a scheduled
+  smoke job on the current cluster with approved data, cached model/image
+  compatibility, service binding/access advice, and captured provenance.
+  Separately evaluate shared caches, flash staging/copy-back, distributed
+  inference, and energy monitoring; the archived article is not a supported
+  launcher recipe.
 - Reduce legacy Sphinx warnings in bounded slices: unresolved guide/source
   links, duplicate API descriptions and docstring formatting, missing
   navigation entries, and historical code-block highlighting. Preserve
@@ -88,7 +91,7 @@ old task as still open.
 
 - Reconcile Tier-P persona-null production sweep evidence (real/shuffled/
   neutral, three seeds per arm) and provide or update its demonstration
-  notebook once the corresponding AIRE run directories are available.
+  notebook once the corresponding Aire run directories are available.
 - Re-measure Condition B bias on the unified first-person debias chain
   (partial rerun of [NB 13](notebooks/13_bias_mitigation_experiment.ipynb);
   historical estimate: about 120 API calls).
@@ -105,7 +108,7 @@ old task as still open.
 
 ## Operational validation backlog
 
-- Reconcile real-LLM AIRE evidence for the v2 memory architecture over a
+- Reconcile real-LLM Aire evidence for the v2 memory architecture over a
   multi-day horizon (earlier proposed smoke population: 30-100 agents).
 - Reconcile production validation of output bundles, network repair, and
   bucket-asymmetric persuasion at 50-100 agents. Existing Run-14 results may

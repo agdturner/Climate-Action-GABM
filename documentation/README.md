@@ -24,7 +24,7 @@ Pick the doc that matches what you want to do:
 | Find my way around the source code | [Code_Tour.md](https://github.com/compolis/Climate-Action-GABM/blob/main/documentation/guides/Code_Tour.md) |
 | Refactor CAG to reuse and extend the GABM framework | [GABM_Refactor_Plan.md](../GABM_Refactor_Plan.md) |
 | Run a fully local LLM backend | [Local_LLM_Setup_Guide.md](https://github.com/compolis/Climate-Action-GABM/blob/main/documentation/guides/Local_LLM_Setup_Guide.md) |
-| Run on the AIRE HPC cluster | [AIRE_Quickstart.md](https://github.com/compolis/Climate-Action-GABM/blob/main/documentation/guides/AIRE_Quickstart.md) |
+| Run on the Aire HPC cluster | [AIRE_Quickstart.md](guides/AIRE_Quickstart.md) |
 | Check what past experiments found | [result_report.md](https://github.com/compolis/Climate-Action-GABM/blob/main/documentation/research/result_report.md) |
 | Read the paper draft (manuscript + SI) | [`paper/`](../paper/) |
 
@@ -62,12 +62,18 @@ Pick the doc that matches what you want to do:
 | [Code_Tour.md](https://github.com/compolis/Climate-Action-GABM/blob/main/documentation/guides/Code_Tour.md) | A guided, two-layer walk through `src/cag/` — bold lines for a fast pass, "Staying?" notes for depth, with grep breadcrumbs instead of line numbers. | You know the science but haven't opened the code. |
 | [GABM_Refactor_Plan.md](../GABM_Refactor_Plan.md) | Root-authored two-repository refactor plan: audit evidence, ownership boundaries, extraction sequence, and acceptance gates. | You're moving generic CAG capabilities into GABM or wiring CAG to framework APIs. |
 
-## HPC (AIRE)
+## HPC (Aire)
 
 | File | Role | Use it when… |
 |---|---|---|
-| [AIRE_HPC_repo_primer.md](https://github.com/compolis/Climate-Action-GABM/blob/main/documentation/guides/AIRE_HPC_repo_primer.md) | Generic AIRE / Slurm contract — cluster configuration, storage rules, `#SBATCH` reference, repository requirements. | You need the fundamentals and hard constraints of the cluster. |
-| [AIRE_Quickstart.md](https://github.com/compolis/Climate-Action-GABM/blob/main/documentation/guides/AIRE_Quickstart.md) | Repo-specific, copy-pasteable walkthrough — from clone to a smoke job to a full run on AIRE. | You want to actually launch jobs on AIRE. |
+| [AIRE_HPC_repo_primer.md](guides/AIRE_HPC_repo_primer.md) | CAG launcher reference, cited Leeds guidance, storage/data constraints, and verification limits. | You need to distinguish repository conventions from service policy and unresolved deployment work. |
+| [AIRE_Quickstart.md](guides/AIRE_Quickstart.md) | Maintained setup/submission/transfer recipe; links to canonical configuration and output references instead of duplicating them. | You want to prepare and validate a CAG job on Aire. |
+| [RunningLLMsOnAire.md](archive/RunningLLMsOnAire.md) | Historical article draft with preserved authorship and distinct multi-node/socket/cache/energy ideas; not a runnable CAG recipe. | You need provenance or context for a future deployment design. |
+
+For framework-level HPC/model-serving patterns and historical Calder/Apertus
+context, see GABM's
+[Running On HPC Systems](https://github.com/compolis/gabm/blob/main/Running_On_HPC_Systems.md)
+and the [CAG portability notes](guides/AIRE_HPC_repo_primer.md#6-related-gabm-guidance-and-calder-portability).
 
 ## Results
 
@@ -127,5 +133,5 @@ These files build the rendered docs site and are not meant to be read as prose.
 | Folder | Role |
 |---|---|
 | [`documentation/research/`](https://github.com/compolis/Climate-Action-GABM/tree/main/documentation/research) | Authored research records, literature drafts, and parameterisation notes; retain provenance and stated verification caveats. |
-| [`documentation/archive/`](https://github.com/compolis/Climate-Action-GABM/tree/main/documentation/archive) | Authored historical guides, older AIRE article notes, and issue-planning snapshots. Not current operational guidance. |
+| [`documentation/archive/`](https://github.com/compolis/Climate-Action-GABM/tree/main/documentation/archive) | Authored historical guides, older Aire article notes, and issue-planning snapshots. Not current operational guidance. |
 | `supplementary_docs/` | Temporary Sphinx copies of supplementary research/archive sources, retaining historical site paths. |
