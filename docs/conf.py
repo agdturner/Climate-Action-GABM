@@ -23,6 +23,8 @@ author = 'Andy Turner'
 
 extensions = ['sphinx.ext.autodoc', 'sphinx.ext.autosummary', 'myst_parser']
 autosummary_generate = True
+autosummary_generate_overwrite = False
+myst_heading_anchors = 6
 
 # Ensure full API details in autodoc
 autodoc_default_options = {
@@ -32,7 +34,7 @@ autodoc_default_options = {
 }
 
 templates_path = ['_templates']
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', 'index.rst', 'README.md']
 
 # -- Options for HTML output -------------------------------------------------
 

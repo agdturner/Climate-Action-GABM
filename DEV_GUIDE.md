@@ -222,6 +222,29 @@ For a new root Markdown document intended for the Sphinx site:
 Only authoritative sources and intentional Sphinx inputs should be committed,
 not generated copies or `docs/_build/`.
 
+The project README is staged as `docs/project_readme.md`, using `STAGED_NAMES`
+in the shared manifest. This avoids overwriting the existing authored
+`docs/README.md` documentation index. The latter remains a GitHub-readable
+legacy source until deliberately migrated. Sphinx uses `docs/index.md`;
+the historical `docs/index.rst` placeholder is excluded from the build.
+
+Staging rewrites links in copied root documents: links to other staged documents
+stay local, links to existing guides under `docs/` lose that prefix, and links
+to repository code, tests, or data point to the upstream GitHub `main` branch.
+Unresolved paths remain unchanged so Sphinx can report them. These repository
+links describe the current branch on GitHub, not a versioned documentation snapshot.
+Markdown heading anchors are enabled for local section links.
+
+Autosummary does not overwrite existing stubs during ordinary builds. New
+generated stubs are ignored by Git; explicit API directives in `docs/api.rst`
+remain the maintained API reference. Some stubs and requirement mirrors are
+still tracked legacy generated files; avoid incidental changes to them and
+migrate their ownership deliberately.
+
+Default pytest discovery is limited to `tests/` by `pytest.ini`. This prevents
+Python test examples downloaded into Sphinx's HTML output from being collected
+as a second test suite after a documentation build.
+
 ### Root documents
 
 Keep planning and history separate:
@@ -277,7 +300,25 @@ When building the documentation with [Sphinx](https://www.sphinx-doc.org/) and [
   WARNING: Field list ends without a blank line; unexpected unindent. [docutils]
   'myst' cross-reference target not found: ... [myst.xref_missing]
 
-These warnings are common with Sphinx/Autosummary/MyST and do not affect the rendered documentation if the HTML output looks correct. In particular, myst.xref_missing means that a Markdown/MyST cross-reference (e.g., {ref}`target`) could not be resolved. If the documentation renders correctly and the missing reference is not critical, these can be safely ignored. You can safely ignore all these warnings unless the formatting in the HTML output is incorrect or a critical feature is missing.
+Warnings do not necessarily stop HTML generation, but a successful build is
+not a warning-clean validation. In particular, `myst.xref_missing` means a
+link or cross-reference could not be resolved and may be broken in the site.
+Fix warnings introduced by a change and record remaining historical warnings
+as explicit follow-up work; do not suppress them globally or assume that all
+are harmless.
+
+For a complete warning audit, rather than an incremental build, stage the
+sources and force Sphinx to reread all documents:
+
+```bash
+make docs-make
+sphinx-build -E -a -b html docs docs/_build/html > /tmp/cag-docs-build.log 2>&1
+make docs-clean
+```
+
+Check the Sphinx command's exit status and log before cleanup; cleanup success
+does not prove that the build succeeded. Normal `make docs` runs cleanup only
+after a successful build, including with `make -j`.
 
 
 Preview the Sphinx documentation by opening `docs/_build/html/index.html` in a [Web browser](https://en.wikipedia.org/wiki/Web_browser).

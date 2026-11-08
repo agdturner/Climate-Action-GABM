@@ -56,8 +56,9 @@ test:
 
 # Build documentation (requires Sphinx, in docs/)
 #
-# NOTE: This target uses Make's dependency chaining. Running `make docs` will first run `make docs-make` to build the documentation, and then `make docs-clean` to clean up any auto-copied files. This ensures that the documentation is always built before cleaning, without needing to call `$(MAKE)` or make within the target.
-docs: docs-make docs-clean
+# Cleanup must follow the build, including when make is run with -j.
+docs: docs-make
+	$(MAKE) docs-clean
 
 # Build documentation with Sphinx (in docs/)
 docs-make:
