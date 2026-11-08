@@ -24,7 +24,7 @@ if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
 from gabm.abm.attributes.gender import GenderMap, GenderID
-from gabm.abm.attributes.politics import PoliticsID
+from cag.abm.attributes.politics import PoliticsID
 from gabm.abm.democracy.election import ElectionID
 
 from cag.io.survey import load

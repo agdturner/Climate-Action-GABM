@@ -33,8 +33,9 @@ authoritative current specification. Experiment evidence is maintained in
 climate-policy research logic and existing behaviour. Follow the sequence and
 validation gates in [GABM_Refactor_Plan.md](GABM_Refactor_Plan.md).
 
-- Restore compatibility with published GABM 0.3.0, using the real-nation golden
-  integration baseline to guard behaviour.
+- Independently validate the implemented published GABM 0.3.0 compatibility
+  slice and merge it before upstream extraction; retain the original golden
+  integration reference to guard subsequent behaviour.
 - Extract generic seeded graph generation and diagnostics into GABM, then
   wire CAG to the tested framework API.
 - Review existing GABM LLM services before adapting CAG transport. Preserve
@@ -52,6 +53,11 @@ validation gates in [GABM_Refactor_Plan.md](GABM_Refactor_Plan.md).
   intentional Sphinx configuration/navigation inputs.
 - Migrate existing authored guides incrementally, updating source links,
   copy/cleanup registration, and rendered navigation together.
+- Reduce legacy Sphinx warnings in bounded slices: unresolved guide/source
+  links, duplicate API descriptions and docstring formatting, missing
+  navigation entries, and historical code-block highlighting. Preserve
+  historical content and validate each slice with a fresh build rather than
+  globally suppressing warnings.
 - Inventory data embedded in source files. Extract one coherent resource at
   a time into versioned data, with documented schema/provenance, validated
   loading, packaging coverage where required, and characterization tests.

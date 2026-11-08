@@ -39,7 +39,7 @@ from cag.abm.democracy.elections.brexit import BrexitVoteID
 from cag.abm.democracy.elections.ukge2019 import UKGE2019VoteID
 from cag.abm.attributes.region import RegionID
 from cag.abm.attributes.education import EducationID
-from gabm.abm.attributes.politics import PoliticsID
+from cag.abm.attributes.politics import PoliticsID
 
 
 # ---------------------------------------------------------------------------

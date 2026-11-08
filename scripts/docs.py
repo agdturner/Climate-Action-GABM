@@ -9,7 +9,7 @@ meant to be run before building the documentation to ensure all assets are up to
 """
 # Metadata
 __author__ = ["Andy Turner <agdturner@gmail.com>"]
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 __copyright__ = "Copyright (c) 2026 Climate-Action-GABM contributors, University of Leeds"
 
 # Standard library imports
@@ -17,10 +17,12 @@ import os
 import shutil
 import re
 import logging
+from pathlib import Path
+from urllib.parse import quote, urlsplit
 from logging.handlers import RotatingFileHandler
 
 # Files to copy from root to docs/
-from docs_assets import DOC_FILES
+from docs_assets import DOC_FILES, STAGED_NAMES
 
 # Files to copy from .github/ to docs/ (if present)
 from docs_assets import GITHUB_DOC_FILES
@@ -41,15 +43,15 @@ if not logger.hasHandlers():
     logger.addHandler(handler)
 
 # Map of original file names to their new relative links in docs/
-LINK_MAP = {name: name for name in DOC_FILES}
+LINK_MAP = {name: STAGED_NAMES.get(name, name) for name in DOC_FILES}
+REPOSITORY_URL = "https://github.com/compolis/Climate-Action-GABM/blob/main/"
 
 # Regex to match markdown links: [text](filename)
 LINK_RE = re.compile(r"\[([^\]]+)\]\(([^)]+)\)")
 
-# Always rewrite links to use just the filename (no ../)
 def update_links(text):
     """
-    Rewrite Markdown links to use MyST cross-references for known doc files.
+    Rewrite root-document links for staged Sphinx sources and repository files.
     Args:
         text (str): Markdown content.
     Returns:
@@ -57,23 +59,25 @@ def update_links(text):
     """
     def repl(match):
         label, target = match.groups()
-        # Special case: README.md should always link to the GitHub README in Sphinx
-        if target == "README.md":
-            logger.debug(f"Rewriting link to README.md as GitHub README")
-            return f"[{label}](https://github.com/compolis/GABM#readme)"
-        # For files that are copied to docs/ as .md (including those that originally have no .md extension), always link as .md
-        for docfile in LINK_MAP:
-            if target == docfile or target == docfile.replace('.md', ''):
-                logger.debug(f"Rewriting link to {target} as plain Markdown link to {docfile}")
-                return f"[{label}]({docfile})"
-        # If the link is to README (without .md), rewrite to GitHub README
-        if target == "README":
-            logger.debug(f"Rewriting link to README as GitHub README")
-            return f"[{label}](https://github.com/compolis/GABM#readme)"
-        # If the link is a local anchor, keep as is
-        if target.startswith('#'):
+        parts = urlsplit(target)
+        if parts.scheme or parts.netloc or target.startswith('#'):
             return match.group(0)
-        return match.group(0)
+        path = parts.path.removeprefix("./")
+        suffix = ("?" + parts.query if parts.query else "") + (
+            "#" + parts.fragment if parts.fragment else ""
+        )
+        for docfile in LINK_MAP:
+            if path == docfile or path == docfile.removesuffix('.md'):
+                return f"[{label}]({LINK_MAP[docfile]}{suffix})"
+        root = Path(ROOT)
+        source = (root / path).resolve()
+        if not source.is_relative_to(root) or not source.exists():
+            return match.group(0)
+        if source.is_relative_to(Path(DOCS)) and source.suffix in (".md", ".rst"):
+            staged = source.relative_to(Path(DOCS)).as_posix()
+            return f"[{label}]({staged}{suffix})"
+        repository_path = quote(source.relative_to(root).as_posix(), safe="/")
+        return f"[{label}]({REPOSITORY_URL}{repository_path}{suffix})"
     return LINK_RE.sub(repl, text)
 
 def clean_code_blocks(md):
@@ -218,7 +222,7 @@ def main():
     # Copy files from project root
     for fname in DOC_FILES:
         src = os.path.join(ROOT, fname)
-        dst = os.path.join(DOCS, fname)
+        dst = os.path.join(DOCS, STAGED_NAMES.get(fname, fname))
         logger.info(f"[DEBUG] Processing {fname}: src={src}, dst={dst}")
         if not os.path.exists(src):
             logger.warning(f"{src} does not exist, skipping.")
@@ -296,7 +300,7 @@ def main():
                 # Demote first heading to level 2 if it's not already
                 if lines and re.match(r'^#(?!#)', lines[0]):
                     lines[0] = '#' + lines[0]
-                myst_front_matter = ['---', 'title: Project README', '---', '']
+                myst_front_matter = ['---', 'title: Project README', 'orphan: true', '---', '']
                 new_content = '\n'.join(myst_front_matter + lines)
                 with open(dst, "w", encoding="utf-8") as f:
                     f.write(new_content)
@@ -306,10 +310,11 @@ def main():
             with open(src, "r", encoding="utf-8") as f:
                 content = f.read()
             with open(dst, "w", encoding="utf-8") as f:
-                f.write(content)
+                f.write(update_links(content))
             logger.info(f"Copied generic: {fname} -> docs/")
         except Exception as e:
             logger.error(f"Error processing {fname}: {e}")
+            raise
     # Always copy files from .github/ to docs/ (if present)
     logger.info(f"[DEBUG] Finished DOC_FILES loop. Now processing GITHUB_DOC_FILES.")
     GITHUB = os.path.join(ROOT, ".github")
@@ -410,3 +415,4 @@ if __name__ == "__main__":
         logger.info("update_docs_assets.py completed successfully.")
     except Exception as e:
         logger.exception(f"update_docs_assets.py failed: {e}")
+        raise

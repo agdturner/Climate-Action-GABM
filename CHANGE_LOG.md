@@ -26,6 +26,34 @@ development stage, not necessarily the current code or a verified public tag.
 
 ## [Unreleased]
 
+- **Documentation staging safety (2026-11-08).** Stage the project README
+  under a separate filename so building and cleanup preserve the authored
+  documentation index. Make cleanup depend on a successful build even with
+  parallel Make, preserve existing autosummary stubs, and ignore new generated
+  stubs. Limit default pytest discovery to the test directory so Sphinx's
+  downloaded Python examples are not collected. Stage the root user/developer
+  guides, rewrite root-document links for Sphinx, and enable heading anchors.
+  Added 10 staging/cleanup regression tests. A final fresh build succeeds with
+  397 warnings, down from 752; remaining legacy warnings are recorded rather
+  than globally suppressed. Two parallel builds preserve the authored index
+  and tracked API stubs. Full suite after building: **703 passed, 1 skipped,
+  2 expected failures**, with the same 6 warnings.
+
+- **Published GABM 0.3.0 compatibility (2026-11-08).** Updated runtime,
+  development, and Conda dependency pins. Survey politics/ethnicity/family
+  types now use GABM's generic attribute bases in their existing CAG modules,
+  preserving identifiers, labels, and representations. Updated source/test/
+  sandbox imports and code-cell imports in 27 notebooks, without rewriting
+  historical outputs. `SurveyedNation.place` remains a read/write alias for
+  GABM's `name`; supplied survey maps are retained, and an omitted ethnicity
+  map now defaults to CAG's survey map rather than the removed generic one.
+  Added [compatibility contracts](tests/test_gabm_compatibility.py).
+  Published-wheel validation: **693 passed, 1 skipped, 2 expected failures**;
+  both original 0.2.18 golden scenarios remain unchanged, CLI smoke dry-run
+  succeeds, and `pip check` passes. Checkpoint limitations remain unchanged.
+  Independent developer installation and `make test` confirmed the same
+  counts with 6 warnings in 11.95s.
+
 - **Real-nation refactor baseline (2026-11-08).** Added
   [tests/test_integration_baseline.py](tests/test_integration_baseline.py) and
   [versioned golden data](data/fixtures/cag_integration_baseline.json) for

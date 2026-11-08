@@ -1,6 +1,7 @@
 # CAG to GABM Refactor Plan
 
-**Status:** agreed direction; implementation not started.
+**Status:** integration baseline and published 0.3.0 compatibility validated;
+generic framework extraction not started.
 **Audit date:** 2026-11-08.
 
 ## Purpose
@@ -198,6 +199,81 @@ decision for any intentional behaviour change.
 against the published 0.3.0 wheel. Do not leave a version-only upgrade that
 cannot import or run.
 
+#### Compatibility implementation and evidence (2026-11-08)
+
+Runtime, development, and Conda manifests now pin `gabm==0.3.0`.
+[Politics](src/cag/abm/attributes/politics.py),
+[ethnicity](src/cag/abm/attributes/ethnicity.py), and
+[family](src/cag/abm/attributes/family.py) identifiers and attribute objects
+are CAG-owned subclasses of GABM's generic attribute primitives. Their class
+names, constructor keyword names, ID ordinals, descriptions, equality/hash
+semantics, and string representations are retained. Existing survey mappings
+and persona text are unchanged; no new framework API or GABM source edit was
+needed.
+
+Source/test consumers and the affected sandbox script now import these types
+from `cag.abm.attributes`. Code-cell imports in 27 notebooks were updated;
+all other notebook content, including historical outputs and metadata, was
+verified unchanged. Old `gabm.abm.attributes.politics`, `ethnicity`, and `family`
+imports are no longer supported by this application.
+
+`SurveyedNation` passes its historical `place` argument to GABM's `name`
+parameter. The public `place` property is a read/write alias for `name`.
+Explicitly supplied ethnicity, politics, and family maps are preserved.
+When `ethnicity_map` is omitted, CAG now constructs `SurveyEthnicityMap`
+instead of the removed framework's generic ethnicity map. This is an explicit
+default-map alignment with the CAG survey vocabulary; it is covered by a
+contract test and does not affect the fully mapped golden scenarios.
+
+Validation used the published PyPI wheel in the isolated test environment:
+
+- Full suite: **693 passed, 1 skipped, 2 expected failures**, 23 subtests passed,
+  and the same 6 existing warnings.
+- Independent developer validation (2026-11-08): installation succeeded in the
+  `cag` environment; `make test` reported **693 passed, 1 skipped, 2 expected
+  failures, 6 warnings in 11.95s**, matching the isolated-environment result.
+- [Compatibility contracts](tests/test_gabm_compatibility.py) and integration
+  baseline together: **13 passed, 2 expected failures**.
+- Package and single-policy scenarios match the original 0.2.18 golden
+  reference without refreshing any fingerprints, including a run with
+  `PYTHONHASHSEED=17`.
+- Canonical CLI smoke dry-run succeeds; `pip check` reports no broken
+  requirements.
+- All 38 source/test GABM import statements resolve against the installed
+  wheel; notebook migration was checked structurally without executing their
+  live research runs.
+
+This is compatibility work only. Existing checkpoint limitations and expected
+failures are unchanged. The next planned slice is generic network extraction.
+Independent developer documentation build (2026-11-08): `make docs` completed
+and generated HTML, but reported **752 warnings**. The supplied log tail
+includes unresolved source-file links and a Python highlighting error in the
+historical code tour. The full warning set has not yet been classified, so
+this is a successful build, not a warning-clean documentation validation.
+The bounded staging follow-up separated the copied project README from the
+authored documentation index, enabled section anchors, rewrote root-document
+links during staging, and included the root user/developer guides in the
+existing navigation. Cleanup is ordered after building, including parallel
+Make invocations. Existing autosummary stubs are no longer overwritten.
+
+A final fresh Sphinx rebuild after these changes succeeded with **397 warnings**
+instead of 752. No warnings remain for this plan, the roadmap, or the developer
+quickstart; the change log's remaining links refer to historical experiment
+output paths. Other legacy source links, API duplication/docstring formatting,
+unlisted documents, and historical highlighting failures remain follow-up work.
+These warnings are not globally suppressed. The authored documentation index
+and existing tracked autosummary stub were restored after the first build and
+verified unchanged by the subsequent build. Staging/cleanup regression tests
+are in [tests/test_docs.py](tests/test_docs.py).
+Default pytest discovery now targets `tests/`, preventing the HTML build's
+downloaded test examples from being collected as duplicate application tests.
+Two repeated `make -j2 docs` runs verified build/cleanup ordering and preserved
+the authored index and tracked stubs. Rendered HTML was checked for the three
+CAG-owned attribute types and the rewritten regression-test link. Full suite
+after documentation generation: **703 passed, 1 skipped, 2 expected failures**,
+23 subtests passed, with the same 6 existing warnings; the 10 additional passes
+are the staging/cleanup regression tests.
+
 ### 3. Extract seeded networks and diagnostics first
 
 Move a bounded set of generic graph builders and diagnostics into GABM.
@@ -259,7 +335,7 @@ separately from structural refactor regressions.
 |---|---|
 | Published-package audit and unchanged 0.2.18 baseline | Complete, 2026-11-08 |
 | Golden real-nation integration fixture | Implemented and validated, 2026-11-08; 6 passing tests and 2 strict expected failures characterize offline continuation limitations |
-| Published 0.3.0 compatibility | Not started |
+| Published 0.3.0 compatibility | Implemented and independently validated, 2026-11-08; 693 passed, 1 skipped, 2 expected failures; original golden reference unchanged |
 | Generic network extraction and CAG wiring | Proposed first upstream extraction |
 | LLM transport adaptation | Pending network slice; boundary review required |
 | Memory and further extractions | Candidates; scope not yet committed |

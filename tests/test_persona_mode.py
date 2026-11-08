@@ -26,12 +26,12 @@ from cag.abm.attributes.family import SurveyFamilyMap
 from cag.abm.democracy.elections.ukge2019 import UKGE2019VoteID, UKGE2019VoteMap
 from cag.abm.democracy.elections.brexit import BrexitVoteID, BrexitVoteMap
 from gabm.abm.attributes.gender import GenderID, GenderMap
-from gabm.abm.attributes.ethnicity import EthnicityID
+from cag.abm.attributes.ethnicity import EthnicityID
 from gabm.abm.attributes.income import IncomeID
-from gabm.abm.attributes.politics import PoliticsID
+from cag.abm.attributes.politics import PoliticsID
 from gabm.abm.attributes.education import EducationID
 from gabm.abm.attributes.region import RegionID
-from gabm.abm.attributes.family import FamilyID
+from cag.abm.attributes.family import FamilyID
 from cag.abm.attributes.narratives import (
     SelftranscMap, SelfenhMap, OpennessMap, ConformTradMap,
     SDOMap, EDOMap, RWAMap, HIGH, LOW,

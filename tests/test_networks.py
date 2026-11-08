@@ -192,7 +192,7 @@ class TestEnvironmentDispatch(unittest.TestCase):
         from cag.abm.agent import SurveyedCitizen, PoliticalAgent
         from cag.abm.democracy.elections.brexit import BrexitVoteID
         from cag.abm.democracy.elections.ukge2019 import UKGE2019VoteID
-        from gabm.abm.attributes.politics import PoliticsID
+        from cag.abm.attributes.politics import PoliticsID
 
         sn = SurveyedNation()
         sn.political_agent_a = PoliticalAgent("agent_a", "pro_climate")

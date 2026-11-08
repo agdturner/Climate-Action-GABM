@@ -3,7 +3,7 @@ Environment module for Climate-Action-GABM.
 """
 # Metadata
 __author__ = ["Ajaykumar Manivannan <ashwamanivannan@gmail.com>", "Andy Turner <agdturner@gmail.com>", "Charlie Pilgrim <pilgrimcharlie2@gmail.com>"]
-__version__ = "0.9.0"
+__version__ = "0.9.1"
 __copyright__ = "Copyright (c) 2026 GABM contributors, University of Leeds"
 
 # Standard library imports
@@ -15,7 +15,7 @@ import networkx as nx
 # GABM imports
 from gabm.abm.environment import Nation
 from gabm.abm.attributes.gender import GenderMap
-from gabm.abm.attributes.politics import PoliticsID
+from cag.abm.attributes.politics import PoliticsID
 # Local imports
 from gabm.abm.attributes.opinion import OpinionTopicID, Opinion
 from cag.abm.agent import PoliticalAgent, NEUTRAL_PERSONA_TEXT
@@ -374,9 +374,10 @@ class SurveyedNation(Nation):
             rwa_map (RWAMap):
                 An RWAMap instance for right-wing authoritarianism attribute lookups.
         """
-        super().__init__(year=year, place=place, gender_map=gender_map, opinions=opinions,
-            region_map=region_map, education_map=education_map, ethnicity_map=ethnicity_map,
+        super().__init__(year=year, name=place, gender_map=gender_map, opinions=opinions,
+            region_map=region_map, education_map=education_map,
             income_map=income_map)
+        self.ethnicity_map = ethnicity_map if ethnicity_map is not None else SurveyEthnicityMap()
         self.politics_map = politics_map
         self.family_map = family_map
         self.ukge2019_vote_map = ukge2019_vote_map
@@ -398,6 +399,15 @@ class SurveyedNation(Nation):
         # canonical temporal order without assuming a fixed phase
         # sequence. See ``_next_sim_step``.
         self._sim_step = 0
+
+    @property
+    def place(self) -> str:
+        """CAG's historical spelling of the GABM environment name."""
+        return self.name
+
+    @place.setter
+    def place(self, value: str):
+        self.name = value
 
     def _next_sim_step(self) -> int:
         """Return the next monotonic event-order counter.
