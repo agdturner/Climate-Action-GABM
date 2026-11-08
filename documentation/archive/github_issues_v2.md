@@ -7,7 +7,7 @@ This file is the **planning scaffold** for the next development cycle after the 
 **Status:** planning only, step-by-step.
 
 **Relationship to other docs:**
-- [Model_Design.md](Model_Design.md) remains the current design baseline.
+- [Model_Design.md](../research/Model_Design.md) remains the current design baseline.
 - [github_issues.md](github_issues.md) records the earlier implementation plan that produced the current model.
 - This file is the skeleton for the future issue set and will be expanded gradually.
 

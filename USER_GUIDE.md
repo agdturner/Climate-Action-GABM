@@ -105,7 +105,7 @@ The specific output and behavior may depend on your configuration, model paramet
 
 ## v0.8 Configuration Path
 
-v0.8 makes the agent's **memory / prompt-assembly** configurable so ablation experiments no longer require editing `agent.py`. It also relocates the exposure target/weight vocabularies out of `environment.py` into a dedicated `src/cag/abm/config/` subpackage (all public names are re-exported, so existing imports keep working). Full design rationale is in [docs/Model_Design.md](docs/Model_Design.md) §30.
+v0.8 makes the agent's **memory / prompt-assembly** configurable so ablation experiments no longer require editing `agent.py`. It also relocates the exposure target/weight vocabularies out of `environment.py` into a dedicated `src/cag/abm/config/` subpackage (all public names are re-exported, so existing imports keep working). Full design rationale is in [docs/Model_Design.md](documentation/research/Model_Design.md) §30.
 
 ### The `memory` SIM_CONFIG key
 
@@ -156,7 +156,7 @@ See [notebooks/35_memory_ablation_demo.ipynb](notebooks/35_memory_ablation_demo.
 
 ## v0.7 Configuration Path
 
-v0.7 consolidates a long block of work (originally labelled "v0.6" internally; v0.6 was never tagged on `origin` so the public ladder is 0.5 → 0.7). For day-to-day runs, treat [docs/Simulation_Configuration_Guide.md](docs/Simulation_Configuration_Guide.md) as the canonical source of truth — a deep rewrite covering the new v0.7 outputs and CLI is on the immediate backlog. Until that lands, the v0.6 configuration path below remains accurate for the runtime defaults, and this section calls out only what's new.
+v0.7 consolidates a long block of work (originally labelled "v0.6" internally; v0.6 was never tagged on `origin` so the public ladder is 0.5 → 0.7). For day-to-day runs, treat [docs/Simulation_Configuration_Guide.md](documentation/guides/Simulation_Configuration_Guide.md) as the canonical source of truth — a deep rewrite covering the new v0.7 outputs and CLI is on the immediate backlog. Until that lands, the v0.6 configuration path below remains accurate for the runtime defaults, and this section calls out only what's new.
 
 ### CLI
 
@@ -193,7 +193,7 @@ v0.7 expands the saved run bundle so the headline diagnostic questions are answe
 - New plots: `plot_package_index_by_bucket`, `plot_opinion_shares_by_bucket`, `plot_gap_widening`, `plot_calibration_by_policy`, `plot_network_graph`.
 - New `sim_step` column on `messages`, `reflections`, `survey_reasoning`, `survey_raw_response`, `survey_assembled_context`, and `daily_summaries` CSVs (monotonic event counter — canonical sort key for interleaved replay is `(agent_id, sim_step)`).
 
-A deep file-by-file rewrite of [docs/Run_Output_Guide.md](docs/Run_Output_Guide.md) is on the immediate backlog. Until that lands, [docs/result_report.md](docs/result_report.md) (top section: NB 32 smoke validation) is the most current narrative description, and [notebooks/32_v06_outputs_smoke.ipynb](notebooks/32_v06_outputs_smoke.ipynb) prints the per-CSV schema and shows every plot inline.
+A deep file-by-file rewrite of [docs/Run_Output_Guide.md](documentation/guides/Run_Output_Guide.md) is on the immediate backlog. Until that lands, [docs/result_report.md](documentation/research/result_report.md) (top section: NB 32 smoke validation) is the most current narrative description, and [notebooks/32_v06_outputs_smoke.ipynb](notebooks/32_v06_outputs_smoke.ipynb) prints the per-CSV schema and shows every plot inline.
 
 ### Network connectivity 3-layer defence
 
@@ -203,14 +203,14 @@ v0.7 changes two network defaults to grounded values: SBM `p_inter` 0.02 → **0
 - **Layer 2 — deterministic auto-repair.** If the realised graph has multiple components after `assign_network_blocks`, exactly `(k − 1)` bridging edges are added (one from each smaller component to the largest), seeded for reproducibility, and a WARNING is logged with component count, sizes, n_added, seed.
 - **Layer 3 — visibility log + diagnostic field.** A single INFO line summarises `n_nodes / n_edges / n_components / mean_degree / auto_connected_edges` on every run; `network_diagnostics.json` gains an `auto_connected_edges` field.
 
-Full design rationale and the empirical sweep that motivated the new defaults are in [docs/Model_Design.md](docs/Model_Design.md) §25 and [scripts/estimate_connectivity_threshold.py](scripts/estimate_connectivity_threshold.py).
+Full design rationale and the empirical sweep that motivated the new defaults are in [docs/Model_Design.md](documentation/research/Model_Design.md) §25 and [scripts/estimate_connectivity_threshold.py](scripts/estimate_connectivity_threshold.py).
 
 
 ## Running on HPC / AIRE
 
 v0.7 ships first-class support for the University of Leeds AIRE cluster (SLURM, GPU partitions, vLLM-served local LLMs). The integration is *thin and edit-free* — launching a new experiment is one entry in a Python preset dict plus one line in a sweep file.
 
-The full walkthrough is in [docs/AIRE_Quickstart.md](docs/AIRE_Quickstart.md) (copy-pasteable zero-to-Run-14) and [docs/AIRE_HPC_repo_primer.md](docs/AIRE_HPC_repo_primer.md) (cluster fundamentals, storage rules, hard constraints, troubleshooting). In short:
+The full walkthrough is in [documentation/guides/AIRE_Quickstart.md](documentation/guides/AIRE_Quickstart.md) (copy-pasteable zero-to-Run-14) and [documentation/guides/AIRE_HPC_repo_primer.md](documentation/guides/AIRE_HPC_repo_primer.md) (cluster fundamentals, storage rules, hard constraints, troubleshooting). In short:
 
 1. `git clone` the repo onto AIRE storage; create a venv; `pip install -e .` + requirements.
 2. Submit a single experiment: `sbatch scripts/aire/run.sh` with `HF_MODEL=...` and any `SIM_CONFIG` flags as environment variables. vLLM auto-starts on the GPU node.
@@ -221,7 +221,7 @@ Add a new experiment by adding one entry to `RUN_BUNDLE_PRESETS` in [src/cag/pre
 
 ## v0.6 Configuration Path
 
-For day-to-day runs, treat [`docs/Simulation_Configuration_Guide.md`](docs/Simulation_Configuration_Guide.md) as the canonical source of truth.
+For day-to-day runs, treat [`docs/Simulation_Configuration_Guide.md`](documentation/guides/Simulation_Configuration_Guide.md) as the canonical source of truth.
 
 - **Supervisor path (quick read):** Sections 1-3 explain the canonical run profile and what is frozen vs tunable.
 - **Operator/developer path (detailed):** Sections 4 onward provide a key-by-key matrix for every active `SIM_CONFIG` option, valid values, interactions, and tested defaults.
@@ -250,7 +250,7 @@ SIM_CONFIG = {
 }
 ```
 
-Full design rationale is in [docs/Model_Design.md](docs/Model_Design.md) §18 (especially §18.15 for the v0.5 sanity-check write-up and the two bug fixes that landed alongside it). Literature support for the target presets is in [docs/Literature_Political_Exposure.md](docs/Literature_Political_Exposure.md) §6 and §6.3. The end-to-end structural sanity check on the YouGov pool is [notebooks/27_affinity_exposure_demo.ipynb](notebooks/27_affinity_exposure_demo.ipynb), summarised in [docs/result_report.md](docs/result_report.md).
+Full design rationale is in [docs/Model_Design.md](documentation/research/Model_Design.md) §18 (especially §18.15 for the v0.5 sanity-check write-up and the two bug fixes that landed alongside it). Literature support for the target presets is in [docs/Literature_Political_Exposure.md](docs/Literature_Political_Exposure.md) §6 and §6.3. The end-to-end structural sanity check on the YouGov pool is [notebooks/27_affinity_exposure_demo.ipynb](notebooks/27_affinity_exposure_demo.ipynb), summarised in [docs/result_report.md](documentation/research/result_report.md).
 
 
 ## Troubleshooting

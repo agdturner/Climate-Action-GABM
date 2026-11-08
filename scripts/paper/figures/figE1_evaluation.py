@@ -7,7 +7,7 @@ NB 36/37; Qwen3-14B, no-anchor 'llm_survey', 3 arms x 3 seeds):
      vs neutral (no persona). Only the real arm recovers the agent's own opinion.
   B) Residual signed bias by policy (real arm): where the model still reads too
      pro-climate on the -3..+3 scale.
-Asserted against docs/result_report.md. Neutral labels only.
+Asserted against documentation/research/result_report.md. Neutral labels only.
 """
 from pathlib import Path
 import glob

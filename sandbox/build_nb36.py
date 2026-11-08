@@ -437,7 +437,7 @@ the downstream tiers (bias-invariance, scale-robustness, multiverse) are cleared
 *Deferred to a separate notebook:* the **calibration / anchor-justification** analysis — the `real`
 arm here is the raw *no-anchor* opinion, so its signed inflation vs ground truth (MBE/MAE/RMSE,
 OLS slope/intercept) is exactly what motivates the `ground_truth_with_rationale` anchor. Numbers
-for the write-up go to `docs/result_report.md`; framing to `docs/research_notes.md`.
+for the write-up go to `documentation/research/result_report.md`; framing to `documentation/research/research_notes.md`.
 """))
 
 nb = {

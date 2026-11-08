@@ -3,7 +3,7 @@
 DiD = (pro-climate-dominant) - (climate-sceptic-dominant) endpoint difference on
 the package index. Network arm: Qwen3-14B on SBM / Barabasi-Albert / Watts-
 Strogatz, pooled 3 seeds. Model arm: Llama-3.1-8B on SBM, single seed.
-Asserted against docs/result_report.md. Neutral labels only.
+Asserted against documentation/research/result_report.md. Neutral labels only.
 """
 from pathlib import Path
 import glob

@@ -21,11 +21,11 @@ Delivered changes and historical release milestones belong in
 ownership rules in [DEV_GUIDE.md](DEV_GUIDE.md#root-documents).
 
 For current model behaviour, consult the
-[configuration guide](docs/Simulation_Configuration_Guide.md),
-[code tour](docs/Code_Tour.md), and source code. The
-[model design log](docs/Model_Design.md) is a historical reference, not an
+[configuration guide](documentation/guides/Simulation_Configuration_Guide.md),
+[code tour](documentation/guides/Code_Tour.md), and source code. The
+[model design log](documentation/research/Model_Design.md) is a historical reference, not an
 authoritative current specification. Experiment evidence is maintained in
-[docs/result_report.md](docs/result_report.md).
+[docs/result_report.md](documentation/research/result_report.md).
 
 ## CAG to GABM refactor track
 
@@ -53,6 +53,19 @@ validation gates in [GABM_Refactor_Plan.md](GABM_Refactor_Plan.md).
   intentional Sphinx configuration/navigation inputs.
 - Migrate existing authored guides incrementally, updating source links,
   copy/cleanup registration, and rendered navigation together.
+  Use `documentation/guides/`, `research/`, `archive/`, and `presentations/`
+  for authored material, retaining root project entry points. Continue with
+  ownership of the remaining tracked generated API stubs deliberately;
+  authored guides, research/archive material, index, and presentation sources
+  now follow the agreed structure.
+- Reconcile archived issue-planning snapshots against actual delivered work
+  and open issues before consolidating unfinished items into the roadmap.
+  Verify supplementary research citations and preserve historical evidence;
+  relocation alone does not validate their claims.
+- Review and consolidate the AIRE quickstart, generic primer, and older
+  operational notes, preserving unique information and checking current
+  commands against the launcher and cluster guidance. Ownership migration
+  alone does not establish that historical instructions are current.
 - Reduce legacy Sphinx warnings in bounded slices: unresolved guide/source
   links, duplicate API descriptions and docstring formatting, missing
   navigation entries, and historical code-block highlighting. Preserve
@@ -101,7 +114,7 @@ old task as still open.
   14B 4-bit / 4B 2507 / 32B HPC candidates.
 - Implement async/parallel dispatch only after defining ordering, random-state,
   checkpoint, and request-provenance contracts. The historical design proposal
-  is in [docs/Model_Design.md](docs/Model_Design.md), section 16.
+  is in [docs/Model_Design.md](documentation/research/Model_Design.md), section 16.
 
 Earlier backlog entries for source-version alignment, release-tag cleanup,
 README status updates, and an end-to-end committed-minority run were followed

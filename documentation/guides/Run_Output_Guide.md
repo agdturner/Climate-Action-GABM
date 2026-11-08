@@ -49,7 +49,7 @@ Day 0 is special: **`day0_anchor = "ground_truth_with_rationale"`**. Day-0 opini
 
 ## 3. The 6 climate policies & the opinion scale
 
-Throughout the CSVs, policies appear as the string `ClimatePolicyID(N)` where `N` is 1–6. Mapping (from [`src/cag/abm/attributes/opinion.py`](src/cag/abm/attributes/opinion.py)):
+Throughout the CSVs, policies appear as the string `ClimatePolicyID(N)` where `N` is 1–6. Mapping (from [`src/cag/abm/attributes/opinion.py`](../../src/cag/abm/attributes/opinion.py)):
 
 | ID | Short name | Survey question (paraphrased) |
 |---|---|---|
@@ -89,7 +89,7 @@ Several of the new tables are sliced by a citizen's **political-exposure bucket*
 
 The assignment is driven by two per-citizen **affinity scores** — `affinity_score_a` (pull toward the pro-climate side) and `affinity_score_b` (pull toward the anti-climate side) — computed from the citizen's demographics and values. Both scores and the resulting bucket are recorded per agent in `agent_attributes.csv`.
 
-This bucket is the lens for the "gap-widening" question: do `A-only` and `B-only` citizens drift apart over the run because they only ever hear one side? That is exactly what `opinion_shares_by_bucket.csv`, `package_index_by_bucket.csv` and `gap_widening.png` are for. The science behind exposure modes lives in [Model_Design.md](Model_Design.md) and [result_report.md](result_report.md); this guide just tells you which column is which.
+This bucket is the lens for the "gap-widening" question: do `A-only` and `B-only` citizens drift apart over the run because they only ever hear one side? That is exactly what `opinion_shares_by_bucket.csv`, `package_index_by_bucket.csv` and `gap_widening.png` are for. The science behind exposure modes lives in [Model_Design.md](../research/Model_Design.md) and [result_report.md](../research/result_report.md); this guide just tells you which column is which.
 
 ---
 
@@ -170,7 +170,7 @@ Rows = `n_citizens × 6`. This is the YouGov "truth" for each (agent, policy) pa
 
 Rows = `n_citizens`.
 
-When `day0_anchor = "ground_truth_with_rationale"`, the Day-0 rows in `opinion_trajectories.csv` should equal `ground_truth` exactly for every (agent, policy) — that invariant is asserted in [notebooks/17_day0_anchoring_smoke_test.ipynb](notebooks/17_day0_anchoring_smoke_test.ipynb).
+When `day0_anchor = "ground_truth_with_rationale"`, the Day-0 rows in `opinion_trajectories.csv` should equal `ground_truth` exactly for every (agent, policy) — that invariant is asserted in [notebooks/17_day0_anchoring_smoke_test.ipynb](../../notebooks/17_day0_anchoring_smoke_test.ipynb).
 
 ---
 

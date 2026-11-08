@@ -53,7 +53,7 @@ exposure most citizens get in a mass-media environment. The `neither` cell
 at 40% is the matched no-broadcast baseline used for persuasion-subtraction
 analysis. The asymmetric `committed_minority_uk_2024` preset and the
 `split50` / `neither` / `legacy_v05` presets are also available — see
-[USER_GUIDE.md](../USER_GUIDE.md).
+[USER_GUIDE.md](../../USER_GUIDE.md).
 
 **What is measured.** Per-citizen, per-policy, per-day support score on
 the YouGov 7-point scale (-3 strongly oppose → +3 strongly support), plus
@@ -88,7 +88,7 @@ re-measurement under the patched code before any model claim is final.
 - **One topic per note.** Don't bundle. A note on prompt design and a note
   on calibration are two notes.
 - **Cite, don't summarise.** Where a point connects to a result, link to
-  the run directory or notebook with a `[brief label](relative/path/)`.
+  the run directory or notebook with a `[brief label](https://github.com/compolis/Climate-Action-GABM/blob/main/docs/relative/path)`.
   Don't restate findings in full — that's `result_report.md`'s job.
 - **Explain like you'd want it explained — verbose over dense.** This
   document is read by collaborators who are smart but not necessarily
@@ -279,7 +279,7 @@ scale-ceiling check + cross-topology and cross-model replication.
 - Tier 2 — artefact control. Real, not a scale-ceiling artefact? Evidence: scale-aware
   re-measurement; the ceiling was the culprit.
 - Tier 3 — reliability / robustness. Stable across graph and LLM? Evidence: network arm
-  ([NB 41](../notebooks/41_tier3_network_robustness.ipynb), 27-run 3-topology seed sweep: pooled
+  ([NB 41](../../notebooks/41_tier3_network_robustness.ipynb), 27-run 3-topology seed sweep: pooled
   DiD SBM +0.42 / BA +0.34 / WS +0.36, all p<1e-10) plus the Llama-3.1-8B model arm (paired
   DiD +1.477).
 
@@ -613,7 +613,7 @@ This is the companion to the Tier-P note below. Tier P proved the model
 harder question — *how far off are the actual numbers?* — and why the answer is
 the justification for anchoring Day 0 to ground truth. The exact metrics live
 in [result_report.md](result_report.md) ("v0.9 — Tier-P calibration & anchor
-justification"); the analysis is [NB 37](../notebooks/37_tierP_calibration.ipynb).
+justification"); the analysis is [NB 37](../../notebooks/37_tierP_calibration.ipynb).
 
 **The distinction that matters: level vs rank.** An opinion measurement can be
 wrong in two very different ways. It can put people in the *wrong order* (rank
@@ -667,7 +667,7 @@ The first of the four validation tiers is done, and it passed cleanly. This is
 the note explaining *what that means and why it matters*; the exact numbers
 live in [result_report.md](result_report.md) (the "v0.9 — Tier-P persona-null
 ablation" section), and the analysis is in
-[NB 36](../notebooks/36_tierP_persona_null.ipynb).
+[NB 36](../../notebooks/36_tierP_persona_null.ipynb).
 
 **Why this gate had to come first.** The whole project rests on one bet: that
 even though the model reads *too* pro-climate in absolute terms, it still
@@ -925,7 +925,7 @@ between-condition difference, validated to be bias-free by the tests above.
 
 **Context.** During the design discussion for the v2 memory & context
 architecture (see [plan in session memory], soon to land in
-[src/cag/abm/agent.py](../src/cag/abm/agent.py)), a recurring tension
+[src/cag/abm/agent.py](../../src/cag/abm/agent.py)), a recurring tension
 surfaced: do we shape the assembled-context prompt around what a real
 surveyed citizen would have in mind when answering a survey, or around
 what the LLM needs in order to *behave* like that citizen? These pull in

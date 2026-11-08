@@ -15,7 +15,7 @@ This block supports three selection modes consumed by
   - "rule_signal_count"     : reserved (alias of priority_chain for now)
   - "rule_affinity_rank"    : NEW default; deterministic top-K on affinity
 
-Design notes (see docs/Model_Design.md §18 and
+Design notes (see documentation/research/Model_Design.md §18 and
 docs/Literature_Political_Exposure.md §6-§7 for full reasoning):
 
 WHY target marginals are not inherited from the YouGov sample. The

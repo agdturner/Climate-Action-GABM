@@ -2,6 +2,46 @@
 
 **Status:** integration baseline and published 0.3.0 compatibility validated;
 generic framework extraction not started.
+
+**Documentation ownership checkpoint (2026-11-08):** before generic extraction,
+the AIRE quickstart and primer were moved to `documentation/guides/`.
+The five maintained usage/code/configuration guides were subsequently moved
+to the same authored location. Their Sphinx pages retain the same names
+through explicit staging mappings.
+Nested-source link resolution and cleanup are covered by 19 documentation
+tests; a fresh build after the maintained-guide slice succeeds with 339
+remaining warnings (393 after AIRE alone). The moves preserve guide content
+except relocation-related links and one sentence clarifying link locations.
+The design history, research notes, experiment report, and survey documentation
+were subsequently moved to `documentation/research/`, retaining historical
+content and page names. The combined migration now has 23 documentation tests;
+full suite: 716 passed, 1 skipped, 2 expected failures, with the same 6 warnings.
+A fresh build after research migration succeeds with 272 warnings, and all
+eleven migrated pages, cross-links, and source-preserving cleanup were verified.
+Independent developer `make docs` succeeded with 161 warnings; that separate
+build count does not replace the fresh-build warning baseline.
+Seven supplementary sources were subsequently moved: literature and policy
+parameterisation drafts to `documentation/research/`, and historical guides,
+AIRE article notes, and issue-planning snapshots to `documentation/archive/`.
+Their bodies are preserved except links, and original nested Sphinx page paths
+are retained. A fresh build succeeds with 225 warnings; all eighteen authored
+pages, cross-links, and source-preserving cleanup were verified.
+Combined migration validation: 29 documentation tests; full suite 722 passed,
+1 skipped, 2 expected failures, with the same 6 warnings. Parallel building
+and nested staged-copy cleanup also pass.
+The HTML deck now lives in `documentation/presentations/` and publishes
+verbatim as a standalone page; the authored index is `documentation/README.md`.
+Both dependency mirrors are now generated from root manifests and cleaned
+after building. Content consolidation and remaining tracked API stub ownership
+are separate follow-ups. See the ownership conventions in
+[DEV_GUIDE.md](DEV_GUIDE.md#authored-sources-and-sphinx-staging).
+
+Final ownership validation: fresh Sphinx build succeeds with 221 warnings;
+full suite 722 passed, 1 skipped, 2 expected failures, same 6 warnings.
+Published presentation bytes match the original exactly, the documentation
+index renders, dependency mirrors match their root manifests, and cleanup
+preserves authored sources. Remaining warnings are not suppressed.
+
 **Audit date:** 2026-11-08.
 
 ## Purpose
@@ -18,9 +58,9 @@ appropriate tests; they must not be hidden inside an extraction.
 This document is the maintained implementation reference. The
 [roadmap](ROADMAP.md) records the strategic goal, and the
 [developer guide](DEV_GUIDE.md) links contributors here. For current model
-behaviour, consult the [configuration guide](docs/Simulation_Configuration_Guide.md),
-[code tour](docs/Code_Tour.md), and source code. The
-[model design log](docs/Model_Design.md) contains historical decisions and is not an
+behaviour, consult the [configuration guide](documentation/guides/Simulation_Configuration_Guide.md),
+[code tour](documentation/guides/Code_Tour.md), and source code. The
+[model design log](documentation/research/Model_Design.md) contains historical decisions and is not an
 authoritative current specification.
 
 ## Verified starting point

@@ -89,7 +89,7 @@ are unchanged. `SurveyedNation(place="UK", ...)` remains supported.
 See [GABM_Refactor_Plan.md](GABM_Refactor_Plan.md) for compatibility evidence,
 the default ethnicity-map alignment, and existing checkpoint replay limitations.
 
-To run fully offline against a local LLM, also install a local runtime for your hardware and serve a model — see [docs/Local_LLM_Setup_Guide.md](docs/Local_LLM_Setup_Guide.md):
+To run fully offline against a local LLM, also install a local runtime for your hardware and serve a model — see [docs/Local_LLM_Setup_Guide.md](documentation/guides/Local_LLM_Setup_Guide.md):
 
 ```bash
 pip install -r requirements-local.txt

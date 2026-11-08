@@ -7,15 +7,15 @@ Results are listed newest-first.
 
 ## Paper Cross-Reference (`paper/sn-article.tex` + `paper/sn-si.tex`)
 
-Which results back which parts of the paper — the **draft-45 program**: a fit-for-purpose evaluation followed by four resource-advantage experiments (reach / frequency / targeting / breadth-vs-depth). Every number in the main text and SI is recomputed from the raw runs in two self-contained provenance notebooks — [`notebooks/45_evaluation_audit.ipynb`](../notebooks/45_evaluation_audit.ipynb) (evaluation; 20 checks PASS) and [`notebooks/46_experiments_audit.ipynb`](../notebooks/46_experiments_audit.ipynb) (experiments; 15 checks PASS) — which write machine-readable outputs to `paper/tables/` (`audit_evaluation.csv`, `audit_experiments.csv`, `table1_experiments.csv`). **The paper cites the SI and those CSVs, not this markdown.** Internal labels (Tier P/1/2/3, Bites 1–4) are repository-internal and do not appear in the paper; the neutral naming there is pro-climate committed minority (A) / climate-sceptic committed minority (B).
+Which results back which parts of the paper — the **draft-45 program**: a fit-for-purpose evaluation followed by four resource-advantage experiments (reach / frequency / targeting / breadth-vs-depth). Every number in the main text and SI is recomputed from the raw runs in two self-contained provenance notebooks — [`notebooks/45_evaluation_audit.ipynb`](../../notebooks/45_evaluation_audit.ipynb) (evaluation; 20 checks PASS) and [`notebooks/46_experiments_audit.ipynb`](../../notebooks/46_experiments_audit.ipynb) (experiments; 15 checks PASS) — which write machine-readable outputs to `paper/tables/` (`audit_evaluation.csv`, `audit_experiments.csv`, `table1_experiments.csv`). **The paper cites the SI and those CSVs, not this markdown.** Internal labels (Tier P/1/2/3, Bites 1–4) are repository-internal and do not appear in the paper; the neutral naming there is pro-climate committed minority (A) / climate-sceptic committed minority (B).
 
 | Paper part | Internal label | Source runs | Audit → CSV | What to verify |
 |---|---|---|---|---|
 | Results §"Does the instrument work?" (`subsec:eval`) | Tier P/1/2/3 | NB 36/37 (run_6457850–6457858); Tier-1 (run_6458324–6458335); NB 40 re-analysis; NB 41 topology (27 runs); Llama arm (run_6475093 / 6479341 / 6479390) | NB 45 → `audit_evaluation.csv` | persona ρ≈0.62 (pkg) / 0.42 (per-policy), shuffled −0.10, neutral +0.02; reach +0.42 [+0.34,+0.51]; placebo +0.32 / −0.10; rulers raw +0.42 / headroom +0.20 / logit +0.70 / rank +0.09; topology SBM +0.42 / BA +0.34 / WS +0.36; Llama +1.48 |
 | Results §"Reaching more citizens" (`subsec:bite-reach`) | Bite 1 (7-day ladder) | run_6544103–6544117 (reform25/50 · baseline · green50/25 × 3 seeds; 3 placebo pending) | NB 46 → `audit_experiments.csv` | extreme green25−reform25 +0.35 [+0.27,+0.44]; both-bucket +0.45; milder green50−reform50 +0.29; vs baseline green +0.15 / reform −0.21; monotone dose-response, plateaus at ceiling; consistent with Tier-1 5-day +0.42 |
-| Results §"Broadcasting more often" (`subsec:bite-freq`) | Bite 2 | run_6515406–6515417 (2:1, 3:1 × 2 sides × 3 seeds); [`bite2_frequency.py`](../scripts/paper/analysis/bite2_frequency.py) | NB 46 → `audit_experiments.csv` | 2:1 +0.16 [+0.09,+0.23] / both +0.15; 3:1 +0.28 [+0.20,+0.36] / both +0.34; support share 78→83% |
-| Results §"Whom the message reaches" (`subsec:bite-target`) | Bite 3 | run_6535130–6535138 (random / persuadable / degree × 3 seeds, BA m=5); [`bite3_targeting.py`](../scripts/paper/analysis/bite3_targeting.py) | NB 46 → `audit_experiments.csv` | persuadable−random +0.04 (p=0.23); degree−random +0.03 (p=0.52); mixed sign → null |
-| Results §"Reach and frequency are not interchangeable" (`subsec:bite-iso`) | Bite 4 | run_6535139–6535144 (depth2 / depth4 × 3 seeds); [`bite4_iso_impression.py`](../scripts/paper/analysis/bite4_iso_impression.py) | NB 46 → `audit_experiments.csv` | breadth−depth +0.12 [+0.03,+0.21] / both +0.20 |
+| Results §"Broadcasting more often" (`subsec:bite-freq`) | Bite 2 | run_6515406–6515417 (2:1, 3:1 × 2 sides × 3 seeds); [`bite2_frequency.py`](../../scripts/paper/analysis/bite2_frequency.py) | NB 46 → `audit_experiments.csv` | 2:1 +0.16 [+0.09,+0.23] / both +0.15; 3:1 +0.28 [+0.20,+0.36] / both +0.34; support share 78→83% |
+| Results §"Whom the message reaches" (`subsec:bite-target`) | Bite 3 | run_6535130–6535138 (random / persuadable / degree × 3 seeds, BA m=5); [`bite3_targeting.py`](../../scripts/paper/analysis/bite3_targeting.py) | NB 46 → `audit_experiments.csv` | persuadable−random +0.04 (p=0.23); degree−random +0.03 (p=0.52); mixed sign → null |
+| Results §"Reach and frequency are not interchangeable" (`subsec:bite-iso`) | Bite 4 | run_6535139–6535144 (depth2 / depth4 × 3 seeds); [`bite4_iso_impression.py`](../../scripts/paper/analysis/bite4_iso_impression.py) | NB 46 → `audit_experiments.csv` | breadth−depth +0.12 [+0.03,+0.21] / both +0.20 |
 | Results Table 1 (`tab:experiments`) | four-bite ladder | all four experiments | NB 46 → `table1_experiments.csv` | reach +0.35 / freq +0.16→+0.28 / targeting ≈0 / breadth +0.12 |
 | SI §S1 survey (Tables S1–S2) | — | `data/yougov_survey_data/YouGovProcessedData.csv` via `cag.io.survey.load` | recomputed in the SI comments | N=1,483 (of 1,967 raw); age 48.0/17.6; policy baselines (Renewable +1.74/81.7% … Climate comp −0.08/38.9%) |
 | SI §S3 configs / baselines / outcomes (Tables S4–S7) | — | `presets.py` tier1 + `scripts/aire/sweeps/draft_45_*.txt`; Day-0 baselines computed from the survey | NB 46 + in-place compute | base config; Day-0 pkg means seed 42/43/44 = +0.57/+0.50/+0.92 (pooled +0.66) |
@@ -33,7 +33,7 @@ Notes:
 **Date:** 2026-07-10
 **Analysed runs:** the **reach** bite of the draft-45 program, now landed as a graded 7-day ladder (upgrading the earlier Tier-1 five-day binary reach contrast to a full dose-response). Fifteen Qwen3-14B runs, N=100, 7-day, package mode, SBM `p_intra=0.15/p_inter=0.05`, `committed_minority_symmetric` exposure (5/5/60/30), offline v1 messages, Day-0 anchor `ground_truth_with_rationale`, memory `day0_anchor.ttl_days=1`, `k_peers_per_day=2`, temp 0.5, thinking off. The lever is **one side's broadcast reach** (the fraction of its audience it actually reaches per broadcast), swept over five rungs × seeds 42/43/44. The 3 no-broadcast placebo (`neither`) runs did not land in time and are pending.
 
-**A/B mapping (locked from [`src/cag/abm/political_messages.py`](../src/cag/abm/political_messages.py)):** agent **A = pro-climate (Green)**, agent **B = sceptic (Reform)** — matching the SI convention. The sweep labels are *winner-named*: `reform25` throttles Green (`reach_a=0.25`) so Reform wins; `green25` throttles Reform (`reach_b=0.25`) so Green wins.
+**A/B mapping (locked from [`src/cag/abm/political_messages.py`](../../src/cag/abm/political_messages.py)):** agent **A = pro-climate (Green)**, agent **B = sceptic (Reform)** — matching the SI convention. The sweep labels are *winner-named*: `reform25` throttles Green (`reach_a=0.25`) so Reform wins; `green25` throttles Reform (`reach_b=0.25`) so Green wins.
 
 | Condition (run_…s42/43/44) | reach_a (Green) | reach_b (Reform) | Signed reach gap (green−reform) |
 |---|:--:|:--:|:--:|
@@ -43,7 +43,7 @@ Notes:
 | `green50` (6544112/13/14) | 1.0 | 0.50 | +0.50 |
 | `green25` (6544115/16/17) | 1.0 | 0.25 | +0.75 |
 
-Contrast = within-person endpoint difference in final package index, paired per agent within seed, pooled over three seeds (n = 300 for a two-condition contrast). Analysis script: [`scripts/paper/analysis/bite1_reach.py`](../scripts/paper/analysis/bite1_reach.py) (`.venv`); audited in [`notebooks/46_experiments_audit.ipynb`](../notebooks/46_experiments_audit.ipynb).
+Contrast = within-person endpoint difference in final package index, paired per agent within seed, pooled over three seeds (n = 300 for a two-condition contrast). Analysis script: [`scripts/paper/analysis/bite1_reach.py`](../../scripts/paper/analysis/bite1_reach.py) (`.venv`); audited in [`notebooks/46_experiments_audit.ipynb`](../../notebooks/46_experiments_audit.ipynb).
 
 ### Headline — within-person endpoint difference, pooled 3 seeds
 
@@ -81,7 +81,7 @@ Contrast = within-person endpoint difference in final package index, paired per 
 | `depth2` — broad + shallow (6535139/40/41) | `reach_a=0.5`, P-A ×2/day | `P-A, P-B, P-A, C` | 32 agents × 2 broadcasts |
 | `depth4` — narrow + deep (6535142/43/44) | `reach_a=0.25`, P-A ×4/day | `P-A, P-B, P-A, P-A, P-A, C` | 16 agents × 4 broadcasts |
 
-Contrast = `depth2 − depth4`, paired per agent within seed, pooled over three seeds (n = 300). Because Day 0 is pinned to ground truth in every condition, this is a within-person difference in final package index. Interpretation: **≈0** → reach and frequency are interchangeable (total impressions is the sufficient statistic); **>0** → broad-and-shallow (more reach) wins, so breadth beats depth; **<0** → narrow-and-deep (more frequency) wins. Analysis script: [`scripts/paper/analysis/bite4_iso_impression.py`](../scripts/paper/analysis/bite4_iso_impression.py) (`.venv`). Framing in [research_notes.md](research_notes.md) (2026-07-09 framework + metric-contract notes).
+Contrast = `depth2 − depth4`, paired per agent within seed, pooled over three seeds (n = 300). Because Day 0 is pinned to ground truth in every condition, this is a within-person difference in final package index. Interpretation: **≈0** → reach and frequency are interchangeable (total impressions is the sufficient statistic); **>0** → broad-and-shallow (more reach) wins, so breadth beats depth; **<0** → narrow-and-deep (more frequency) wins. Analysis script: [`scripts/paper/analysis/bite4_iso_impression.py`](../../scripts/paper/analysis/bite4_iso_impression.py) (`.venv`). Framing in [research_notes.md](research_notes.md) (2026-07-09 framework + metric-contract notes).
 
 ### Headline — within-person endpoint difference depth2 − depth4 (matched impressions), pooled n=300
 
@@ -127,7 +127,7 @@ Bite 4 confirms *directly* what Bites 1 vs 2 implied across experiments — reac
 | `persuadable` (6535133/34/35) | keep smallest \|ground-truth\| (most persuadable) | kept \|GT\| 0.31 vs dropped 1.74 |
 | `degree` (6535136/37/38) | keep highest-degree hubs | kept degree 0.20 vs dropped 0.065 |
 
-Because Green is the pro-climate side, a **positive** (mode − random) endpoint difference would mean that targeting rule spent the same reach budget better. Paired per agent within seed, pooled over three seeds (n = 300); same instrument, same Day-0 anchoring, so the difference is a within-person endpoint difference on the −3…+3 package index. Analysis script: [`scripts/paper/analysis/bite3_targeting.py`](../scripts/paper/analysis/bite3_targeting.py) (`.venv`). Framing in [research_notes.md](research_notes.md) (2026-07-09 framework + metric-contract notes).
+Because Green is the pro-climate side, a **positive** (mode − random) endpoint difference would mean that targeting rule spent the same reach budget better. Paired per agent within seed, pooled over three seeds (n = 300); same instrument, same Day-0 anchoring, so the difference is a within-person endpoint difference on the −3…+3 package index. Analysis script: [`scripts/paper/analysis/bite3_targeting.py`](../../scripts/paper/analysis/bite3_targeting.py) (`.venv`). Framing in [research_notes.md](research_notes.md) (2026-07-09 framework + metric-contract notes).
 
 ### Headline — within-person endpoint difference (targeting mode − random), pooled n=300 — NULL
 
@@ -175,7 +175,7 @@ The reach-subsample logs confirm the mechanism fired exactly as designed: `persu
 | `reform1v2` (run_6515412/13/14) | `P-B, P-A, P-B, C` | 1 : 2 |
 | `reform1v3` (run_6515415/16/17) | `P-B ×3, P-A, C` | 1 : 3 |
 
-Phase order alternates by day (P-A-first on odd days, P-B-first on even). There is **no symmetric 1 : 1 baseline in this bite** — the primary contrast is matched-ratio, **green-louder minus reform-louder**, paired per agent within seed and pooled over the three seeds (n = 300). Because Day 0 is pinned to ground truth in every condition, this difference-in-differences reduces exactly to a within-person difference in final package index. Analysis script: [`scripts/paper/analysis/bite2_frequency.py`](../scripts/paper/analysis/bite2_frequency.py) (reuses the Tier-3 DiD/`mean_ci` harness; `.venv`). Framing in [research_notes.md](research_notes.md) (2026-07-09 metric-contract + framework notes).
+Phase order alternates by day (P-A-first on odd days, P-B-first on even). There is **no symmetric 1 : 1 baseline in this bite** — the primary contrast is matched-ratio, **green-louder minus reform-louder**, paired per agent within seed and pooled over the three seeds (n = 300). Because Day 0 is pinned to ground truth in every condition, this difference-in-differences reduces exactly to a within-person difference in final package index. Analysis script: [`scripts/paper/analysis/bite2_frequency.py`](../../scripts/paper/analysis/bite2_frequency.py) (reuses the Tier-3 DiD/`mean_ci` harness; `.venv`). Framing in [research_notes.md](research_notes.md) (2026-07-09 metric-contract + framework notes).
 
 ### Headline — within-person difference in final package index (green-louder − reform-louder), pooled n=300
 
@@ -218,7 +218,7 @@ Day-0 ground-truth mean +0.662. Rank fidelity holds in every condition (Spearman
 ## v0.9 — Tier-3 MODEL-replication arm: Llama-3.1-8B (run_6475093 / run_6479341 / run_6479390, seed 42) — the reach-asymmetry DiD reproduces on a different model family, correctly signed and strongly significant, *despite* Llama being a poor difference engine
 
 **Date:** 2026-07-07
-**Analysed runs:** the **model-replication arm** of Tier 3 — the last open gate (the network arm is closed above). Three seed-42 **Llama-3.1-8B-Instruct** runs under the identical `tier1` shape used for the Qwen3-14B Tier-1 headline (N=100, 5-day P-A/P-B/C, package mode, SBM `p_intra=0.15/p_inter=0.05`, `committed_minority_symmetric` exposure, offline v1 messages, Day-0 anchor `ground_truth_with_rationale`, memory `day0_anchor.ttl_days=1`): baseline (`run_6475093`, reach 1.0/1.0), green-dom (`run_6479341`), reform-dom (`run_6479390`). **The only thing changed vs the Qwen Tier-1 headline is the model** (`HF_MODEL=meta-llama/Llama-3.1-8B-Instruct`), so this is a clean cross-model replication. Analysis script: [`sandbox/ajay_sandbox/tier3_llama_model_arm.py`](../sandbox/ajay_sandbox/tier3_llama_model_arm.py) (reuses the network-arm DiD/`mean_ci` harness verbatim); figure in [`data/output/tier3_llama_analysis/`](../data/output/tier3_llama_analysis/). Framing in [research_notes.md](research_notes.md) (2026-07-07 model-arm note).
+**Analysed runs:** the **model-replication arm** of Tier 3 — the last open gate (the network arm is closed above). Three seed-42 **Llama-3.1-8B-Instruct** runs under the identical `tier1` shape used for the Qwen3-14B Tier-1 headline (N=100, 5-day P-A/P-B/C, package mode, SBM `p_intra=0.15/p_inter=0.05`, `committed_minority_symmetric` exposure, offline v1 messages, Day-0 anchor `ground_truth_with_rationale`, memory `day0_anchor.ttl_days=1`): baseline (`run_6475093`, reach 1.0/1.0), green-dom (`run_6479341`), reform-dom (`run_6479390`). **The only thing changed vs the Qwen Tier-1 headline is the model** (`HF_MODEL=meta-llama/Llama-3.1-8B-Instruct`), so this is a clean cross-model replication. Analysis script: [`sandbox/ajay_sandbox/tier3_llama_model_arm.py`](../../sandbox/ajay_sandbox/tier3_llama_model_arm.py) (reuses the network-arm DiD/`mean_ci` harness verbatim); figure in [`data/output/tier3_llama_analysis/`](../../data/output/tier3_llama_analysis). Framing in [research_notes.md](research_notes.md) (2026-07-07 model-arm note).
 
 **Design.** Single seed 42, so the same 100 agents (identical ground truth, exposure buckets, SBM wiring) appear in all three conditions; the DiD (`shift_green − shift_reform`) is paired per agent (n=100). **Single seed → read direction + within-seed significance, NOT a cross-draw effect-size claim** — same footing as the network *pilot* below.
 
@@ -259,7 +259,7 @@ Rank fidelity collapses once the Day-0 anchor expires (ρ 0.20–0.68 vs Qwen's 
 ## v0.9 — Tier-3 network-topology robustness, SEED SWEEP (27 runs = 3 topologies × 3 conditions × 3 seeds 42/43/44, NB 41) — the reach-asymmetry DiD is topology-robust *and* seed-replicated; the pilot's SBM effect-size edge does not survive
 
 **Date:** 2026-07-06
-**Supersedes** the seed-42-only section below (now demoted to pilot). **Analysed runs:** the full **network-topology arm** of Tier 3 — 27 Qwen3-14B runs under the `tier1` shape (N=100, 5-day P-A/P-B/C, package mode, `day0_anchor=ground_truth_with_rationale`, memory `day0_anchor.ttl_days=1`), varying **only** the peer-network factory across three seeds. SBM = Tier-1 runs `run_6458324…6458332`; BA `m=5` and WS `k=10, β=0.1` = `run_6475087–92` (s42) + `run_6480290…6480784` (s43/s44). Notebook: [`notebooks/41_tier3_network_robustness.ipynb`](../notebooks/41_tier3_network_robustness.ipynb); figures in [`data/output/tier3_network_analysis/`](../data/output/tier3_network_analysis/). The model-replication arm (Apertus / Llama) is separate and still pending.
+**Supersedes** the seed-42-only section below (now demoted to pilot). **Analysed runs:** the full **network-topology arm** of Tier 3 — 27 Qwen3-14B runs under the `tier1` shape (N=100, 5-day P-A/P-B/C, package mode, `day0_anchor=ground_truth_with_rationale`, memory `day0_anchor.ttl_days=1`), varying **only** the peer-network factory across three seeds. SBM = Tier-1 runs `run_6458324…6458332`; BA `m=5` and WS `k=10, β=0.1` = `run_6475087–92` (s42) + `run_6480290…6480784` (s43/s44). Notebook: [`notebooks/41_tier3_network_robustness.ipynb`](../../notebooks/41_tier3_network_robustness.ipynb); figures in [`data/output/tier3_network_analysis/`](../../data/output/tier3_network_analysis). The model-replication arm (Apertus / Llama) is separate and still pending.
 
 **Design.** Within each seed the three topologies share the *same 100 agents, ground truth, exposure buckets, and broadcasts* — only the wiring differs. Agents are re-drawn per seed, so the paired DiD (`end_green − end_reform`) is matched per (seed, agent) and **pooled over the three seeds (n=300 per topology)**, exactly as NB 38. BA/WS pinned to mean-degree parity (~10) with SBM, so density is controlled; only *structure* varies.
 
@@ -318,7 +318,7 @@ Among the ~60% who hear both broadcast streams the three topologies agree closel
 ## v0.9 — Tier-3 network-topology robustness (run_6475087…6475092 vs Tier-1 SBM run_6458324/6458327/6458330, seed 42, NB 41) — PILOT, superseded by the 3-seed section above
 
 **Date:** 2026-07-05
-**Analysed runs:** the **network-topology arm** of Tier 3 (the model-replication arm — Apertus / Llama — is separate and still pending). Six new seed-42 Qwen3-14B runs under the `tier1` run shape (N=100, 5-day P-A/P-B/C, package mode, `day0_anchor=ground_truth_with_rationale`, memory `day0_anchor.ttl_days=1`), varying **only** the peer-network factory: Barabási–Albert `m=5` (`run_6475087/88/89`) and Watts–Strogatz `k=10, β=0.1` (`run_6475090/91/92`) for baseline / green-dom / reform-dom. Compared against the **seed-42 Tier-1 stochastic-block runs** (`run_6458324` / `6458327` / `6458330`) as the SBM reference. Notebook: [`notebooks/41_tier3_network_robustness.ipynb`](../notebooks/41_tier3_network_robustness.ipynb); figures in [`data/output/tier3_network_analysis/`](../data/output/tier3_network_analysis/). Framing in [research_notes.md](research_notes.md) (2026-07-05 Tier-3 network note).
+**Analysed runs:** the **network-topology arm** of Tier 3 (the model-replication arm — Apertus / Llama — is separate and still pending). Six new seed-42 Qwen3-14B runs under the `tier1` run shape (N=100, 5-day P-A/P-B/C, package mode, `day0_anchor=ground_truth_with_rationale`, memory `day0_anchor.ttl_days=1`), varying **only** the peer-network factory: Barabási–Albert `m=5` (`run_6475087/88/89`) and Watts–Strogatz `k=10, β=0.1` (`run_6475090/91/92`) for baseline / green-dom / reform-dom. Compared against the **seed-42 Tier-1 stochastic-block runs** (`run_6458324` / `6458327` / `6458330`) as the SBM reference. Notebook: [`notebooks/41_tier3_network_robustness.ipynb`](../../notebooks/41_tier3_network_robustness.ipynb); figures in [`data/output/tier3_network_analysis/`](../../data/output/tier3_network_analysis). Framing in [research_notes.md](research_notes.md) (2026-07-05 Tier-3 network note).
 
 **Why this is a clean test.** At seed 42 the three topologies share the *same 100 agents, the same YouGov ground truth, the same exposure-bucket assignment, and the same broadcasts* — only the peer-messaging wiring differs, so any change in the DiD across topologies is attributable purely to peer-message propagation. BA/WS parameters were pinned for mean-degree parity (~10) with the SBM canon, so density is controlled; only *structure* varies. **Single seed** — read as directional (within-seed) evidence, not a cross-draw significance claim.
 
@@ -378,7 +378,7 @@ Among the ~60% who hear both broadcast streams the three topologies agree closel
 ## v0.9 — Tier-2 scale-robustness (re-analysis of run_6458324…6458335, NB 40) — the headline survives every ruler; the Tier-1 "sceptic-tilt" was a scale-ceiling artefact and the effect is ~uniform (bias-invariance restored)
 
 **Date:** 2026-07-05
-**Analysed data:** the same 12 Tier-1 runs, **re-analysed only (no new runs)**. Notebook: [`notebooks/40_tier2_scale_robustness.ipynb`](../notebooks/40_tier2_scale_robustness.ipynb); figures in [`data/output/tier2_analysis/`](../data/output/tier2_analysis/). Framing in [research_notes.md](research_notes.md) (2026-07-05 Tier-2 note).
+**Analysed data:** the same 12 Tier-1 runs, **re-analysed only (no new runs)**. Notebook: [`notebooks/40_tier2_scale_robustness.ipynb`](../../notebooks/40_tier2_scale_robustness.ipynb); figures in [`data/output/tier2_analysis/`](../../data/output/tier2_analysis). Framing in [research_notes.md](research_notes.md) (2026-07-05 Tier-2 note).
 
 **What the test asks.** The −3…+3 opinion scale has a ceiling; agents near +3 cannot move up, which can *manufacture* an asymmetry (Green looks more persuasive only because pro-climate agents have run out of room). Tier 2 re-expresses the same final opinions on rulers **without** a ceiling and rechecks the two Tier-1 headlines. Four monotone re-expressions of the package DiD (Green-dom − Reform-dom, n=300 pooled): **raw** (native scale, = NB 38 reference), **headroom** (raw DiD ÷ room-above-start `3−GT`), **logit** (`(x+3)/6` then log-odds; stretches boundary moves), **rank** (percentile on a common ruler; pure ordinal). The raw ruler reproduces NB 38 exactly (DiD +0.423, acid slope −0.174) — internal check.
 
@@ -419,7 +419,7 @@ Tertile (sceptic→green, standardised): raw **0.93→0.19** (steep) vs headroom
 ## v0.9 — Tier-1 bias-invariance & per-policy breakdown of the reach-asymmetry effect (run_6458324…6458335, NB 38 / NB 39) — a broad, robust, correctly-signed reach-asymmetry effect (the raw-scale "sceptic-tilt" is shown by Tier 2 above to be a scale artefact)
 
 **Date:** 2026-07-04
-**Analysed runs:** 12 Tier-1 runs — **4 conditions × 3 seeds (42/43/44), N=100 agents**, package mode, Qwen3-14B, `day0_anchor="ground_truth_with_rationale"`, memory anchor `ttl_days=1`. Conditions set by reach: **baseline** (reach 1.0/1.0), **green_dom** (1.0/0.25), **reform_dom** (0.25/1.0), **neither** (no broadcasts, placebo). Notebooks: [`notebooks/38_tier1_bias_invariance.ipynb`](../notebooks/38_tier1_bias_invariance.ipynb) (package level) and [`notebooks/39_tier1_per_policy.ipynb`](../notebooks/39_tier1_per_policy.ipynb) (per-policy); figures in [`data/output/tier1_analysis/`](../data/output/tier1_analysis/). This is the honest, multi-seed successor to the v0.8 seed-42/n=50 pilot below (now demoted to preliminary). Plain-language framing in [research_notes.md](research_notes.md) (2026-07-04 Tier-1 note).
+**Analysed runs:** 12 Tier-1 runs — **4 conditions × 3 seeds (42/43/44), N=100 agents**, package mode, Qwen3-14B, `day0_anchor="ground_truth_with_rationale"`, memory anchor `ttl_days=1`. Conditions set by reach: **baseline** (reach 1.0/1.0), **green_dom** (1.0/0.25), **reform_dom** (0.25/1.0), **neither** (no broadcasts, placebo). Notebooks: [`notebooks/38_tier1_bias_invariance.ipynb`](../../notebooks/38_tier1_bias_invariance.ipynb) (package level) and [`notebooks/39_tier1_per_policy.ipynb`](../../notebooks/39_tier1_per_policy.ipynb) (per-policy); figures in [`data/output/tier1_analysis/`](../../data/output/tier1_analysis). This is the honest, multi-seed successor to the v0.8 seed-42/n=50 pilot below (now demoted to preliminary). Plain-language framing in [research_notes.md](research_notes.md) (2026-07-04 Tier-1 note).
 
 **Design.** Within a seed the *same 100 agents* (identical GT) appear in all four worlds — a within-subjects design; Day 0 is pinned to GT exactly (verified: max |Day0 − GT| = 0.0), so every difference-in-differences (DiD) has the shared GT and the model's pro-climate inflation cancel algebraically. DiD is computed per (seed, agent) and pooled over the three seeds (n=300 matched pairs). Package index scale ≈ −3…+3; GT mean **+0.662**.
 
@@ -491,7 +491,7 @@ All six policies show a significant, correctly-signed pro-climate effect. The or
 ## v0.9 — Tier-P calibration & anchor justification (run_6457850…6457858, NB 37) — the raw model is inflated in *level* but faithful in *rank*; anchoring removes the level bias by construction
 
 **Date:** 2026-07-04
-**Analysed runs:** the same nine Tier-P Day-0 runs as NB 36 (3 arms × 3 seeds, N=100 agents, package mode, `day0_anchor="llm_survey"` — the raw *no-anchor* world where the LLM derives each opinion). Notebook: [`notebooks/37_tierP_calibration.ipynb`](../notebooks/37_tierP_calibration.ipynb); figures in [`data/output/calibration_analysis/`](../data/output/calibration_analysis/). Companion to the NB 36 Tier-P section below; the framing lives in [research_notes.md](research_notes.md) (2026-07-04 calibration note).
+**Analysed runs:** the same nine Tier-P Day-0 runs as NB 36 (3 arms × 3 seeds, N=100 agents, package mode, `day0_anchor="llm_survey"` — the raw *no-anchor* world where the LLM derives each opinion). Notebook: [`notebooks/37_tierP_calibration.ipynb`](../../notebooks/37_tierP_calibration.ipynb); figures in [`data/output/calibration_analysis/`](../../data/output/calibration_analysis). Companion to the NB 36 Tier-P section below; the framing lives in [research_notes.md](research_notes.md) (2026-07-04 calibration note).
 
 **What the test asks.** NB 36 proved the model *ranks* agents correctly. This asks the level question: how far off is the raw (no-anchor) opinion, is the error a rank scramble or a common offset, and does the production anchor remove exactly that error? Standard calibration metrics only (MBE/MAE/RMSE, OLS `LLM ~ GT`, Pearson r/R², Spearman ρ). Day 0 only; seeds pooled (n=300/arm). Package pro-climate index, range ≈ −3…+3, GT mean **+0.662**.
 
@@ -529,7 +529,7 @@ Package GT at the +3 ceiling: **3.0%** of agents; per-policy GT at +3: **23.8%**
 
 ### Anchor mechanism — why this bias is removed by construction (Fig 5)
 
-From [`src/cag/abm/sim.py`](../src/cag/abm/sim.py) `_run_day0`: `llm_survey` lets the LLM pick the Day-0 number (the +0.64-biased world measured here); the production default **`ground_truth_with_rationale`** seeds the Day-0 *number* from ground truth and lets the LLM write only the *rationale*. So under production anchoring Day-0 calibration is **MBE = 0, MAE = 0, ρ = 1.0 by construction** while keeping a coherent LLM reasoning chain for the dynamics — confirmed empirically on the v0.8 within-subjects runs (*"Day-0 index = the GT mean, ρ = 1.0, MAE = 0 by construction"*, §v0.8 below). Fig 5 (`fig5_anchor_demonstration.png`) contrasts the biased `llm_survey` histogram (MBE +0.64) with the anchored y = x world.
+From [`src/cag/abm/sim.py`](../../src/cag/abm/sim.py) `_run_day0`: `llm_survey` lets the LLM pick the Day-0 number (the +0.64-biased world measured here); the production default **`ground_truth_with_rationale`** seeds the Day-0 *number* from ground truth and lets the LLM write only the *rationale*. So under production anchoring Day-0 calibration is **MBE = 0, MAE = 0, ρ = 1.0 by construction** while keeping a coherent LLM reasoning chain for the dynamics — confirmed empirically on the v0.8 within-subjects runs (*"Day-0 index = the GT mean, ρ = 1.0, MAE = 0 by construction"*, §v0.8 below). Fig 5 (`fig5_anchor_demonstration.png`) contrasts the biased `llm_survey` histogram (MBE +0.64) with the anchored y = x world.
 
 **Bottom line.** The raw model is not trustworthy in *absolute level* (+0.64 package inflation, worse on cost/behaviour policies) but is faithful in *rank* (ρ ≈ 0.62) with a preserved-order offset. This is the empirical licence for the "difference-engine" stance and the quantitative justification for anchoring Day 0 to ground truth.
 
@@ -538,7 +538,7 @@ From [`src/cag/abm/sim.py`](../src/cag/abm/sim.py) `_run_day0`: `llm_survey` let
 ## v0.9 — Tier-P persona-null ablation (run_6457850…6457858, NB 36) — the LLM demonstrably conditions on personas: GO
 
 **Date:** 2026-07-04
-**Analysed runs:** nine Day-0-only runs, 3 arms × 3 seeds (42/43/44), N=100 agents each, package mode (6 climate policies), Qwen3-14B @ temp 0.5, `day0_anchor="llm_survey"` (the model *derives* each opinion from the persona — the no-anchor world), `memory="persona_only"`. Arm→run map (seed 42/43/44): **real** = run_6457850/851/852; **shuffled** = run_6457853/854/855; **neutral** = run_6457856/857/858. Notebook: [`notebooks/36_tierP_persona_null.ipynb`](../notebooks/36_tierP_persona_null.ipynb); figures in [`data/output/tierP_analysis/`](../data/output/tierP_analysis/). This is **Tier P** of the four-tier validation program — the foundational validity gate argued in [research_notes.md](research_notes.md) (2026-07-04 note); see there for the plain-language interpretation.
+**Analysed runs:** nine Day-0-only runs, 3 arms × 3 seeds (42/43/44), N=100 agents each, package mode (6 climate policies), Qwen3-14B @ temp 0.5, `day0_anchor="llm_survey"` (the model *derives* each opinion from the persona — the no-anchor world), `memory="persona_only"`. Arm→run map (seed 42/43/44): **real** = run_6457850/851/852; **shuffled** = run_6457853/854/855; **neutral** = run_6457856/857/858. Notebook: [`notebooks/36_tierP_persona_null.ipynb`](../../notebooks/36_tierP_persona_null.ipynb); figures in [`data/output/tierP_analysis/`](../../data/output/tierP_analysis). This is **Tier P** of the four-tier validation program — the foundational validity gate argued in [research_notes.md](research_notes.md) (2026-07-04 note); see there for the plain-language interpretation.
 
 **What the test asks.** Does the model actually read each agent's persona, or is it emitting a generic pro-climate prior? Three arms: **real** (agent gets its own YouGov persona), **shuffled** (agent gets *another* agent's whole persona via a within-sample derangement), **neutral** (no persona — *"I am an adult living in the United Kingdom."*). Only Day 0 is analysed (`day==0`); the redundant `day==1` survey from the tierP preset is ignored.
 
@@ -649,10 +649,10 @@ corr(GT, drift) is negative everywhere and significant in green-dominant (**−0
 
 | Job dir | Condition | reach_a (green/A) | reach_b (reform/B) | network |
 |---|---|:--:|:--:|---|
-| [`run_6436142_canon_exposure_baseline`](../data/output/experiments/run_6436142_canon_exposure_baseline/) | Baseline (symmetric reach) | 1.0 | 1.0 | stochastic_block |
-| [`run_6436192_canon_exposure_reform_dominant`](../data/output/experiments/run_6436192_canon_exposure_reform_dominant/) | Reform-dominant | **0.25** | 1.0 | stochastic_block |
-| [`run_6436203_canon_exposure_green_dominant`](../data/output/experiments/run_6436203_canon_exposure_green_dominant/) | Green-dominant | 1.0 | **0.25** | stochastic_block |
-| [`run_6436638_canon_exposure_reform_dominant_barabasi_albert`](../data/output/experiments/run_6436638_canon_exposure_reform_dominant_barabasi_albert/) | Reform-dominant (BA network) | **0.25** | 1.0 | barabasi_albert |
+| [`run_6436142_canon_exposure_baseline`](../../data/output/experiments/run_6436142_canon_exposure_baseline) | Baseline (symmetric reach) | 1.0 | 1.0 | stochastic_block |
+| [`run_6436192_canon_exposure_reform_dominant`](../../data/output/experiments/run_6436192_canon_exposure_reform_dominant) | Reform-dominant | **0.25** | 1.0 | stochastic_block |
+| [`run_6436203_canon_exposure_green_dominant`](../../data/output/experiments/run_6436203_canon_exposure_green_dominant) | Green-dominant | 1.0 | **0.25** | stochastic_block |
+| [`run_6436638_canon_exposure_reform_dominant_barabasi_albert`](../../data/output/experiments/run_6436638_canon_exposure_reform_dominant_barabasi_albert) | Reform-dominant (BA network) | **0.25** | 1.0 | barabasi_albert |
 
 **Shared config (identical across all four, only reach + network differ):** `n_citizens=50`, `days=5`, **`k_peers_per_day=2` (peer messaging ON — unlike the memory sweep above)**, `communication_mode=package`, `political_exposure_mode=rule_affinity_rank` with **canonical symmetric targets `{A-only: 0.05, B-only: 0.05, both: 0.60, neither: 0.30}`**, `day0_anchor=ground_truth_with_rationale`, `Qwen/Qwen3-14B`, `thinking=False`, `random_seed=42`. Every run shares the same **GT package mean +0.587** and **Day-0 anchor +0.587**. `reach_a`/`reach_b` subsample the respective political agent's matched audience *each broadcast* (reach, not frequency): reform-dominant throttles the green agent to 25% of its audience, green-dominant throttles the reform agent. **A = green / pro-climate political agent; B = reform / climate-sceptic political agent.**
 
@@ -733,12 +733,12 @@ Even with **zero** direct exposure, the unexposed cohort climbs +0.5 to +0.8 —
 
 | Job dir | Condition |
 |---|---|
-| [`run_6426233_memory_baseline`](../data/output/experiments/run_6426233_memory_baseline/) | baseline (default memory) |
-| [`run_6426018_Day 0  achoring off after two days`](../data/output/experiments/) | Day-0 anchor TTL = 2 |
-| [`run_6426231_own_reasoning_false`](../data/output/experiments/run_6426231_own_reasoning_false/) | own_reasoning off |
-| [`run_6434951_Daily summaries off`](../data/output/experiments/run_6434951_Daily%20summaries%20off/) | **daily_summaries off (only)** — isolates the summaries tier (anchor kept at TTL = ∞, own_reasoning on) |
-| [`run_6426250_Daily summaries off and day 0 anchor off after 2 days`](../data/output/experiments/) | daily_summaries off + anchor TTL = 2 |
-| [`run_6426433_Daily summaries off and day 0 anchor off after 2 days and own reasoning off`](../data/output/experiments/) | daily_summaries off + anchor TTL = 2 + own_reasoning off |
+| [`run_6426233_memory_baseline`](../../data/output/experiments/run_6426233_memory_baseline) | baseline (default memory) |
+| [`run_6426018_Day 0  achoring off after two days`](../../data/output/experiments) | Day-0 anchor TTL = 2 |
+| [`run_6426231_own_reasoning_false`](../../data/output/experiments/run_6426231_own_reasoning_false) | own_reasoning off |
+| [`run_6434951_Daily summaries off`](../../data/output/experiments/run_6434951_Daily%20summaries%20off) | **daily_summaries off (only)** — isolates the summaries tier (anchor kept at TTL = ∞, own_reasoning on) |
+| [`run_6426250_Daily summaries off and day 0 anchor off after 2 days`](../../data/output/experiments) | daily_summaries off + anchor TTL = 2 |
+| [`run_6426433_Daily summaries off and day 0 anchor off after 2 days and own reasoning off`](../../data/output/experiments) | daily_summaries off + anchor TTL = 2 + own_reasoning off |
 
 **Shared config (identical across all six, only `memory` differs):** `n_citizens=50`, `days=7`, `k_peers_per_day=0` (**broadcast-only — no peer messaging, so opinion movement is driven purely by the two political broadcasts + the agent's own memory**), `communication_mode=package`, `political_exposure_mode=rule_affinity_rank` with **split-50 targets** (`A-only=B-only=0.50`), `day0_anchor=ground_truth_with_rationale`, `Qwen/Qwen3-14B`, `thinking=False`, `random_seed=42`. Every run has the same **GT package mean = +0.587** and the same **Day-0 anchor = +0.587** (seeded from YouGov), so the Day-0 → Day-7 movement is directly comparable.
 
@@ -832,8 +832,8 @@ Even with **zero** direct exposure, the unexposed cohort climbs +0.5 to +0.8 —
 ## v0.8 — configurable-memory + debias-removal smoke (20260701_221142) — new build runs end-to-end, default memory reproduces the v2 dynamics
 
 **Date:** 2026-07-01
-**Run:** [`data/output/experiments/20260701_221142/`](../data/output/experiments/20260701_221142/)
-**Notebook:** [`notebooks/32_v06_outputs_smoke.ipynb`](../notebooks/32_v06_outputs_smoke.ipynb) (companion offline demo: [`notebooks/35_memory_ablation_demo.ipynb`](../notebooks/35_memory_ablation_demo.ipynb))
+**Run:** [`data/output/experiments/20260701_221142/`](../../data/output/experiments/20260701_221142)
+**Notebook:** [`notebooks/32_v06_outputs_smoke.ipynb`](../../notebooks/32_v06_outputs_smoke.ipynb) (companion offline demo: [`notebooks/35_memory_ablation_demo.ipynb`](../../notebooks/35_memory_ablation_demo.ipynb))
 **Model:** `gpt-5-mini` (`llm_provider=openai`, both messaging + surveys, `T=0.5` — auto-dropped, model rejects `temperature`)
 **Config:** `n_citizens=10`, `days=2` (alternating `P-A`/`P-B`/`C`), `k_peers_per_day=2`, `communication_mode=package` (all 6 policies), `political_exposure_mode=rule_affinity_rank` (committed-minority symmetric targets, balanced weights), `reach_a=reach_b=1.0`, `day0_anchor=ground_truth_with_rationale`, **`memory="default"`** (the new v0.8 configurable-memory key — the default preset reproduces the v2 hard-wired six-section assembly bit-for-bit), `thinking=False`, `random_seed=42`. **`debias` is gone as a config key** — the two-step Condition-B survey is now unconditional. Wall-clock **14.1 min (848 s)**.
 
@@ -880,7 +880,7 @@ Mean signed bias stays small (+0.1 to +0.6 across policies) — as expected unde
 ## v0.8 — Qwen3-**14B** split50 (20260628_025751) — model upgrade halves the bias and restores the bucket asymmetry
 
 **Date:** 2026-06-28
-**Run:** [`data/output/experiments/20260628_025751/`](../data/output/experiments/20260628_025751/)
+**Run:** [`data/output/experiments/20260628_025751/`](../../data/output/experiments/20260628_025751)
 **Model:** `Qwen/Qwen3-14B` (`llm_provider=local`, vLLM-style endpoint `http://localhost:8000/v1`, `T=0.5`)
 **Config:** **bit-identical to [run_6267094](#v08--qwen3-8b-aire-split50-run_6267094--first-production-run-on-v2-memory--day-0-refactor) except `llm_model` (`Qwen/Qwen3-8B` → `Qwen/Qwen3-14B`).** `n_citizens=50`, `days=5` (alternating `P-A`/`P-B`/`C`), `k_peers_per_day=0`, `communication_mode=package` (all 6 policies), `political_exposure_mode=rule_affinity_rank`, `political_exposure_targets=split50` (→ 25 A-only / 25 B-only), `reach_a=reach_b=1.0`, `day0_anchor=ground_truth_with_rationale`, `debias=True`, `thinking=False`, `random_seed=42`
 
@@ -956,7 +956,7 @@ Every B-only cell collapses toward zero relative to 8B. Two policies (**Carbon T
 ## v0.8 — Qwen3-8B AIRE split50 (run_6267094) — first production run on v2 memory + Day-0 refactor
 
 **Date:** 2026-06-24
-**Run:** [`data/output/experiments/run_6267094/20260624_012156/`](../data/output/experiments/run_6267094/20260624_012156/)
+**Run:** [`data/output/experiments/run_6267094/20260624_012156/`](../../data/output/experiments/run_6267094/20260624_012156)
 **AIRE job:** `6267094` (Qwen3-8B via vLLM on a single GPU node)
 **Invocation:** `sbatch scripts/aire/run.sh --preset r14_canonical --exposure-targets split50`
 **Model:** `Qwen/Qwen3-8B` (`llm_provider=local`, vLLM, `T=0.5`)
@@ -1044,7 +1044,7 @@ Day-0 is perfect by construction (r = 1.0, MAE = 0, bias = 0). By Day 5 the sign
 ## v0.8 — v2 memory smoke on gpt-5-mini (PRE-day0-refactor caveat)
 
 **Date:** 2026-06-23
-**Run:** [`data/output/experiments/20260623_180305/`](../data/output/experiments/20260623_180305/)
+**Run:** [`data/output/experiments/20260623_180305/`](../../data/output/experiments/20260623_180305)
 **Model:** `gpt-5-mini` (`T=0.5`, OpenAI)
 **Config:** `n_citizens=10`, package mode, 4-day alternating `P-A`/`P-B`/`C`, `debias=True`, `day0_anchor="ground_truth_with_rationale"`, `random_seed=42`
 **Test suite at time of doc:** 556 passed, 1 skipped, 21 subtests passed
@@ -1094,12 +1094,12 @@ Pattern matches the v0.7 NB 32 baseline: LLM is more pro-climate than YouGov gro
 ## v0.8 — `sim.py` modular split (refactor only, NB 32 regression-validated)
 
 **Date:** 2026-06-23
-**Pre-refactor baseline:** [`data/output/experiments/20260622_170436/`](../data/output/experiments/20260622_170436/)
-**Post-refactor run:** [`data/output/experiments/20260623_140314/`](../data/output/experiments/20260623_140314/)
-**Notebook:** [`notebooks/32_v06_outputs_smoke.ipynb`](../notebooks/32_v06_outputs_smoke.ipynb)
+**Pre-refactor baseline:** [`data/output/experiments/20260622_170436/`](../../data/output/experiments/20260622_170436)
+**Post-refactor run:** [`data/output/experiments/20260623_140314/`](../../data/output/experiments/20260623_140314)
+**Notebook:** [`notebooks/32_v06_outputs_smoke.ipynb`](../../notebooks/32_v06_outputs_smoke.ipynb)
 **Test suite:** 538 passed, 1 skipped, 21 subtests passed (unchanged from end of v0.7)
 
-**TL;DR.** [src/cag/abm/sim.py](../src/cag/abm/sim.py) reduced from **2755 → 838 lines** (orchestration only) by extracting five focused single-responsibility modules: [src/cag/abm/network_repair.py](../src/cag/abm/network_repair.py) (263 lines, v0.7 3-layer connectivity defence), [src/cag/io/aggregators.py](../src/cag/io/aggregators.py) (506 lines, `_collect_results` post-processing), [src/cag/io/plots.py](../src/cag/io/plots.py) (555 lines, `save_result_plots` + plotters), [src/cag/io/results.py](../src/cag/io/results.py) (512 lines, `save_results` + CSV/JSON IO), [src/cag/io/checkpoint.py](../src/cag/io/checkpoint.py) (366 lines, checkpoint/resume). **Pure structural split, zero behaviour change.** Validated end-to-end against the v0.7 NB 32 baseline.
+**TL;DR.** [src/cag/abm/sim.py](../../src/cag/abm/sim.py) reduced from **2755 → 838 lines** (orchestration only) by extracting five focused single-responsibility modules: [src/cag/abm/network_repair.py](../../src/cag/abm/network_repair.py) (263 lines, v0.7 3-layer connectivity defence), [src/cag/io/aggregators.py](../../src/cag/io/aggregators.py) (506 lines, `_collect_results` post-processing), [src/cag/io/plots.py](../../src/cag/io/plots.py) (555 lines, `save_result_plots` + plotters), [src/cag/io/results.py](../../src/cag/io/results.py) (512 lines, `save_results` + CSV/JSON IO), [src/cag/io/checkpoint.py](../../src/cag/io/checkpoint.py) (366 lines, checkpoint/resume). **Pure structural split, zero behaviour change.** Validated end-to-end against the v0.7 NB 32 baseline.
 
 ### Regression-validation matrix
 
@@ -1134,8 +1134,8 @@ Pattern matches the v0.7 NB 32 baseline: LLM is more pro-climate than YouGov gro
 ## v0.6 outputs expansion + network connectivity defence — NB 32 smoke validation
 
 **Date:** 2026-06-22
-**Result dir:** [`data/output/experiments/20260622_170436/`](../data/output/experiments/20260622_170436/)
-**Notebook:** [`notebooks/32_v06_outputs_smoke.ipynb`](../notebooks/32_v06_outputs_smoke.ipynb)
+**Result dir:** [`data/output/experiments/20260622_170436/`](../../data/output/experiments/20260622_170436)
+**Notebook:** [`notebooks/32_v06_outputs_smoke.ipynb`](../../notebooks/32_v06_outputs_smoke.ipynb)
 **Test suite at write time:** 538 passed, 1 skipped (baseline before this work: 495 → +43, of which +30 from outputs expansion and +13 from the 3-layer connectivity tests)
 
 **TL;DR.** Two coordinated model-side changes shipped against `main` (commit `e5bb298`): (1) a **v0.6 outputs expansion** that takes the saved run bundle from 17 artefacts to 29, adds bucket-stratified analyses, a per-event agent timeline, full survey-prompt audit (`survey_assembled_context.csv`), end-of-run network snapshot, and a monotonic `sim_step` counter wired through every event-logging site; (2) a **3-layer network connectivity defence** with literature-grounded SBM defaults (`p_inter` 0.02 → 0.05, ratio 3:1 ≈ Bakshy 2015 cross-cutting fraction), an adaptive small-N bump, and a deterministic post-creation auto-repair pass so disjoint peer networks can no longer corrupt opinion dynamics silently. NB 32 is a deliberately tiny smoke run (10 agents × 2 alternating package-mode days, `gpt-5-mini`) whose **only purpose** is to exercise every new code path and surface every new artefact for visual inspection. Both layers fire as designed: `p_inter` is bumped from 0.05 → 0.10 because `n=10 < 30` (Layer 1), the random SBM draw produces 5 disconnected components which Layer 2 stitches together with 4 bridging edges (`auto_connected_edges=4`, final `n_connected_components=1`), and Layer 3 logs the resulting graph as `n_nodes=10, n_edges=9, n_components=1, mean_degree=1.8, auto_connected_edges=4`. Every new CSV is populated, the `sim_step` column is dense and strictly monotonic per agent across all 5 instrumented sources, the per-agent timeline reconstructs a sampled agent's full day (broadcasts received → reflections → 6-policy survey → next day), and `survey_assembled_context` differs across days for every (agent, policy) pair — the NB-31 staleness signature is impossible to miss going forward.
@@ -1148,29 +1148,29 @@ Pattern matches the v0.7 NB 32 baseline: LLM is more pro-climate than YouGov gro
 
 Motivation: NB-31's package-mode survey-context bug stayed hidden for two months because the assembled prompt was discarded immediately after the LLM call, and the bucket-stratified Day-N − Day-0 gap that finally surfaced it had to be hand-derived in a notebook from the existing CSVs. The outputs expansion bakes both diagnostic affordances — full prompt capture and pre-computed bucket views — into the saved bundle so future class-of-context bugs are visible from `agent_timeline.csv` alone.
 
-- **Phase 1 — agent attribute persistence ([src/cag/abm/environment.py](../src/cag/abm/environment.py), [src/cag/abm/sim.py](../src/cag/abm/sim.py)).** `_assign_affinity_rank` now caches `_affinity_score_a` and `_affinity_score_b` on each citizen (mirrors the existing in-place `political_exposure` write). New `collect_agent_attributes(nation)` returns a per-agent DataFrame keyed on `agent_id` with `political_exposure`, both affinity scores, the demographic IDs that drive the persona (`year_of_birth, gender_id, region_id, education_id, ukge2019_vote_id, brexit_vote_id`), and the full `get_persona()` string — written verbatim, no truncation. Persisted as `agent_attributes.csv` to both checkpoints and final.
-- **Phase 2 — bucket-stratified derived CSVs ([src/cag/abm/sim.py](../src/cag/abm/sim.py)).** Three pure-function builders that take `results` and join `agent_attributes`: `build_package_index_by_bucket` (cols: `day, political_exposure, n_agents, mean, std, q25, q50, q75`), `build_opinion_shares_by_bucket` (cols: `policy_id, day, political_exposure, n_agents, n_support, n_neutral, n_against, support_pct, neutral_pct, against_pct`), and `build_day0_vs_dayN_shifts` (cols: `agent_id, policy_id, political_exposure, day0_numeric, dayN_numeric, signed_shift, abs_shift`). The "12.6× gap-widening" headline from Run-14 v2 is now derivable from `package_index_by_bucket.csv` alone with no notebook scaffolding.
-- **Phase 3 — bucket plots ([src/cag/abm/sim.py](../src/cag/abm/sim.py)).** `plot_package_index_by_bucket` (one panel per bucket), `plot_opinion_shares_by_bucket` (`policy × bucket` mega-grid), and `plot_gap_widening` (single panel: bold package-index gap + thin per-policy gap lines). Wired into `save_result_plots`.
-- **Phase 4 — calibration, message flow, network snapshot ([src/cag/abm/sim.py](../src/cag/abm/sim.py), [src/cag/abm/networks.py](../src/cag/abm/networks.py)).** `build_calibration_table(results)` computes `pearson_r / spearman_rho / mae / mean_signed_bias` per `(policy_id, day)` against `ground_truth`; `plot_calibration_by_policy` is the per-policy GT-vs-LLM scatter with ρ in the title. `build_message_flow(results)` joins `messages × agent_attributes` to a `(day × phase × sender_side × recipient_bucket)` aggregation with `n_messages` and `mean_chars` — would have flagged the `k_peers=0` waste in one glance. `_safe_network_snapshot(nation)` writes a JSON-safe `{nodes:[{id,bucket,degree}], edges:[[u,v],...]}` file (sibling to `network_diagnostics.json`); `plot_network_graph` renders it with `nx.draw_spring`, node colour by bucket, size by degree.
-- **Phase 5 — assembled survey context + agent timeline ([src/cag/abm/agent.py](../src/cag/abm/agent.py), [src/cag/abm/sim.py](../src/cag/abm/sim.py)).** New `self.survey_assembled_context = {}` on `SurveyedCitizen` (next to `survey_reasoning` / `survey_raw_response`); `administer_survey()` appends `(day, ctx_str)` immediately after `assemble_context()`. Two new `SIM_CONFIG` keys: `timeline_sample_size=3` (default) and `timeline_sample_agent_ids=None` (auto-stratify one agent per top-3-by-size bucket; ties → sorted agent_id; <3 buckets → evenly-spaced agent_ids). `build_agent_timeline(results, sample_ids)` returns a long-format DataFrame (`agent_id, political_exposure, day, phase, phase_order, event_order, event_type, policy_id, counterparty_id, counterparty_role, content, metadata_json`) covering 9 event types: `broadcast_received, broadcast_reflection, peer_message_received, peer_message_sent, peer_reflection, survey_assembled_context, survey_raw_response, survey_reasoning, survey_numeric`. Written to final only (can be GB-scale on long runs) via the new `_CHECKPOINT_SKIP_KEYS = frozenset({"agent_timeline"})` mechanism.
-- **Cross-cutting — `sim_step` instrumentation ([src/cag/abm/environment.py](../src/cag/abm/environment.py), [src/cag/abm/agent.py](../src/cag/abm/agent.py), [src/cag/abm/sim.py](../src/cag/abm/sim.py)).** Monotonic `nation._sim_step` counter (lazy-init on first use, restored to `max(sim_step)` across all loaded sources on resume) incremented at every event-logging site: `message_log` appends in `environment.py`, `agent.reflections.append` calls, survey context capture, survey raw/reasoning append, `daily_summaries` setitem. `messages`, `reflections`, `survey_reasoning`, `survey_raw_response`, `survey_assembled_context`, and `daily_summaries` CSVs all gain a `sim_step` column. **Sort key for any interleaved replay is now `(agent_id, sim_step)` — schema makes zero assumption about phase count, ordering, or repetition.** Three existing tests updated to expect the new column (no regressions).
+- **Phase 1 — agent attribute persistence ([src/cag/abm/environment.py](../../src/cag/abm/environment.py), [src/cag/abm/sim.py](../../src/cag/abm/sim.py)).** `_assign_affinity_rank` now caches `_affinity_score_a` and `_affinity_score_b` on each citizen (mirrors the existing in-place `political_exposure` write). New `collect_agent_attributes(nation)` returns a per-agent DataFrame keyed on `agent_id` with `political_exposure`, both affinity scores, the demographic IDs that drive the persona (`year_of_birth, gender_id, region_id, education_id, ukge2019_vote_id, brexit_vote_id`), and the full `get_persona()` string — written verbatim, no truncation. Persisted as `agent_attributes.csv` to both checkpoints and final.
+- **Phase 2 — bucket-stratified derived CSVs ([src/cag/abm/sim.py](../../src/cag/abm/sim.py)).** Three pure-function builders that take `results` and join `agent_attributes`: `build_package_index_by_bucket` (cols: `day, political_exposure, n_agents, mean, std, q25, q50, q75`), `build_opinion_shares_by_bucket` (cols: `policy_id, day, political_exposure, n_agents, n_support, n_neutral, n_against, support_pct, neutral_pct, against_pct`), and `build_day0_vs_dayN_shifts` (cols: `agent_id, policy_id, political_exposure, day0_numeric, dayN_numeric, signed_shift, abs_shift`). The "12.6× gap-widening" headline from Run-14 v2 is now derivable from `package_index_by_bucket.csv` alone with no notebook scaffolding.
+- **Phase 3 — bucket plots ([src/cag/abm/sim.py](../../src/cag/abm/sim.py)).** `plot_package_index_by_bucket` (one panel per bucket), `plot_opinion_shares_by_bucket` (`policy × bucket` mega-grid), and `plot_gap_widening` (single panel: bold package-index gap + thin per-policy gap lines). Wired into `save_result_plots`.
+- **Phase 4 — calibration, message flow, network snapshot ([src/cag/abm/sim.py](../../src/cag/abm/sim.py), [src/cag/abm/networks.py](../../src/cag/abm/networks.py)).** `build_calibration_table(results)` computes `pearson_r / spearman_rho / mae / mean_signed_bias` per `(policy_id, day)` against `ground_truth`; `plot_calibration_by_policy` is the per-policy GT-vs-LLM scatter with ρ in the title. `build_message_flow(results)` joins `messages × agent_attributes` to a `(day × phase × sender_side × recipient_bucket)` aggregation with `n_messages` and `mean_chars` — would have flagged the `k_peers=0` waste in one glance. `_safe_network_snapshot(nation)` writes a JSON-safe `{nodes:[{id,bucket,degree}], edges:[[u,v],...]}` file (sibling to `network_diagnostics.json`); `plot_network_graph` renders it with `nx.draw_spring`, node colour by bucket, size by degree.
+- **Phase 5 — assembled survey context + agent timeline ([src/cag/abm/agent.py](../../src/cag/abm/agent.py), [src/cag/abm/sim.py](../../src/cag/abm/sim.py)).** New `self.survey_assembled_context = {}` on `SurveyedCitizen` (next to `survey_reasoning` / `survey_raw_response`); `administer_survey()` appends `(day, ctx_str)` immediately after `assemble_context()`. Two new `SIM_CONFIG` keys: `timeline_sample_size=3` (default) and `timeline_sample_agent_ids=None` (auto-stratify one agent per top-3-by-size bucket; ties → sorted agent_id; <3 buckets → evenly-spaced agent_ids). `build_agent_timeline(results, sample_ids)` returns a long-format DataFrame (`agent_id, political_exposure, day, phase, phase_order, event_order, event_type, policy_id, counterparty_id, counterparty_role, content, metadata_json`) covering 9 event types: `broadcast_received, broadcast_reflection, peer_message_received, peer_message_sent, peer_reflection, survey_assembled_context, survey_raw_response, survey_reasoning, survey_numeric`. Written to final only (can be GB-scale on long runs) via the new `_CHECKPOINT_SKIP_KEYS = frozenset({"agent_timeline"})` mechanism.
+- **Cross-cutting — `sim_step` instrumentation ([src/cag/abm/environment.py](../../src/cag/abm/environment.py), [src/cag/abm/agent.py](../../src/cag/abm/agent.py), [src/cag/abm/sim.py](../../src/cag/abm/sim.py)).** Monotonic `nation._sim_step` counter (lazy-init on first use, restored to `max(sim_step)` across all loaded sources on resume) incremented at every event-logging site: `message_log` appends in `environment.py`, `agent.reflections.append` calls, survey context capture, survey raw/reasoning append, `daily_summaries` setitem. `messages`, `reflections`, `survey_reasoning`, `survey_raw_response`, `survey_assembled_context`, and `daily_summaries` CSVs all gain a `sim_step` column. **Sort key for any interleaved replay is now `(agent_id, sim_step)` — schema makes zero assumption about phase count, ordering, or repetition.** Three existing tests updated to expect the new column (no regressions).
 - **Schema + write infrastructure.** `_RESULT_CSV_SCHEMAS` extended with the new entries (`survey_assembled_context`, `agent_attributes`, `agent_timeline`) plus `sim_step` cols on the existing 5. `_write_all_csvs(out_path, results, *, is_checkpoint=False)` now writes derived bucket CSVs + `network_snapshot.json` only on final; `_write_checkpoint` passes `is_checkpoint=True` so checkpoints stay lean. `_load_checkpoint` rehydrates `survey_assembled_context` and the 4 parallel `_*_steps` dicts.
-- **Test coverage.** New file [`tests/test_timeline_and_outputs.py`](../tests/test_timeline_and_outputs.py) (30 tests) covering the sim_step counter, `_safe_step`, agent_attributes collection, network_snapshot shape, timeline sampling, agent_timeline construction, all bucket builders, calibration, message_flow, the checkpoint skip-keys mechanism, and `save_results` writing `network_snapshot.json`.
+- **Test coverage.** New file [`tests/test_timeline_and_outputs.py`](../../tests/test_timeline_and_outputs.py) (30 tests) covering the sim_step counter, `_safe_step`, agent_attributes collection, network_snapshot shape, timeline sampling, agent_timeline construction, all bucket builders, calibration, message_flow, the checkpoint skip-keys mechanism, and `save_results` writing `network_snapshot.json`.
 
 #### 2. Network connectivity 3-layer defence
 
-Motivation: the immediately-prior NB 32 smoke run ([`data/output/experiments/20260622_154751/`](../data/output/experiments/20260622_154751/), n=10) opened with `n_connected_components=5, largest_component_size=4` — a textbook silent failure for an opinion-dynamics study. An empirical sweep (`scripts/estimate_connectivity_threshold.py`, n ∈ {10, 20, 50, 100, 200, 500} × `p_inter` ∈ linspace(0.001, 0.15, 30), 100 trials per cell) confirmed that the old SBM default (`p_inter=0.02`) is hopeless at n=10 (0% connectivity at any p ≤ 0.15) and only ~80% reliable at n=50.
+Motivation: the immediately-prior NB 32 smoke run ([`data/output/experiments/20260622_154751/`](../../data/output/experiments/20260622_154751), n=10) opened with `n_connected_components=5, largest_component_size=4` — a textbook silent failure for an opinion-dynamics study. An empirical sweep (`scripts/estimate_connectivity_threshold.py`, n ∈ {10, 20, 50, 100, 200, 500} × `p_inter` ∈ linspace(0.001, 0.15, 30), 100 trials per cell) confirmed that the old SBM default (`p_inter=0.02`) is hopeless at n=10 (0% connectivity at any p ≤ 0.15) and only ~80% reliable at n=50.
 
-- **Defaults updated ([src/cag/abm/networks.py](../src/cag/abm/networks.py), [src/cag/abm/sim.py](../src/cag/abm/sim.py)).** SBM `p_inter` 0.02 → **0.05** (drops the within-to-between ratio from 7.5:1 to 3:1, yielding ~25% cross-cutting exposure — within the Facebook ~24% of Bakshy et al. 2015 *Science* and the Twitter 18–26% of Halberstam & Knight 2016). ER default `p` 0.05 → **0.10** (n=50 connectivity threshold is `ln(50)/50 ≈ 0.078`, so 0.10 sits comfortably above it). Both builder docstrings updated with rationale and the v0.6 (2026-06-22) note. Watts–Strogatz, Barabási–Albert, and homophily_weighted are unchanged (always connected by construction or by attribute density).
-- **Layer 1 — adaptive small-N bump ([src/cag/abm/sim.py](../src/cag/abm/sim.py)).** New `_adjust_network_params_for_small_n(cfg, n_agents)` called in `run_simulation` **before** `nation.create_network`. SBM: `n < 30` → bump `p_inter` to `max(p_inter, 0.10)` and log WARNING; `30 ≤ n < 100` → bump to `max(p_inter, 0.06)` and log INFO. ER: `n < 30` → bump `p` to 0.20; `30 ≤ n < 100` → bump to 0.10. `n ≥ 100` is left alone. Helper only ever raises values, never lowers — explicit higher overrides survive untouched.
-- **Layer 2 — post-creation auto-repair ([src/cag/abm/sim.py](../src/cag/abm/sim.py)).** New `_auto_connect_components(nation, seed)` called **after** `nation.assign_network_blocks`. If `nx.is_connected(G)` is False, sorts components by `(-len, sorted_node_ids[0])` for determinism, uses `np.random.default_rng(seed)` to pick endpoints, adds exactly `(k − 1)` bridging edges from each smaller component to the largest, re-runs `nation.assign_network_blocks()` to refresh agent `network_neighbors`, and logs a WARNING with `n_components / largest_size / n_added / seed`. Records `nation._auto_connected_edges` (defaults to 0 when already-connected). Defensively guarded with `isinstance(G, nx.Graph)` so MagicMock-based unit tests don't crash.
-- **Layer 3 — visibility ([src/cag/abm/sim.py](../src/cag/abm/sim.py)).** New `_log_network_summary(nation)` emits a single INFO line `Network: n_nodes=…, n_edges=…, n_components=…, mean_degree=…, auto_connected_edges=…` after every setup. `_safe_network_diagnostics` extended (both success and exception branches) with a new `auto_connected_edges` field in `network_diagnostics.json`.
-- **Test coverage.** 13 new tests in three classes in [`tests/test_networks.py`](../tests/test_networks.py): `TestAdjustNetworkParamsForSmallN` (×7: SBM bump at n=10 / n=50 / no-op at n=200 / never lowers explicit high values / ER analogues / skips WS+BA+homophily), `TestAutoConnectComponents` (×4: repairs disjoint graph with correct `(k-1)` edge count / no-op when already connected / safe on MagicMock / deterministic under fixed seed), `TestNetworkDiagnosticsAutoConnectedField` (×2: field present and reflects repair count).
+- **Defaults updated ([src/cag/abm/networks.py](../../src/cag/abm/networks.py), [src/cag/abm/sim.py](../../src/cag/abm/sim.py)).** SBM `p_inter` 0.02 → **0.05** (drops the within-to-between ratio from 7.5:1 to 3:1, yielding ~25% cross-cutting exposure — within the Facebook ~24% of Bakshy et al. 2015 *Science* and the Twitter 18–26% of Halberstam & Knight 2016). ER default `p` 0.05 → **0.10** (n=50 connectivity threshold is `ln(50)/50 ≈ 0.078`, so 0.10 sits comfortably above it). Both builder docstrings updated with rationale and the v0.6 (2026-06-22) note. Watts–Strogatz, Barabási–Albert, and homophily_weighted are unchanged (always connected by construction or by attribute density).
+- **Layer 1 — adaptive small-N bump ([src/cag/abm/sim.py](../../src/cag/abm/sim.py)).** New `_adjust_network_params_for_small_n(cfg, n_agents)` called in `run_simulation` **before** `nation.create_network`. SBM: `n < 30` → bump `p_inter` to `max(p_inter, 0.10)` and log WARNING; `30 ≤ n < 100` → bump to `max(p_inter, 0.06)` and log INFO. ER: `n < 30` → bump `p` to 0.20; `30 ≤ n < 100` → bump to 0.10. `n ≥ 100` is left alone. Helper only ever raises values, never lowers — explicit higher overrides survive untouched.
+- **Layer 2 — post-creation auto-repair ([src/cag/abm/sim.py](../../src/cag/abm/sim.py)).** New `_auto_connect_components(nation, seed)` called **after** `nation.assign_network_blocks`. If `nx.is_connected(G)` is False, sorts components by `(-len, sorted_node_ids[0])` for determinism, uses `np.random.default_rng(seed)` to pick endpoints, adds exactly `(k − 1)` bridging edges from each smaller component to the largest, re-runs `nation.assign_network_blocks()` to refresh agent `network_neighbors`, and logs a WARNING with `n_components / largest_size / n_added / seed`. Records `nation._auto_connected_edges` (defaults to 0 when already-connected). Defensively guarded with `isinstance(G, nx.Graph)` so MagicMock-based unit tests don't crash.
+- **Layer 3 — visibility ([src/cag/abm/sim.py](../../src/cag/abm/sim.py)).** New `_log_network_summary(nation)` emits a single INFO line `Network: n_nodes=…, n_edges=…, n_components=…, mean_degree=…, auto_connected_edges=…` after every setup. `_safe_network_diagnostics` extended (both success and exception branches) with a new `auto_connected_edges` field in `network_diagnostics.json`.
+- **Test coverage.** 13 new tests in three classes in [`tests/test_networks.py`](../../tests/test_networks.py): `TestAdjustNetworkParamsForSmallN` (×7: SBM bump at n=10 / n=50 / no-op at n=200 / never lowers explicit high values / ER analogues / skips WS+BA+homophily), `TestAutoConnectComponents` (×4: repairs disjoint graph with correct `(k-1)` edge count / no-op when already connected / safe on MagicMock / deterministic under fixed seed), `TestNetworkDiagnosticsAutoConnectedField` (×2: field present and reflects repair count).
 
 #### 3. Notebook + script
 
-- New [`notebooks/32_v06_outputs_smoke.ipynb`](../notebooks/32_v06_outputs_smoke.ipynb) — canonical 10-agent × 2-day package-mode smoke whose **only purpose** is to surface every artefact added in v0.6 (file inventory, per-CSV schema preview, each new table, the agent_timeline for sampled agents, every PNG inline). Every key in `SIM_CONFIG` is enumerated explicitly with a `# default` / `# SMOKE OVERRIDE` / `# PROVIDER OVERRIDE` tag and asserted to match. Provider is `openai/gpt-5-mini` for both messaging and surveys.
-- New [`scripts/estimate_connectivity_threshold.py`](../scripts/estimate_connectivity_threshold.py) — empirical SBM connectivity sweep that produced the threshold table used to set the Layer 1 cutoffs. Writes `data/output/connectivity_analysis/connectivity_sweep.csv` and `connectivity_threshold.png`.
+- New [`notebooks/32_v06_outputs_smoke.ipynb`](../../notebooks/32_v06_outputs_smoke.ipynb) — canonical 10-agent × 2-day package-mode smoke whose **only purpose** is to surface every artefact added in v0.6 (file inventory, per-CSV schema preview, each new table, the agent_timeline for sampled agents, every PNG inline). Every key in `SIM_CONFIG` is enumerated explicitly with a `# default` / `# SMOKE OVERRIDE` / `# PROVIDER OVERRIDE` tag and asserted to match. Provider is `openai/gpt-5-mini` for both messaging and surveys.
+- New [`scripts/estimate_connectivity_threshold.py`](../../scripts/estimate_connectivity_threshold.py) — empirical SBM connectivity sweep that produced the threshold table used to set the Layer 1 cutoffs. Writes `data/output/connectivity_analysis/connectivity_sweep.csv` and `connectivity_threshold.png`.
 
 ### NB 32 design
 
@@ -1239,7 +1239,7 @@ The cross-bucket gap-widening narrative does not appear in this run — the buck
 ### What this run does **not** do
 
 - No claim about the science. n=10 × 2 days is too small for any persuasion signature; the bucket cells are singletons in 2/4 buckets.
-- No checkpoint exercise. NB 32 calls `run_simulation(config, sn)` directly with no `checkpoint_dir`, so `checkpoint_every_day` falls through to the Python-side default of `False`. The CLI default is `True` (see [src/cag/\_\_main\_\_.py](../src/cag/__main__.py)); the two are intentionally different — interactive notebooks rarely need per-day on-disk state, batch AIRE runs always do.
+- No checkpoint exercise. NB 32 calls `run_simulation(config, sn)` directly with no `checkpoint_dir`, so `checkpoint_every_day` falls through to the Python-side default of `False`. The CLI default is `True` (see [src/cag/\_\_main\_\_.py](../../src/cag/__main__.py)); the two are intentionally different — interactive notebooks rarely need per-day on-disk state, batch AIRE runs always do.
 - No resume exercise. The next AIRE production run (n ≥ 50, days ≥ 5) is what tests v0.6 outputs and the connectivity defence at scale.
 
 ### Status
@@ -1257,8 +1257,8 @@ The cross-bucket gap-widening narrative does not appear in this run — the buck
 ## Run-14 v2: post-NB-31-fix split50 — first end-to-end validation
 
 **Date:** 2026-06-21
-**Result dir:** [data/output/experiments/run_6214872/20260621_034000/](../data/output/experiments/run_6214872/20260621_034000/)
-**Baseline for comparison:** [data/output/experiments/run_6202348_R14_split50_5day/20260619_192129/](../data/output/experiments/run_6202348_R14_split50_5day/20260619_192129/) (the original R14 split50, pre-fix)
+**Result dir:** [data/output/experiments/run_6214872/20260621_034000/](../../data/output/experiments/run_6214872/20260621_034000)
+**Baseline for comparison:** [data/output/experiments/run_6202348_R14_split50_5day/20260619_192129/](../../data/output/experiments/run_6202348_R14_split50_5day/20260619_192129) (the original R14 split50, pre-fix)
 **AIRE job:** 6214872 (Qwen3-8B via vLLM on a single GPU node)
 
 **TL;DR.** First full-pipeline run after the NB-31 package-mode survey-context fix landed in `main`. Bit-identical configuration to the pre-fix R14 split50 baseline (n=50, days=5, k_peers=0, GT-anchor, debias=True, reach=(1.0,1.0), seed=42, same 50 sampled agents, same A=25 / B=25 split50 bucketing), so the only thing differing between the two runs is the fix itself. **Day-5 cross-bucket gap-widening jumps from +0.053 (pre-fix) to +0.667 (post-fix) — a 12.6× amplification that matches NB-31's surgical-replay prediction (~+0.67 on GPT-5.4-mini) within the noise.** This is the first end-to-end confirmation that the fix produces the predicted bucket-asymmetric persuasion signature in a fresh production simulation, not just in a frozen-state replay. Status: smoke validation of the fix on a small run; **not a publishable result.** The planned production run is n=100, 30 days, with reach / exposure asymmetry levers swept.
@@ -1267,13 +1267,13 @@ The cross-bucket gap-widening narrative does not appear in this run — the buck
 
 Three small follow-ups landed alongside the NB-31 context fix (full suite 495 passing, 1 skipped):
 
-1. **`k_peers=0` short-circuit in peer messaging.** `run_peer_messaging` and `run_package_peer_messaging` both used to fall through `random.sample(neighbors, 0)` for every citizen and still call `generate_peer_message` on each one before discovering the inbox was empty. The log line `48 citizens generated package messages, 0 citizens reflected` was the visible artefact: 48 LLM generations × 5 days = ~240 wasted Qwen3-8B calls per r14-style run with k_peers=0. New early-return at the top of both functions: `if k_peers == 0: log "peer messaging disabled (k_peers=0), skipping"; return zero-filled dict`. Tests added: `TestPeerMessagingKPeersZeroShortCircuits` in [tests/test_peer_messaging.py](../tests/test_peer_messaging.py) (asserts `send_chat.assert_not_called()` for both single-policy and package variants).
-2. **Per-day checkpointing now default-on.** Recent r14-family runs accidentally shipped without checkpoints because the new AIRE Quickstart sbatch invocations dropped the `--checkpoint-every-day` flag, while the earlier R14 split50 baseline ([run_6202348](../data/output/experiments/run_6202348_R14_split50_5day/checkpoints/)) had them. Promoting checkpointing to default-on (`argparse.BooleanOptionalAction, default=True`) means every run is wall-clock-kill-recoverable by default; `--no-checkpoint-every-day` opts out for throwaway smoke tests. Tests added in [tests/test_cli.py](../tests/test_cli.py) (`test_checkpoint_default_on`, `test_checkpoint_opt_out`).
-3. **Docs in sync.** [docs/AIRE_Quickstart.md](AIRE_Quickstart.md) §5 / §7 / §10.6 / §11 updated to reflect both defaults; [scripts/aire/run.sh](../scripts/aire/run.sh) inline examples updated to remove the now-redundant `--checkpoint-every-day` flag.
+1. **`k_peers=0` short-circuit in peer messaging.** `run_peer_messaging` and `run_package_peer_messaging` both used to fall through `random.sample(neighbors, 0)` for every citizen and still call `generate_peer_message` on each one before discovering the inbox was empty. The log line `48 citizens generated package messages, 0 citizens reflected` was the visible artefact: 48 LLM generations × 5 days = ~240 wasted Qwen3-8B calls per r14-style run with k_peers=0. New early-return at the top of both functions: `if k_peers == 0: log "peer messaging disabled (k_peers=0), skipping"; return zero-filled dict`. Tests added: `TestPeerMessagingKPeersZeroShortCircuits` in [tests/test_peer_messaging.py](../../tests/test_peer_messaging.py) (asserts `send_chat.assert_not_called()` for both single-policy and package variants).
+2. **Per-day checkpointing now default-on.** Recent r14-family runs accidentally shipped without checkpoints because the new AIRE Quickstart sbatch invocations dropped the `--checkpoint-every-day` flag, while the earlier R14 split50 baseline ([run_6202348](../../data/output/experiments/run_6202348_R14_split50_5day/checkpoints)) had them. Promoting checkpointing to default-on (`argparse.BooleanOptionalAction, default=True`) means every run is wall-clock-kill-recoverable by default; `--no-checkpoint-every-day` opts out for throwaway smoke tests. Tests added in [tests/test_cli.py](../../tests/test_cli.py) (`test_checkpoint_default_on`, `test_checkpoint_opt_out`).
+3. **Docs in sync.** [docs/AIRE_Quickstart.md](https://github.com/compolis/Climate-Action-GABM/blob/main/documentation/guides/AIRE_Quickstart.md) §5 / §7 / §10.6 / §11 updated to reflect both defaults; [scripts/aire/run.sh](../../scripts/aire/run.sh) inline examples updated to remove the now-redundant `--checkpoint-every-day` flag.
 
 ### Design
 
-Identical configuration to [run_6202348](../data/output/experiments/run_6202348_R14_split50_5day/20260619_192129/): `n_citizens=50`, `days=5`, `k_peers_per_day=0`, `communication_mode=package`, `package_policies` = all six, `day0_anchor=ground_truth_with_rationale`, `debias=True`, `thinking=False`, `random_seed=42`, `political_exposure_mode=rule_affinity_rank`, `political_exposure_targets=split50` (= `{A-only:0.50, B-only:0.50, both:0.00, neither:0.00}`), `reach_a=reach_b=1.0`, `llm_model=Qwen/Qwen3-8B`, `llm_provider=local` (vLLM v0.8.5). YouGov seed is shared so the 50 sampled agents are the same in both runs, and `split50` is fully deterministic on the affinity-rank rule, so A=25 / B=25 bucket membership is identical agent-for-agent between pre-fix and post-fix.
+Identical configuration to [run_6202348](../../data/output/experiments/run_6202348_R14_split50_5day/20260619_192129): `n_citizens=50`, `days=5`, `k_peers_per_day=0`, `communication_mode=package`, `package_policies` = all six, `day0_anchor=ground_truth_with_rationale`, `debias=True`, `thinking=False`, `random_seed=42`, `political_exposure_mode=rule_affinity_rank`, `political_exposure_targets=split50` (= `{A-only:0.50, B-only:0.50, both:0.00, neither:0.00}`), `reach_a=reach_b=1.0`, `llm_model=Qwen/Qwen3-8B`, `llm_provider=local` (vLLM v0.8.5). YouGov seed is shared so the 50 sampled agents are the same in both runs, and `split50` is fully deterministic on the affinity-rank rule, so A=25 / B=25 bucket membership is identical agent-for-agent between pre-fix and post-fix.
 
 The only thing differing between the two runs is the code path inside `administer_survey()` and `run_end_of_day_survey()`. Pre-fix, package-mode surveys passed the per-policy id to `assemble_context()` and got an empty context view; post-fix, they pass `context_policy_id=PACKAGE_SCOPE` and get the actual reflections + daily summaries.
 
@@ -1342,10 +1342,10 @@ The bucket-asymmetric signature still holds — Δ-gap-widening is the right qua
 ## NB 30 + NB 31: Package-mode survey context bug — discovery and fix
 
 **Date:** 2026-06-20
-**Notebooks:** [notebooks/30_surgical_survey_replay.ipynb](../notebooks/30_surgical_survey_replay.ipynb), [notebooks/31_package_mode_fix_validation.ipynb](../notebooks/31_package_mode_fix_validation.ipynb)
+**Notebooks:** [notebooks/30_surgical_survey_replay.ipynb](../../notebooks/30_surgical_survey_replay.ipynb), [notebooks/31_package_mode_fix_validation.ipynb](../../notebooks/31_package_mode_fix_validation.ipynb)
 **Result dirs:**
-- NB 30 — [data/output/calibration/30_replay_20260620_162106/](../data/output/calibration/30_replay_20260620_162106/)
-- NB 31 — [data/output/calibration/31_pkgfix_20260620_193325/](../data/output/calibration/31_pkgfix_20260620_193325/)
+- NB 30 — [data/output/calibration/30_replay_20260620_162106/](../../data/output/calibration/30_replay_20260620_162106)
+- NB 31 — [data/output/calibration/31_pkgfix_20260620_193325/](../../data/output/calibration/31_pkgfix_20260620_193325)
 
 **TL;DR.** Two-step audit of Run 14's "Qwen3-8B is non-persuasive" finding. NB 30 froze the R14 split50 reflections and daily summaries for 20 stratified agents, replayed the per-policy survey through three frontier models (claude-sonnet-4-6, claude-haiku-4-5, gpt-5.4-mini), and observed that **all four models — including Qwen — plateau from Day 1 onward in lockstep**. That cross-model lockstep ruled out "Qwen-specific lethargy" and surfaced the actual cause: in `package` mode the end-of-day per-policy survey was assembling its system prompt with `policy_id=<one policy>`, but `manage_memory` writes reflections and `daily_summaries` under `PACKAGE_SCOPE`, so `assemble_context()` filtered every package-scoped entry out. Every day's survey context was **bit-identical** across days. NB 31 patched `administer_survey()` to thread `context_policy_id=PACKAGE_SCOPE` for package-mode runs and replayed the same 20 agents under Qwen3-8B (4-bit MLX local) + gpt-5.4-mini. With the fix, **survey answers move in the bucket-asymmetric direction the broadcast assignment predicts**: A-only +0.05 to +0.18 mean signed shift across days, B-only −0.25 to −0.62. The bug was real and material; the Run 14 persuasion finding needs to be re-measured under the fix.
 
@@ -1363,7 +1363,7 @@ The bucket-asymmetric signature still holds — Δ-gap-widening is the right qua
 
 Closest to Qwen is **gpt-5.4-mini** (mean |Δ| = 0.27), which is why NB 31 used it as the second model for the fix verification: a model whose voice already tracks Qwen's gives a cleaner read on what the *fix* changes vs what the model character changes.
 
-**The smoking gun (bucket-mean trajectory, [data/output/calibration/30_replay_20260620_162106/bucket_trajectory.png](../data/output/calibration/30_replay_20260620_162106/bucket_trajectory.png)).** Day 1 → Day 3 trajectories for all four models pooled over six policies:
+**The smoking gun (bucket-mean trajectory, [data/output/calibration/30_replay_20260620_162106/bucket_trajectory.png](../../data/output/calibration/30_replay_20260620_162106/bucket_trajectory.png)).** Day 1 → Day 3 trajectories for all four models pooled over six policies:
 
 | bucket | model | Day 1 | Day 2 | Day 3 |
 |---|---|---:|---:|---:|
@@ -1384,11 +1384,11 @@ The cross-model spread is **vertical (model character)**, not **horizontal (day-
 
 A new optional argument `context_policy_id: str | None = None` was threaded through both `SurveyedCitizen.administer_survey()` and `SurveyedNation.run_end_of_day_survey()`. When set, it is the policy id used to **build the system prompt context** (i.e. the `assemble_context()` call), while the per-policy `policy_id` continues to select the question text and the storage keys. In `sim.py`'s package-mode end-of-day survey loop, `context_policy_id=PACKAGE_SCOPE` is now passed explicitly. Single-policy mode is untouched. Storage keys still use `policy_id`, so reading back the trajectory CSVs is unchanged.
 
-Diff scope: [src/cag/abm/agent.py](../src/cag/abm/agent.py) (`administer_survey` signature + body), [src/cag/abm/environment.py](../src/cag/abm/environment.py) (`run_end_of_day_survey` signature + threading), [src/cag/abm/sim.py](../src/cag/abm/sim.py) (~line 460, package-mode call site). Test suite: 470 passing + 1 skipped, no regressions.
+Diff scope: [src/cag/abm/agent.py](../../src/cag/abm/agent.py) (`administer_survey` signature + body), [src/cag/abm/environment.py](../../src/cag/abm/environment.py) (`run_end_of_day_survey` signature + threading), [src/cag/abm/sim.py](../../src/cag/abm/sim.py) (~line 460, package-mode call site). Test suite: 470 passing + 1 skipped, no regressions.
 
 ### NB 31 — post-fix validation replay (the fix actually changes the answer)
 
-**Design.** Same 20 agents from NB 30. Now replay the **2-step debias chain with `policy_id=PACKAGE_SCOPE` in the system prompt** — bit-for-bit what the patched production path now does. Two models: **Qwen3-8B (local, 4-bit MLX quant)** and **gpt-5.4-mini** (clean fix-only signal since it's the same model as NB 30 with only the prompt construction changed). Budget: 2 models × 20 agents × 3 days × 6 policies × 2 debias steps = 1,440 calls. Output: [data/output/calibration/31_pkgfix_20260620_193325/](../data/output/calibration/31_pkgfix_20260620_193325/).
+**Design.** Same 20 agents from NB 30. Now replay the **2-step debias chain with `policy_id=PACKAGE_SCOPE` in the system prompt** — bit-for-bit what the patched production path now does. Two models: **Qwen3-8B (local, 4-bit MLX quant)** and **gpt-5.4-mini** (clean fix-only signal since it's the same model as NB 30 with only the prompt construction changed). Budget: 2 models × 20 agents × 3 days × 6 policies × 2 debias steps = 1,440 calls. Output: [data/output/calibration/31_pkgfix_20260620_193325/](../../data/output/calibration/31_pkgfix_20260620_193325).
 
 A md5-hash diagnostic (Cell 6) explicitly asserts that post-fix `get_system_prompt(day, PACKAGE_SCOPE)` differs across days 1/2/3 while pre-fix `get_system_prompt(day, <one policy>)` is bit-identical — passes for every (agent, policy) sampled. The fix demonstrably reaches the prompt.
 
@@ -1460,11 +1460,11 @@ Nearly half of B-only cells moved at least one step. The bucket asymmetry is aga
 **Cluster:** AIRE HPC, GPU node (NVIDIA H100, CUDA 12.6), vLLM 0.8.5 in Apptainer serving `Qwen/Qwen3-8B` (bf16)
 **Slurm jobs:** `6202348` (split50, anchor=GT, 5 days), `6203838` (neither baseline, anchor=GT, 5 days), `6204291` (split50, anchor=LLM, 4 days completed of 5 planned)
 **Result files:**
-- split50 — [data/output/experiments/run_6202348_R14_split50_5day/20260619_192129/](../data/output/experiments/run_6202348_R14_split50_5day/20260619_192129/)
-- neither — [data/output/experiments/run_6203838_R14_neither_5day/20260619_184539/](../data/output/experiments/run_6203838_R14_neither_5day/20260619_184539/)
-- anchor_llm — [data/output/experiments/run_6204291_R14_split50_5day_anchor_llm/checkpoints/](../data/output/experiments/run_6204291_R14_split50_5day_anchor_llm/checkpoints/) (CSVs sit in `checkpoints/` because the wall-clock-killed run never reached the final save step; checkpoint_meta records `last_completed_day = 4`)
+- split50 — [data/output/experiments/run_6202348_R14_split50_5day/20260619_192129/](../../data/output/experiments/run_6202348_R14_split50_5day/20260619_192129)
+- neither — [data/output/experiments/run_6203838_R14_neither_5day/20260619_184539/](../../data/output/experiments/run_6203838_R14_neither_5day/20260619_184539)
+- anchor_llm — [data/output/experiments/run_6204291_R14_split50_5day_anchor_llm/checkpoints/](../../data/output/experiments/run_6204291_R14_split50_5day_anchor_llm/checkpoints) (CSVs sit in `checkpoints/` because the wall-clock-killed run never reached the final save step; checkpoint_meta records `last_completed_day = 4`)
 
-**Analysis script:** [sandbox/ajay_sandbox/run14_split50_analysis.py](../sandbox/ajay_sandbox/run14_split50_analysis.py)
+**Analysis script:** [sandbox/ajay_sandbox/run14_split50_analysis.py](../../sandbox/ajay_sandbox/run14_split50_analysis.py)
 
 Designed in response to Run 13's muted aggregate signal and the persuasion-responsiveness concern (Run 13 §K). Three runs were submitted in parallel:
 
@@ -1574,7 +1574,7 @@ The rank-affinity sort correctly put the 25 most pro-climate agents (by YouGov s
 
 ### Operational notes
 
-- The anchor_llm run was killed by the 2-hour wall time during Day 5's 5th policy survey. CSVs were salvaged from `checkpoints/` (`last_completed_day = 4`). Resume infrastructure (`--resume` CLI flag in [src/cag/__main__.py](../src/cag/__main__.py), `RESUME=1`+`OUTDIR=` env-var overrides in [scripts/aire/smoke.sh](../scripts/aire/smoke.sh)) is now wired up for future kills.
+- The anchor_llm run was killed by the 2-hour wall time during Day 5's 5th policy survey. CSVs were salvaged from `checkpoints/` (`last_completed_day = 4`). Resume infrastructure (`--resume` CLI flag in [src/cag/__main__.py](../../src/cag/__main__.py), `RESUME=1`+`OUTDIR=` env-var overrides in [scripts/aire/smoke.sh](../../scripts/aire/smoke.sh)) is now wired up for future kills.
 - Both completed runs (split50, neither) finished under wall time; the neither run is the cheapest baseline available (no broadcasts → ~70% of split50's LLM call count).
 - All three runs reused seed=42, n_citizens=50, Qwen3-8B bf16, llm_temperature=0.5, debias=on, thinking=off — only the three knobs in the configuration table above were changed across runs.
 
@@ -1586,10 +1586,10 @@ The rank-affinity sort correctly put the 25 most pro-climate agents (by YouGov s
 **Cluster:** AIRE HPC, GPU node (NVIDIA H100, CUDA 12.6), vLLM 0.8.5 in Apptainer serving `Qwen/Qwen3-8B` (bf16)
 **Slurm jobs:** `6045935` (S, symmetric), `6046803` (C1, reform-dominant), `6046804` (C3, green-dominant)
 **Result files:**
-- S  — [data/output/experiments/run_6045935_S_symmetric_nopeer/20260617_010957/](../data/output/experiments/run_6045935_S_symmetric_nopeer/20260617_010957/)
-- C1 — [data/output/experiments/run_6046803_C1_reform_dominant_nopeer/20260617_005519/](../data/output/experiments/run_6046803_C1_reform_dominant_nopeer/20260617_005519/)
-- C3 — [data/output/experiments/run_6046804_C3_green_dominant_nopeer/20260617_005418/](../data/output/experiments/run_6046804_C3_green_dominant_nopeer/20260617_005418/)
-**Analysis script:** [sandbox/ajay_sandbox/run13_nopeer_analysis.py](../sandbox/ajay_sandbox/run13_nopeer_analysis.py)
+- S  — [data/output/experiments/run_6045935_S_symmetric_nopeer/20260617_010957/](../../data/output/experiments/run_6045935_S_symmetric_nopeer/20260617_010957)
+- C1 — [data/output/experiments/run_6046803_C1_reform_dominant_nopeer/20260617_005519/](../../data/output/experiments/run_6046803_C1_reform_dominant_nopeer/20260617_005519)
+- C3 — [data/output/experiments/run_6046804_C3_green_dominant_nopeer/20260617_005418/](../../data/output/experiments/run_6046804_C3_green_dominant_nopeer/20260617_005418)
+**Analysis script:** [sandbox/ajay_sandbox/run13_nopeer_analysis.py](../../sandbox/ajay_sandbox/run13_nopeer_analysis.py)
 
 Follow-up to Run 12. Two changes from Run 12: (1) `k_peers_per_day = 0` (peer messaging fully disabled — `run_package_peer_messaging` now early-returns when `k_peers <= 0`); (2) `political_exposure_targets = {A-only: 0.05, B-only: 0.05, both: 0.50, neither: 0.40}` per supervisor recommendation, replacing the previous `committed_minority_symmetric` (11/11/33/45) default. Hypothesis going in: with peers muted, the reach-asymmetry signal should finally show up in the aggregate trajectory. **Hypothesis not supported at the cohort-mean level**, but a cleaner partial signal is now visible inside the conditional-by-exposure-bucket cut (§G).
 
@@ -1799,9 +1799,9 @@ Cut roughly in half vs Run 12 (~3.4 h). The savings come from (a) no peer-messag
 **Cluster:** AIRE HPC, GPU node (NVIDIA H100, CUDA 12.6), vLLM 0.8.5 in Apptainer serving `Qwen/Qwen3-8B` (bf16)
 **Slurm jobs:** `5985256` (S, symmetric), `5993181` (C1, reform-dominant), `5993232` (C3, green-dominant)
 **Result files:**
-- S  — [data/output/experiments/run_5985256_S_symmetric/20260616_001620/](../data/output/experiments/run_5985256_S_symmetric/20260616_001620/)
-- C1 — [data/output/experiments/run_5993181_C1_reform_dominant/20260616_043552/](../data/output/experiments/run_5993181_C1_reform_dominant/20260616_043552/)
-- C3 — [data/output/experiments/run_5993232_C3_green_dominant/20260616_043647/](../data/output/experiments/run_5993232_C3_green_dominant/20260616_043647/)
+- S  — [data/output/experiments/run_5985256_S_symmetric/20260616_001620/](../../data/output/experiments/run_5985256_S_symmetric/20260616_001620)
+- C1 — [data/output/experiments/run_5993181_C1_reform_dominant/20260616_043552/](../../data/output/experiments/run_5993181_C1_reform_dominant/20260616_043552)
+- C3 — [data/output/experiments/run_5993232_C3_green_dominant/20260616_043647/](../../data/output/experiments/run_5993232_C3_green_dominant/20260616_043647)
 
 First full-scale (n=50, 7 days) reach-asymmetry sweep on the HPC stack with `thinking=False` (per the Run 11 recommendation). The three conditions vary only the broadcast-reach knobs (`reach_a`, `reach_b`); every other dimension — seed, sampled cohort, network, prompts, exposure mode, message pool — is held fixed. **Headline finding: peer messaging swamps the broadcast channel, so muting one political agent to 23 % of its baseline audience produces essentially zero aggregate movement.** The opportunity to extract value from this run is therefore not in the asymmetry effect itself, but in a battery of *quality dimensions* the run lets us check at scale for the first time (see §"Quality of the simulation run", below).
 
@@ -1840,7 +1840,7 @@ From `messages.csv`, unique recipients per political broadcast per day:
 | C1 (0.25 / 1.0) | **5** | 22 |
 | C3 (1.0 / 0.25) | 22 | **5** |
 
-Audience composition is identical in all three runs (the seed-42 cohort produces 6 A-only / 6 B-only / 16 both / 22 neither under `rule_affinity_rank` + default targets — see [sandbox/ajay_sandbox/check_reach_split.py](../sandbox/ajay_sandbox/check_reach_split.py)). The reach knob only subsamples *who hears the broadcast*; per-citizen `political_exposure` labels are untouched.
+Audience composition is identical in all three runs (the seed-42 cohort produces 6 A-only / 6 B-only / 16 both / 22 neither under `rule_affinity_rank` + default targets — see [sandbox/ajay_sandbox/check_reach_split.py](../../sandbox/ajay_sandbox/check_reach_split.py)). The reach knob only subsamples *who hears the broadcast*; per-citizen `political_exposure` labels are untouched.
 
 ### Headline: trajectories are essentially flat across the three conditions
 
@@ -1904,7 +1904,7 @@ The pattern is consistent with the per-day end-of-day survey logs (`run.log`): m
 
 ### Quality of the simulation run (Qwen3-8B local LLM behaviour at n=50, 7 days)
 
-The chief value of these three runs is that they give us 6,000+ on-task LLM completions on a real persona × policy grid. Five dimensions, all computed from the artefact CSVs (see [sandbox/ajay_sandbox/run12_asymmetry_analysis.py](../sandbox/ajay_sandbox/run12_asymmetry_analysis.py)):
+The chief value of these three runs is that they give us 6,000+ on-task LLM completions on a real persona × policy grid. Five dimensions, all computed from the artefact CSVs (see [sandbox/ajay_sandbox/run12_asymmetry_analysis.py](../../sandbox/ajay_sandbox/run12_asymmetry_analysis.py)):
 
 **1. Reflection completeness and length** (one per agent per phase that received messages; phases C + the broadcast phases yield up to ~12 reflections per agent over 7 days):
 
@@ -2003,8 +2003,8 @@ S is slightly slower because it has 22 + 22 = 44 broadcast deliveries per day (a
 **Cluster:** AIRE HPC, `gpu018.aire.lee.alces.network` (CUDA 12.6), vLLM 0.8.5 in Apptainer
 **Slurm jobs:** `5957902` (thinking OFF), `5975867` (thinking ON)
 **Result files:**
-- OFF — [data/output/experiments/run_5957902/20260615_145510/](../data/output/experiments/run_5957902/20260615_145510/)
-- ON  — [data/output/experiments/run_5975867/20260615_185649/](../data/output/experiments/run_5975867/20260615_185649/)
+- OFF — [data/output/experiments/run_5957902/20260615_145510/](../../data/output/experiments/run_5957902/20260615_145510)
+- ON  — [data/output/experiments/run_5975867/20260615_185649/](../../data/output/experiments/run_5975867/20260615_185649)
 
 First true apples-to-apples comparison of `thinking=true` vs `thinking=false` for the integrated `provider="local"` path against a real chat-template-honouring backend (vLLM serving `Qwen/Qwen3-8B` in bf16). Replaces the misattributed NB 24 / NB 25 "thinking helps" claim (see *Correction* at end of this section).
 
@@ -2038,7 +2038,7 @@ Identical between the two jobs except the `thinking` flag.
 
 ### Parser-bug fix that made this comparison possible
 
-vLLM honours `chat_template_kwargs.enable_thinking` and, when enabled, emits real `<think>...</think>` blocks in the Step-2 letter response. The existing `parse_letter_response()` uses `re.search(r"\b([A-G])\b", text)` and returned the first A–G inside the think block instead of the final answer, producing opinion swings of ±4/±5/±6 against ground truth in early test runs. Fixed by an unconditional strip in [src/cag/io/llm.py](../src/cag/io/llm.py) `_send_local()`:
+vLLM honours `chat_template_kwargs.enable_thinking` and, when enabled, emits real `<think>...</think>` blocks in the Step-2 letter response. The existing `parse_letter_response()` uses `re.search(r"\b([A-G])\b", text)` and returned the first A–G inside the think block instead of the final answer, producing opinion swings of ±4/±5/±6 against ground truth in early test runs. Fixed by an unconditional strip in [src/cag/io/llm.py](../../src/cag/io/llm.py) `_send_local()`:
 
 ```python
 text = re.sub(r"<think>.*?</think>\s*", "", text, flags=re.DOTALL)
@@ -2146,8 +2146,8 @@ Same persona, same broadcasts received, same target peer — ON is slightly more
 ## Run 10: NB 29 — Canonical Full-Scale Smoke (offline broadcasts + local LLM, package mode)
 
 **Date:** 2026-05-22 (run), 2026-05-24 (fresh-kernel replay of headline metrics)
-**Notebook:** [notebooks/29_canonical_full_smoke.ipynb](../notebooks/29_canonical_full_smoke.ipynb)
-**Result files:** [data/output/experiments/20260522_234958/](../data/output/experiments/20260522_234958/)
+**Notebook:** [notebooks/29_canonical_full_smoke.ipynb](../../notebooks/29_canonical_full_smoke.ipynb)
+**Result files:** [data/output/experiments/20260522_234958/](../../data/output/experiments/20260522_234958)
 
 NB 29 is the canonical end-to-end smoke reference for the current research default stack: offline political-message pool (`v1`) + local Qwen3 + package mode. The notebook now includes a load-from-disk cell so Section 8 can be rerun in a fresh kernel without rerunning the full simulation.
 
@@ -2200,8 +2200,8 @@ This is now a reliable acceptance template before scaling `n_citizens` or day co
 ## Affinity-based political exposure: NB 27 — committed-minority audience sanity check
 
 **Date:** 2026-05-20
-**Notebook:** [notebooks/27_affinity_exposure_demo.ipynb](../notebooks/27_affinity_exposure_demo.ipynb)
-**Code under test:** [src/cag/abm/environment.py](../src/cag/abm/environment.py) — `assign_political_exposure`, `_green_affinity_score`, `_reform_affinity_score`, `_safe_int`
+**Notebook:** [notebooks/27_affinity_exposure_demo.ipynb](../../notebooks/27_affinity_exposure_demo.ipynb)
+**Code under test:** [src/cag/abm/environment.py](../../src/cag/abm/environment.py) — `assign_political_exposure`, `_green_affinity_score`, `_reform_affinity_score`, `_safe_int`
 **Pool:** full YouGov, N = 1483 (`data/yougov_survey_data/YouGovProcessedData.csv`)
 
 The v0.5 committed-minority reframe replaced the vote-only `priority_chain` exposure rule with an **affinity-rank** assignment: each citizen receives a continuous green-affinity and Reform-affinity score, and a cell label (`A-only` / `B-only` / `both` / `neither`) is allocated by deterministic top-K on the two scores so that realised cell shares match a configurable target preset. NB 27 is the structural sanity check: no LLM calls, no simulation — just verify that on the real YouGov pool (i) the rank mode hits its targets exactly, (ii) the cell-level demographic profile is interpretable, and (iii) the weight presets are not collapsed.
@@ -2263,7 +2263,7 @@ The cell shares are identical across presets by construction (top-K is share-pre
 NB 27 surfaced two issues. Both are resolved.
 
 1. **`_safe_int` silently returned 0 on every GABM ordinal attribute.** The psychometric IDs (`openness_id`, `rwa_id`, `sdo_id`, `selftransc_id`) are `GABMAttributeID` enum subclasses that expose their ordinal via `.id`. The previous `_safe_int` body did a bare `int(attr_id)`, which raises `TypeError` on a `GABMAttributeID`, was swallowed by the `except`, and silently returned `0`. The full psych-scale weight bucket therefore multiplied zero on every `build_nation` citizen, making the three weight presets produce bit-identical cell shares on the first pass of this notebook. The unit-test suite missed the bug because its synthetic fixtures pass raw `int` ordinals, on which `int(v)` works.
-   - **Fix.** `_safe_int` now reads `.id` first, then `.value`, then falls back to `int()`. A new `TestSafeInt` regression class in [tests/test_exposure.py](../tests/test_exposure.py) exercises the GABM-attribute path directly and includes an integration-level guard (`test_psych_scales_contribute_to_score`) that builds two otherwise-identical citizens differing only on `openness_id` and asserts their green-affinity scores differ.
+   - **Fix.** `_safe_int` now reads `.id` first, then `.value`, then falls back to `int()`. A new `TestSafeInt` regression class in [tests/test_exposure.py](../../tests/test_exposure.py) exercises the GABM-attribute path directly and includes an integration-level guard (`test_psych_scales_contribute_to_score`) that builds two otherwise-identical citizens differing only on `openness_id` and asserts their green-affinity scores differ.
 2. **`rule_affinity_logistic` systematically missed cell-share targets by ±18 pp.** Independent Bernoulli sampling on two anti-correlated affinity scores (`corr = -0.975` on this pool) collapses the `both` cell and inflates the singleton cells, even though per-side marginals are individually correct. Across 30 seeds the mode produced `{A: 0.287, B: 0.290, both: 0.151, neither: 0.272}` against a symmetric target of `{0.11, 0.11, 0.33, 0.45}`. The unit-test suite missed this because the original `TestAffinityLogistic` tests only checked per-side marginals on a synthetic n=400 fixture with uncorrelated scores.
    - **Fix.** The `rule_affinity_logistic` mode has been removed entirely — from `VALID_EXPOSURE_MODES`, the dispatcher, `_assign_affinity_logistic`, the `affinity_logistic_temperature` SIM_CONFIG key, the `_RESUME_HARD_KEYS` list, and the test suite. v0.5 ships with two modes only: `rule_priority_chain` (legacy) and `rule_affinity_rank` (new default).
 
@@ -2278,10 +2278,10 @@ The v0.5 committed-minority audience reframe is structurally sound on the real Y
 ## v0.5 Integration Parity: NB 25 — Qwen3 8B 4-bit via integrated `provider="local"`
 
 **Date:** 2026-05-09
-**Notebook:** [notebooks/25_local_llm_integrated_smoke.ipynb](../notebooks/25_local_llm_integrated_smoke.ipynb)
-**Result files:** [data/output/local_qwen3_integrated_20260509_182846/20260509_202846/](../data/output/local_qwen3_integrated_20260509_182846/20260509_202846/)
+**Notebook:** [notebooks/25_local_llm_integrated_smoke.ipynb](../../notebooks/25_local_llm_integrated_smoke.ipynb)
+**Result files:** [data/output/local_qwen3_integrated_20260509_182846/20260509_202846/](../../data/output/local_qwen3_integrated_20260509_182846/20260509_202846)
 
-NB 24 was the local-LLM proof-of-concept via in-notebook monkey-patching. NB 25 is the same run executed through the **v0.5 integrated `provider="local"`** branch in [src/cag/io/llm.py](../src/cag/io/llm.py) — no patching, no notebook-side wrapper. The purpose is parity validation before promoting any future local-model work onto the supported path.
+NB 24 was the local-LLM proof-of-concept via in-notebook monkey-patching. NB 25 is the same run executed through the **v0.5 integrated `provider="local"`** branch in [src/cag/io/llm.py](../../src/cag/io/llm.py) — no patching, no notebook-side wrapper. The purpose is parity validation before promoting any future local-model work onto the supported path.
 
 ### Configuration
 
@@ -2309,7 +2309,7 @@ Identical to NB 24 (10 agents × 1 day, Ban Petrol Cars, `mlx-community/Qwen3-8B
 - `cag.io.llm.send_chat(provider="local")` is functionally identical to NB 24's patched path.
 - `_MODEL_REGISTRY` correctly applies Qwen3 sampling, max_tokens, and the `enable_thinking` chat-template kwarg under a live mlx-lm server.
 - `SIM_CONFIG["local_base_url"]` propagates through `_resolve_runtime` → `configure_local()` → every downstream `send_chat` call site without touching `agent.py` or `environment.py`.
-- `ping_local()` startup health-check ran cleanly; the empty-thinking retry path was not triggered (0 retries) but is exercised in [tests/test_llm_local.py](../tests/test_llm_local.py).
+- `ping_local()` startup health-check ran cleanly; the empty-thinking retry path was not triggered (0 retries) but is exercised in [tests/test_llm_local.py](../../tests/test_llm_local.py).
 
 ### Status and Next Steps
 
@@ -2320,8 +2320,8 @@ The NB 24 monkey-patch is now superseded. All future local-model experiments sho
 ## Local-LLM Smoke Test: NB 24 — Qwen3 8B 4-bit End-to-End
 
 **Date:** 2026-05-09
-**Notebook:** [notebooks/24_local_qwen3_smoke_test.ipynb](../notebooks/24_local_qwen3_smoke_test.ipynb)
-**Result files:** [data/output/local_qwen3_smoke_20260509_170007/20260509_174754/](../data/output/local_qwen3_smoke_20260509_170007/20260509_174754/)
+**Notebook:** [notebooks/24_local_qwen3_smoke_test.ipynb](../../notebooks/24_local_qwen3_smoke_test.ipynb)
+**Result files:** [data/output/local_qwen3_smoke_20260509_170007/20260509_174754/](../../data/output/local_qwen3_smoke_20260509_170007/20260509_174754)
 
 First end-to-end run of the simulation pipeline with **all** LLM calls (broadcasts, peer messages, reflections, surveys) routed to a **local Qwen3 8B 4-bit** model served by `mlx_lm.server` on M1 16 GB. No `src/` changes — routing is done by monkey-patching `cag.io.llm.send_chat`, the rebound copy in `cag.abm.agent`, and the `load_api_key` rebind in `cag.abm.sim`.
 
@@ -2407,19 +2407,19 @@ Each agent-survey is 2 calls under `debias=True` (reasoning + answer), so 40 sur
 5. **Persistent prefix caching** (vLLM/sglang automatic) — every call re-sends the 1–2k-token persona system prompt; caching roughly halves per-call latency.
 6. **Reflection conditioning** — promote the policy name to an explicit slot in the reflection user prompt to lift the 59 % policy-mention rate.
 
-**Recommended next step.** Promote the in-notebook monkey-patch into a real `provider="openai_compatible"` (or `"local"`) branch in [src/cag/io/llm.py](../src/cag/io/llm.py), then run the 30–50-agent Qwen3 rerun, then move heavy experiments to HPC with vLLM/sglang and concurrent dispatch.
+**Recommended next step.** Promote the in-notebook monkey-patch into a real `provider="openai_compatible"` (or `"local"`) branch in [src/cag/io/llm.py](../../src/cag/io/llm.py), then run the 30–50-agent Qwen3 rerun, then move heavy experiments to HPC with vLLM/sglang and concurrent dispatch.
 
 ---
 
 ## Run 8: NB 21 Broadcast-Only Asymmetry Replication Across Seeds (43 / 47 / 53)
 
 **Date:** 2026-04-26
-**Notebook:** [`notebooks/21_broadcast_only_asymmetry.ipynb`](../notebooks/21_broadcast_only_asymmetry.ipynb)
+**Notebook:** [`notebooks/21_broadcast_only_asymmetry.ipynb`](../../notebooks/21_broadcast_only_asymmetry.ipynb)
 
 **Result files:**
-- Seed 43 reference (Run 7): S [`data/output/experiments/20260425_125855/`](../data/output/experiments/20260425_125855/), C1 [`20260425_132515/`](../data/output/experiments/20260425_132515/), C3 [`20260425_135538/`](../data/output/experiments/20260425_135538/)
-- Seed 47 replication: S [`data/output/experiments/20260426_172247/`](../data/output/experiments/20260426_172247/), C1 [`20260426_180114/`](../data/output/experiments/20260426_180114/), C3 [`20260426_182614/`](../data/output/experiments/20260426_182614/)
-- Seed 53 replication: S [`data/output/experiments/20260426_185644/`](../data/output/experiments/20260426_185644/), C1 [`20260426_192446/`](../data/output/experiments/20260426_192446/), C3 [`20260426_202955/`](../data/output/experiments/20260426_202955/)
+- Seed 43 reference (Run 7): S [`data/output/experiments/20260425_125855/`](../../data/output/experiments/20260425_125855), C1 [`20260425_132515/`](../../data/output/experiments/20260425_132515), C3 [`20260425_135538/`](../../data/output/experiments/20260425_135538)
+- Seed 47 replication: S [`data/output/experiments/20260426_172247/`](../../data/output/experiments/20260426_172247), C1 [`20260426_180114/`](../../data/output/experiments/20260426_180114), C3 [`20260426_182614/`](../../data/output/experiments/20260426_182614)
+- Seed 53 replication: S [`data/output/experiments/20260426_185644/`](../../data/output/experiments/20260426_185644), C1 [`20260426_192446/`](../../data/output/experiments/20260426_192446), C3 [`20260426_202955/`](../../data/output/experiments/20260426_202955)
 
 This section is the cross-seed read of NB 21. Run 7 below remains the full single-seed diagnostic write-up for seed 43; the purpose here is to ask whether the same peers-off, audience-capped asymmetry design survives across independently sampled seed-47 and seed-53 cohorts.
 
@@ -2569,8 +2569,8 @@ Run 8 does not replace the current Probe-2 source run in the paper; it supplies 
 ## NB 23: Persona Signal Test at n=100 (Carbon tax + Climate compensation)
 
 **Date:** 2026-04-25
-**Notebook:** [`notebooks/23_persona_signal_test.ipynb`](../notebooks/23_persona_signal_test.ipynb)
-**Result files:** [`data/output/calibration/20260425_211242_persona/`](../data/output/calibration/20260425_211242_persona/) — `calibration_raw.csv`, `per_policy.csv`, `permutation_null.csv`, `null_distributions.npz`, `summary.json`
+**Notebook:** [`notebooks/23_persona_signal_test.ipynb`](../../notebooks/23_persona_signal_test.ipynb)
+**Result files:** [`data/output/calibration/20260425_211242_persona/`](../../data/output/calibration/20260425_211242_persona) — `calibration_raw.csv`, `per_policy.csv`, `permutation_null.csv`, `null_distributions.npz`, `summary.json`
 
 ### Purpose
 
@@ -2623,8 +2623,8 @@ NB 23 is the high-power complement to NB 22. Together they support §5.3 (person
 ## NB 22: Day-0 Survey Accuracy under Sonnet + Two-Step Debias (n=30, six policies)
 
 **Date:** 2026-04-25
-**Notebook:** [`notebooks/22_day0_accuracy_sonnet.ipynb`](../notebooks/22_day0_accuracy_sonnet.ipynb)
-**Result files:** [`data/output/calibration/20260425_203841/`](../data/output/calibration/20260425_203841/) — `calibration_raw.csv`, `per_agent.csv`, `per_policy.csv`, `permutation_null.csv`, `summary.json`
+**Notebook:** [`notebooks/22_day0_accuracy_sonnet.ipynb`](../../notebooks/22_day0_accuracy_sonnet.ipynb)
+**Result files:** [`data/output/calibration/20260425_203841/`](../../data/output/calibration/20260425_203841) — `calibration_raw.csv`, `per_agent.csv`, `per_policy.csv`, `permutation_null.csv`, `summary.json`
 
 ### Purpose
 
@@ -2693,13 +2693,13 @@ NB 22 supplies the n=30 panel of §5.3 (Figure `calib_null_sixpolicy.pdf`) and t
 ## Run 7: NB 21 Broadcast-Only Asymmetry Sweep (S / C1 / C3, single-policy, peers off)
 
 **Date:** 2026-04-25
-**Notebook:** [`notebooks/21_broadcast_only_asymmetry.ipynb`](../notebooks/21_broadcast_only_asymmetry.ipynb)
+**Notebook:** [`notebooks/21_broadcast_only_asymmetry.ipynb`](../../notebooks/21_broadcast_only_asymmetry.ipynb)
 **Result files:**
-- S_symmetric: [`data/output/experiments/20260425_125855/`](../data/output/experiments/20260425_125855/) — `reach_a=1.0, reach_b=1.0`
-- C1_reform_dominant: [`data/output/experiments/20260425_132515/`](../data/output/experiments/20260425_132515/) — `reach_a=0.25, reach_b=1.0`
-- C3_green_dominant: [`data/output/experiments/20260425_135538/`](../data/output/experiments/20260425_135538/) — `reach_a=1.0, reach_b=0.25`
+- S_symmetric: [`data/output/experiments/20260425_125855/`](../../data/output/experiments/20260425_125855) — `reach_a=1.0, reach_b=1.0`
+- C1_reform_dominant: [`data/output/experiments/20260425_132515/`](../../data/output/experiments/20260425_132515) — `reach_a=0.25, reach_b=1.0`
+- C3_green_dominant: [`data/output/experiments/20260425_135538/`](../../data/output/experiments/20260425_135538) — `reach_a=1.0, reach_b=0.25`
 
-Each run produced the standard suite: [`opinion_trajectories.csv`](../data/output/experiments/20260425_125855/opinion_trajectories.csv), [`opinion_shares.csv`](../data/output/experiments/20260425_125855/opinion_shares.csv), [`messages.csv`](../data/output/experiments/20260425_125855/messages.csv), [`reflections.csv`](../data/output/experiments/20260425_125855/reflections.csv), [`survey_reasoning.csv`](../data/output/experiments/20260425_125855/survey_reasoning.csv), [`ground_truth.csv`](../data/output/experiments/20260425_125855/ground_truth.csv), [`timings.csv`](../data/output/experiments/20260425_125855/timings.csv), [`CONDITION.txt`](../data/output/experiments/20260425_125855/CONDITION.txt), and [`opinion_trajectories.png`](../data/output/experiments/20260425_125855/opinion_trajectories.png).
+Each run produced the standard suite: [`opinion_trajectories.csv`](../../data/output/experiments/20260425_125855/opinion_trajectories.csv), [`opinion_shares.csv`](../../data/output/experiments/20260425_125855/opinion_shares.csv), [`messages.csv`](../../data/output/experiments/20260425_125855/messages.csv), [`reflections.csv`](../../data/output/experiments/20260425_125855/reflections.csv), [`survey_reasoning.csv`](../../data/output/experiments/20260425_125855/survey_reasoning.csv), [`ground_truth.csv`](../../data/output/experiments/20260425_125855/ground_truth.csv), [`timings.csv`](../../data/output/experiments/20260425_125855/timings.csv), [`CONDITION.txt`](../../data/output/experiments/20260425_125855/CONDITION.txt), and [`opinion_trajectories.png`](../../data/output/experiments/20260425_125855/opinion_trajectories.png).
 
 ### What Changed Since Run 6
 
@@ -2880,19 +2880,19 @@ The trend is unambiguous: removing peers and equalising audiences progressively 
 ## Run 6: 20260425_082317 — NB 20 C1 (Reach Asymmetry Pilot: Reform-Dominant Broadcast)
 
 **Date:** 2026-04-25
-**Result files:** [`data/output/experiments/20260425_082317/`](../data/output/experiments/20260425_082317/)
-- [`CONDITION.txt`](../data/output/experiments/20260425_082317/CONDITION.txt) — `C1_reform_dominant`, reach_a=0.25, reach_b=1.0
-- [`config.json`](../data/output/experiments/20260425_082317/config.json)
-- [`opinion_trajectories.csv`](../data/output/experiments/20260425_082317/opinion_trajectories.csv) (1,440 rows)
-- [`package_index_trajectories.csv`](../data/output/experiments/20260425_082317/package_index_trajectories.csv) (240 rows)
-- [`reflections.csv`](../data/output/experiments/20260425_082317/reflections.csv)
-- [`messages.csv`](../data/output/experiments/20260425_082317/messages.csv) (553 rows: 182 broadcast + 371 peer)
-- [`survey_reasoning.csv`](../data/output/experiments/20260425_082317/survey_reasoning.csv) (1,440 rows)
-- Plots: [`opinion_trajectories.png`](../data/output/experiments/20260425_082317/opinion_trajectories.png), [`package_index_trajectories.png`](../data/output/experiments/20260425_082317/package_index_trajectories.png), [`opinion_shares.png`](../data/output/experiments/20260425_082317/opinion_shares.png), [`package_index_shares.png`](../data/output/experiments/20260425_082317/package_index_shares.png)
-- [`timings.csv`](../data/output/experiments/20260425_082317/timings.csv)
+**Result files:** [`data/output/experiments/20260425_082317/`](../../data/output/experiments/20260425_082317)
+- [`CONDITION.txt`](../../data/output/experiments/20260425_082317/CONDITION.txt) — `C1_reform_dominant`, reach_a=0.25, reach_b=1.0
+- [`config.json`](../../data/output/experiments/20260425_082317/config.json)
+- [`opinion_trajectories.csv`](../../data/output/experiments/20260425_082317/opinion_trajectories.csv) (1,440 rows)
+- [`package_index_trajectories.csv`](../../data/output/experiments/20260425_082317/package_index_trajectories.csv) (240 rows)
+- [`reflections.csv`](../../data/output/experiments/20260425_082317/reflections.csv)
+- [`messages.csv`](../../data/output/experiments/20260425_082317/messages.csv) (553 rows: 182 broadcast + 371 peer)
+- [`survey_reasoning.csv`](../../data/output/experiments/20260425_082317/survey_reasoning.csv) (1,440 rows)
+- Plots: [`opinion_trajectories.png`](../../data/output/experiments/20260425_082317/opinion_trajectories.png), [`package_index_trajectories.png`](../../data/output/experiments/20260425_082317/package_index_trajectories.png), [`opinion_shares.png`](../../data/output/experiments/20260425_082317/opinion_shares.png), [`package_index_shares.png`](../../data/output/experiments/20260425_082317/package_index_shares.png)
+- [`timings.csv`](../../data/output/experiments/20260425_082317/timings.csv)
 
-**Notebook:** [`notebooks/20_reach_asymmetry_pilot.ipynb`](../notebooks/20_reach_asymmetry_pilot.ipynb)
-**Comparison baseline:** Run 5 ([`data/output/experiments/20260425_010615/`](../data/output/experiments/20260425_010615/), NB 19) — identical config except `reach_a=reach_b=1.0`.
+**Notebook:** [`notebooks/20_reach_asymmetry_pilot.ipynb`](../../notebooks/20_reach_asymmetry_pilot.ipynb)
+**Comparison baseline:** Run 5 ([`data/output/experiments/20260425_010615/`](../../data/output/experiments/20260425_010615), NB 19) — identical config except `reach_a=reach_b=1.0`.
 
 ### What Changed Since Run 5
 
@@ -3094,18 +3094,18 @@ Both are addressed by the `audience_cap` knob added in this session (see "Code C
 ## Run 5: 20260425_010615 — NB 19 (Full-Stack Production Run: Package Mode + Day-0 Anchor + Debias)
 
 **Date:** 2026-04-25
-**Result files:** [`data/output/experiments/20260425_010615/`](../data/output/experiments/20260425_010615/)
-- [`config.json`](../data/output/experiments/20260425_010615/config.json)
-- [`opinion_trajectories.csv`](../data/output/experiments/20260425_010615/opinion_trajectories.csv) (1,440 rows = 30 agents × 6 policies × 8 days)
-- [`package_index_trajectories.csv`](../data/output/experiments/20260425_010615/package_index_trajectories.csv) (240 rows)
-- [`reflections.csv`](../data/output/experiments/20260425_010615/reflections.csv) (490 rows)
-- [`messages.csv`](../data/output/experiments/20260425_010615/messages.csv) (700 rows: 329 broadcast + 371 peer)
-- [`survey_reasoning.csv`](../data/output/experiments/20260425_010615/survey_reasoning.csv) (1,440 rows)
-- [`ground_truth.csv`](../data/output/experiments/20260425_010615/ground_truth.csv), [`package_ground_truth.csv`](../data/output/experiments/20260425_010615/package_ground_truth.csv)
-- Plots: [`opinion_trajectories.png`](../data/output/experiments/20260425_010615/opinion_trajectories.png), [`package_index_trajectories.png`](../data/output/experiments/20260425_010615/package_index_trajectories.png), [`opinion_shares.png`](../data/output/experiments/20260425_010615/opinion_shares.png), [`package_index_shares.png`](../data/output/experiments/20260425_010615/package_index_shares.png)
-- [`timings.csv`](../data/output/experiments/20260425_010615/timings.csv)
+**Result files:** [`data/output/experiments/20260425_010615/`](../../data/output/experiments/20260425_010615)
+- [`config.json`](../../data/output/experiments/20260425_010615/config.json)
+- [`opinion_trajectories.csv`](../../data/output/experiments/20260425_010615/opinion_trajectories.csv) (1,440 rows = 30 agents × 6 policies × 8 days)
+- [`package_index_trajectories.csv`](../../data/output/experiments/20260425_010615/package_index_trajectories.csv) (240 rows)
+- [`reflections.csv`](../../data/output/experiments/20260425_010615/reflections.csv) (490 rows)
+- [`messages.csv`](../../data/output/experiments/20260425_010615/messages.csv) (700 rows: 329 broadcast + 371 peer)
+- [`survey_reasoning.csv`](../../data/output/experiments/20260425_010615/survey_reasoning.csv) (1,440 rows)
+- [`ground_truth.csv`](../../data/output/experiments/20260425_010615/ground_truth.csv), [`package_ground_truth.csv`](../../data/output/experiments/20260425_010615/package_ground_truth.csv)
+- Plots: [`opinion_trajectories.png`](../../data/output/experiments/20260425_010615/opinion_trajectories.png), [`package_index_trajectories.png`](../../data/output/experiments/20260425_010615/package_index_trajectories.png), [`opinion_shares.png`](../../data/output/experiments/20260425_010615/opinion_shares.png), [`package_index_shares.png`](../../data/output/experiments/20260425_010615/package_index_shares.png)
+- [`timings.csv`](../../data/output/experiments/20260425_010615/timings.csv)
 
-**Notebook:** [`notebooks/19_full_simulation.ipynb`](../notebooks/19_full_simulation.ipynb)
+**Notebook:** [`notebooks/19_full_simulation.ipynb`](../../notebooks/19_full_simulation.ipynb)
 
 ### What Changed Since Run 4
 
@@ -3212,7 +3212,7 @@ The neutral band collapses from 17% to 0–3% by Day 2 and stays there. Mass red
 
 Day-to-day inertia (package index): **41.0% zero-shift** day-pairs, mean abs shift **0.18**, mean signed shift **+0.03**. Zero-shift fractions are not directly comparable to single-policy runs (a 6-policy mean is more granular and harder to keep flat), but the ~+0.03 net drift per day matches the small steady-state bias.
 
-Notable individual cases (manual spot-check of [`package_index_trajectories.csv`](../data/output/experiments/20260425_010615/package_index_trajectories.csv)):
+Notable individual cases (manual spot-check of [`package_index_trajectories.csv`](../../data/output/experiments/20260425_010615/package_index_trajectories.csv)):
 - **Strong supporters lock in:** agents 528, 861, 1450, 1318 stay pinned at +2.5 to +2.83 across all 8 days.
 - **Strong opposers harden:** agent 771 drifts −1.83 → −2, agent 1540 drifts −2.17 → −1.67, agent 174 stays −1.0 to −1.17. The anti-climate broadcast is reinforcing existing opposers, not converting them.
 - **One clear conversion:** agent **1932 moves 0 → −1.33** between Day 0 and Day 1 and stays anti for the rest of the run — a centrist captured by the anti-climate political agent. This is the kind of single-agent flip the research question is interested in.
@@ -3251,13 +3251,13 @@ The structured `messages.csv` instrumentation added in v0.4 makes this the first
 ## Run 4: 20260419_204851 — NB 15 (Claude Sonnet + Debias + Thinking)
 
 **Date:** 2026-04-19  
-**Result files:** [`data/output/experiments/20260419_204851/`](../data/output/experiments/20260419_204851/)
-- [`config.json`](../data/output/experiments/20260419_204851/config.json)
-- [`opinion_trajectories.csv`](../data/output/experiments/20260419_204851/opinion_trajectories.csv) (180 rows = 30 agents × 6 days)
-- [`reflections.csv`](../data/output/experiments/20260419_204851/reflections.csv) (359 rows)
-- [`ground_truth.csv`](../data/output/experiments/20260419_204851/ground_truth.csv) (first run with GT saved)
+**Result files:** [`data/output/experiments/20260419_204851/`](../../data/output/experiments/20260419_204851)
+- [`config.json`](../../data/output/experiments/20260419_204851/config.json)
+- [`opinion_trajectories.csv`](../../data/output/experiments/20260419_204851/opinion_trajectories.csv) (180 rows = 30 agents × 6 days)
+- [`reflections.csv`](../../data/output/experiments/20260419_204851/reflections.csv) (359 rows)
+- [`ground_truth.csv`](../../data/output/experiments/20260419_204851/ground_truth.csv) (first run with GT saved)
 
-**Notebook:** [`notebooks/15_full_simulation_ground_truth.ipynb`](../notebooks/15_full_simulation_ground_truth.ipynb)
+**Notebook:** [`notebooks/15_full_simulation_ground_truth.ipynb`](../../notebooks/15_full_simulation_ground_truth.ipynb)
 
 ### What Changed Since Run 3 / NB 14
 
@@ -3432,8 +3432,8 @@ After Run 3 revealed a +2.0 baseline inflation above the real YouGov mean, a sys
 
 ### NB 11: Model Comparison (2026-04-18)
 
-**Result files:** [`data/output/experiments/20260416_*/`](../data/output/experiments/)  
-**Notebook:** [`notebooks/11_model_baseline_comparison.ipynb`](../notebooks/11_model_baseline_comparison.ipynb)
+**Result files:** [`data/output/experiments/20260416_*/`](../../data/output/experiments)  
+**Notebook:** [`notebooks/11_model_baseline_comparison.ipynb`](../../notebooks/11_model_baseline_comparison.ipynb)
 
 Compared 6 LLM models on the Ban Petrol Cars baseline task (N=30, seed=44). All models exhibit pro-climate bias.
 
@@ -3447,8 +3447,8 @@ Compared 6 LLM models on the Ban Petrol Cars baseline task (N=30, seed=44). All 
 
 ### NB 12: Third-Person Perspective Shift (2026-04-18)
 
-**Result files:** [`data/output/experiments/20260418_223858_3p_experiment/`](../data/output/experiments/20260418_223858_3p_experiment/)  
-**Notebook:** [`notebooks/12_third_person_prompt_experiment.ipynb`](../notebooks/12_third_person_prompt_experiment.ipynb)
+**Result files:** [`data/output/experiments/20260418_223858_3p_experiment/`](../../data/output/experiments/20260418_223858_3p_experiment)  
+**Notebook:** [`notebooks/12_third_person_prompt_experiment.ipynb`](../../notebooks/12_third_person_prompt_experiment.ipynb)
 
 Tested whether prompting Claude to reason "about this person" (3P) instead of "as this person" (1P) reduces sycophancy. N=30, Ban Petrol Cars.
 
@@ -3456,8 +3456,8 @@ Tested whether prompting Claude to reason "about this person" (3P) instead of "a
 
 ### NB 13: Four-Condition Bias Mitigation (2026-04-19)
 
-**Result files:** [`data/output/experiments/20260419_002808_mitigation_experiment/`](../data/output/experiments/20260419_002808_mitigation_experiment/)  
-**Notebook:** [`notebooks/13_bias_mitigation_experiment.ipynb`](../notebooks/13_bias_mitigation_experiment.ipynb)
+**Result files:** [`data/output/experiments/20260419_002808_mitigation_experiment/`](../../data/output/experiments/20260419_002808_mitigation_experiment)  
+**Notebook:** [`notebooks/13_bias_mitigation_experiment.ipynb`](../../notebooks/13_bias_mitigation_experiment.ipynb)
 
 Tested 4 conditions on Ban Petrol Cars (Claude, N=30, seed=44):
 
@@ -3472,8 +3472,8 @@ Tested 4 conditions on Ban Petrol Cars (Claude, N=30, seed=44):
 
 ### NB 14: Multi-Policy Generalization (2026-04-19)
 
-**Result files:** [`data/output/experiments/20260419_020128_multi_policy_generalization/`](../data/output/experiments/20260419_020128_multi_policy_generalization/)  
-**Notebook:** [`notebooks/14_multi_policy_generalization.ipynb`](../notebooks/14_multi_policy_generalization.ipynb)
+**Result files:** [`data/output/experiments/20260419_020128_multi_policy_generalization/`](../../data/output/experiments/20260419_020128_multi_policy_generalization)  
+**Notebook:** [`notebooks/14_multi_policy_generalization.ipynb`](../../notebooks/14_multi_policy_generalization.ipynb)
 
 Tested whether Condition D generalizes across 3 additional policies (Claude, N=30, seed=44):
 
@@ -3498,14 +3498,14 @@ Tested whether Condition D generalizes across 3 additional policies (Claude, N=3
 ## Run 3: 20260417_221156
 
 **Date:** 2026-04-17  
-**Result files:** [`data/output/experiments/20260417_221156/`](../data/output/experiments/20260417_221156/)
-- [`config.json`](../data/output/experiments/20260417_221156/config.json)
-- [`opinion_trajectories.csv`](../data/output/experiments/20260417_221156/opinion_trajectories.csv) (400 rows = 50 agents × 8 days)
-- [`reflections.csv`](../data/output/experiments/20260417_221156/reflections.csv) (686 KB)
-- [`fig_trajectories.png`](../data/output/experiments/20260417_221156/fig_trajectories.png)
-- [`fig_trajectories_by_exposure.png`](../data/output/experiments/20260417_221156/fig_trajectories_by_exposure.png)
-- [`fig_mean_by_exposure.png`](../data/output/experiments/20260417_221156/fig_mean_by_exposure.png)
-- [`fig_distribution_baseline_vs_final.png`](../data/output/experiments/20260417_221156/fig_distribution_baseline_vs_final.png)
+**Result files:** [`data/output/experiments/20260417_221156/`](../../data/output/experiments/20260417_221156)
+- [`config.json`](../../data/output/experiments/20260417_221156/config.json)
+- [`opinion_trajectories.csv`](../../data/output/experiments/20260417_221156/opinion_trajectories.csv) (400 rows = 50 agents × 8 days)
+- [`reflections.csv`](../../data/output/experiments/20260417_221156/reflections.csv) (686 KB)
+- [`fig_trajectories.png`](../../data/output/experiments/20260417_221156/fig_trajectories.png)
+- [`fig_trajectories_by_exposure.png`](../../data/output/experiments/20260417_221156/fig_trajectories_by_exposure.png)
+- [`fig_mean_by_exposure.png`](../../data/output/experiments/20260417_221156/fig_mean_by_exposure.png)
+- [`fig_distribution_baseline_vs_final.png`](../../data/output/experiments/20260417_221156/fig_distribution_baseline_vs_final.png)
 
 ### What Changed Since Run 2
 
@@ -3821,14 +3821,14 @@ Research-backed interventions to reduce the systematic pro-climate bias in LLM-g
 ## Run 2: 20260417_194417
 
 **Date:** 2026-04-17  
-**Result files:** [`data/output/experiments/20260417_194417/`](../data/output/experiments/20260417_194417/)
-- [`config.json`](../data/output/experiments/20260417_194417/config.json)
-- [`opinion_trajectories.csv`](../data/output/experiments/20260417_194417/opinion_trajectories.csv) (240 rows)
-- [`reflections.csv`](../data/output/experiments/20260417_194417/reflections.csv) (502 rows)
-- [`fig_trajectories.png`](../data/output/experiments/20260417_194417/fig_trajectories.png)
-- [`fig_trajectories_by_exposure.png`](../data/output/experiments/20260417_194417/fig_trajectories_by_exposure.png)
-- [`fig_mean_by_exposure.png`](../data/output/experiments/20260417_194417/fig_mean_by_exposure.png)
-- [`fig_distribution_baseline_vs_final.png`](../data/output/experiments/20260417_194417/fig_distribution_baseline_vs_final.png)
+**Result files:** [`data/output/experiments/20260417_194417/`](../../data/output/experiments/20260417_194417)
+- [`config.json`](../../data/output/experiments/20260417_194417/config.json)
+- [`opinion_trajectories.csv`](../../data/output/experiments/20260417_194417/opinion_trajectories.csv) (240 rows)
+- [`reflections.csv`](../../data/output/experiments/20260417_194417/reflections.csv) (502 rows)
+- [`fig_trajectories.png`](../../data/output/experiments/20260417_194417/fig_trajectories.png)
+- [`fig_trajectories_by_exposure.png`](../../data/output/experiments/20260417_194417/fig_trajectories_by_exposure.png)
+- [`fig_mean_by_exposure.png`](../../data/output/experiments/20260417_194417/fig_mean_by_exposure.png)
+- [`fig_distribution_baseline_vs_final.png`](../../data/output/experiments/20260417_194417/fig_distribution_baseline_vs_final.png)
 
 ### What Changed Since Run 1
 
@@ -4106,10 +4106,10 @@ Reflections per day: 71-72 (consistent across days).
 ## Run 1: 20260417_163200
 
 **Date:** 2026-04-17  
-**Result files:** [`data/output/experiments/20260417_163200/`](../data/output/experiments/20260417_163200/)
-- [`config.json`](../data/output/experiments/20260417_163200/config.json)
-- [`opinion_trajectories.csv`](../data/output/experiments/20260417_163200/opinion_trajectories.csv) (240 rows)
-- [`reflections.csv`](../data/output/experiments/20260417_163200/reflections.csv) (502 rows)
+**Result files:** [`data/output/experiments/20260417_163200/`](../../data/output/experiments/20260417_163200)
+- [`config.json`](../../data/output/experiments/20260417_163200/config.json)
+- [`opinion_trajectories.csv`](../../data/output/experiments/20260417_163200/opinion_trajectories.csv) (240 rows)
+- [`reflections.csv`](../../data/output/experiments/20260417_163200/reflections.csv) (502 rows)
 
 ### What Changed Before This Run
 

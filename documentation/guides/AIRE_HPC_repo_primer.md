@@ -266,7 +266,7 @@ sbatch scripts/aire/run.sh --preset r14_canonical \
     --exposure-targets '{"A-only":0.5,"B-only":0.5,"both":0,"neither":0}'
 ```
 
-The `--preset` flag is convenience only; new experiments compose flags directly and never require a code change. See [scripts/aire/run.sh](../scripts/aire/run.sh) and [scripts/aire/sweep.sh](../scripts/aire/sweep.sh) for the full plumbing.
+The `--preset` flag is convenience only; new experiments compose flags directly and never require a code change. See [scripts/aire/run.sh](../../scripts/aire/run.sh) and [scripts/aire/sweep.sh](../../scripts/aire/sweep.sh) for the full plumbing.
 
 ---
 

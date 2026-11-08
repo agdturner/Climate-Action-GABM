@@ -397,7 +397,7 @@ cells.append(md(r"""### Takeaway
   trustworthy, but anchored, rank-faithful *differences between conditions* are — which is exactly
   what Tiers 1–3 go on to validate.
 
-*Numbers → `docs/result_report.md`; framing → `docs/research_notes.md` (both as a follow-up step).*
+*Numbers → `documentation/research/result_report.md`; framing → `documentation/research/research_notes.md` (both as a follow-up step).*
 """))
 
 nb = {
