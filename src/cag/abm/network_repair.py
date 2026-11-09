@@ -19,12 +19,13 @@ Extracted from ``cag.abm.sim`` in the 2026-06-22 refactor; all names are
 re-exported from ``cag.abm.sim`` for backwards compatibility.
 """
 
-__version__ = "0.9.0"
+__author__ = ["Climate-Action-GABM contributors"]
+__version__ = "0.9.1"
 
 import logging
 import math
 
-import numpy as np
+from gabm.abm.networks import connect_components
 
 
 def _resolve_network_params(cfg):
@@ -140,21 +141,11 @@ def _auto_connect_components(nation, seed):
         nation._auto_connected_edges = 0
         return
 
-    components = sorted(
-        (sorted(c) for c in nx.connected_components(G)),
-        key=lambda c: (-len(c), c[0]),  # largest first; tie-break for determinism
+    n_components = nx.number_connected_components(G)
+    largest_component_size = max(
+        len(component) for component in nx.connected_components(G)
     )
-    largest = components[0]
-    rng = np.random.default_rng(seed)
-
-    n_added = 0
-    for comp in components[1:]:
-        u_idx = int(rng.integers(0, len(largest)))
-        v_idx = int(rng.integers(0, len(comp)))
-        u = largest[u_idx]
-        v = comp[v_idx]
-        G.add_edge(u, v)
-        n_added += 1
+    n_added = connect_components(G, seed=seed)
 
     # Refresh each agent's network_neighbors so peer messaging picks up
     # the new edges. assign_network_blocks() populates from G's adjacency.
@@ -165,7 +156,7 @@ def _auto_connect_components(nation, seed):
     logging.warning(
         "Network was disjoint (%d components, largest=%d/%d nodes). "
         "Auto-connected by adding %d bridging edge(s) (seed=%d).",
-        len(components), len(largest), G.number_of_nodes(), n_added, seed,
+        n_components, largest_component_size, G.number_of_nodes(), n_added, seed,
     )
 
 

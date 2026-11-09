@@ -73,12 +73,15 @@ pip install -r requirements.txt -r requirements-dev.txt
 
 `requirements.txt` provides the runtime stack (numpy, pandas, networkx, the LLM clients, …); `requirements-dev.txt` adds the test, docs, and packaging tools.
 
-### Updating an existing checkout to GABM 0.3.0
+### Updating an existing checkout to GABM 0.4.0
 
-The dependency manifests pin `gabm==0.3.0`. In your activated development
+The dependency manifests pin `gabm==0.4.0`. In your activated development
 environment, rerun the combined installation command above, then run
 `make test`. The integration tests compare against the retained 0.2.18 golden
 reference; do not regenerate that reference just because the dependency changed.
+
+GABM 0.4.0 supplies the generic network builders, diagnostics, and component
+repair used by CAG's adapter. The published 0.3.0 package lacks this API.
 
 In notebooks or external scripts, import the survey-specific `PoliticsID`,
 `EthnicityID`, and `FamilyID` from `cag.abm.attributes.politics`,
