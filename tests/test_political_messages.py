@@ -12,6 +12,8 @@ Covers:
   plus 2 package cells with the expected sizes
 """
 import csv
+from copy import deepcopy
+import json
 import os
 import sys
 import tempfile
@@ -106,6 +108,61 @@ class TestSyntheticPool(unittest.TestCase):
 
     def _load(self, seed: int = 0) -> MessagePool:
         return load_message_pool(self.set_id, seed=seed, data_root=self.root)
+
+    def test_rotation_state_json_roundtrip_and_wraparound(self):
+        original = self._load()
+        original.next("A", 1)
+        original.next("B", 1)
+        original.next("B", 1)
+        saved = json.loads(json.dumps(original.export_state()))
+        restored = self._load()
+        restored.restore_state(saved)
+        for _ in range(8):
+            for side in ("A", "B"):
+                self.assertEqual(restored.next(side, 1), original.next(side, 1))
+        restored.restore_state(saved)
+        self.assertEqual(restored.export_state(), saved)
+
+    def test_rotation_state_rejects_mismatched_identity_and_content(self):
+        saved = self._load().export_state()
+        for field, value in (
+            ("version", 2), ("set_id", "other"), ("seed", 100),
+            ("content_hash", "changed"),
+        ):
+            with self.subTest(field=field):
+                invalid = deepcopy(saved)
+                invalid[field] = value
+                with self.assertRaises(MessagePoolError):
+                    self._load().restore_state(invalid)
+        changed = self._load()
+        changed._cells[("A", "1")][0].message_text = "Changed text with same ID"
+        with self.assertRaises(MessagePoolError):
+            changed.restore_state(saved)
+
+    def test_invalid_rotation_state_is_rejected_without_partial_restore(self):
+        pool = self._load()
+        pool.next("A", 1)
+        before = pool.export_state()
+        invalid_states = [None, {}, {"cursors": []}]
+        for index in (-1, 3, 0.5, True, None):
+            invalid = deepcopy(before)
+            invalid["cursors"][0]["index"] = index
+            invalid_states.append(invalid)
+        for entries in (None, [], [None], before["cursors"] * 2):
+            invalid = deepcopy(before)
+            invalid["cursors"] = entries
+            invalid_states.append(invalid)
+        invalid = deepcopy(before)
+        invalid["cursors"][0]["side"] = ["unhashable"]
+        invalid_states.append(invalid)
+        invalid = deepcopy(before)
+        invalid["cursors"][0]["side"] = "unknown"
+        invalid_states.append(invalid)
+        for state in invalid_states:
+            with self.subTest(state=state):
+                with self.assertRaises(MessagePoolError):
+                    pool.restore_state(state)
+                self.assertEqual(pool.export_state(), before)
 
     def test_loads_with_correct_cell_sizes(self):
         pool = self._load()

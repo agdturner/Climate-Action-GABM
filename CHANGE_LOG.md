@@ -26,6 +26,27 @@ development stage, not necessarily the current code or a verified public tag.
 
 ## [Unreleased]
 
+- **Offline checkpoint rotation (2026-11-09).** Checkpoints now save and
+  restore message-pool cursors, validating the set, seed, and ordered message
+  content before restoring. Older offline checkpoints without rotation state
+  are rejected explicitly; LLM-only checkpoints remain compatible. Both
+  offline continuation equivalence tests now pass without expected-failure
+  markers. Python random-state persistence remains a separate limitation.
+
+- **Generic network extraction (2026-11-09).** CAG now supplies node IDs,
+  political-exposure blocks, and survey-derived similarity inputs to the
+  generic builders and diagnostics in `gabm.abm.networks`; component repair
+  also delegates to GABM. The CAG research defaults and public adapter remain
+  local. Runtime, development, and Conda dependencies now pin the published
+  GABM 0.4.0 release. The full suite passes against the PyPI wheel without a
+  GABM source override; the seeded integration fixture is unchanged.
+  CAG retains explicit NetworkX requirements for its direct imports.
+
+- **Network follow-up (2026-11-09).** The connectivity-threshold analysis now
+  uses GABM's seeded SBM builder. Seeded graph equivalence and reduced-sweep
+  output tests preserve the analysis behaviour; importing the script no longer
+  launches the sweep or writes output.
+
 - **Aire content review (2026-11-08).** Replaced the generic assistant template
   with a CAG launcher reference, separating repository conventions from cited
   Leeds policy and explicit unverified/deployment limits. Consolidated duplicated

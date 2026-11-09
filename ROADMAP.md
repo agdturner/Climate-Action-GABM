@@ -36,14 +36,17 @@ validation gates in [GABM_Refactor_Plan.md](GABM_Refactor_Plan.md).
 - Independently validate the implemented published GABM 0.3.0 compatibility
   slice and merge it before upstream extraction; retain the original golden
   integration reference to guard subsequent behaviour.
-- Extract generic seeded graph generation and diagnostics into GABM, then
-  wire CAG to the tested framework API.
+- Generic seeded graph generation, diagnostics, and component repair are
+  released in GABM 0.4.0. CAG pins that version and its full suite passes against
+  the published wheel with the original golden reference unchanged. Merge
+  CAG's adapter and dependency update to complete this slice.
 - Review existing GABM LLM services before adapting CAG transport. Preserve
   prompt roles, request options, cache policy, and explicit failure behaviour.
 - Evaluate reusable memory, checkpoint, and experiment infrastructure only
   after the preceding bounded slices demonstrate a useful API boundary.
-- Resolve checkpoint reproducibility limitations in an explicit separate
-  slice: offline message-pool cursor persistence, peer-selection random state,
+- Offline message-pool cursor persistence is implemented and tested; older
+  offline checkpoints without rotation state require a fresh run.
+  Resolve the remaining checkpoint limitations separately: peer-selection random state,
   and the documented prompt-log/timeline hydration differences. Do not claim
   exact fresh-process replay until the relevant equivalence tests pass.
 

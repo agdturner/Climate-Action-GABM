@@ -1,5 +1,7 @@
 """Tests for the pluggable network factory and diagnostics."""
 
+import hashlib
+import json
 import os
 import sys
 import unittest
@@ -71,6 +73,67 @@ class TestBuilders(unittest.TestCase):
                 G1 = build_network(net_type, agents, params=params, seed=42)
                 G2 = build_network(net_type, agents, params=params, seed=42)
                 self.assertEqual(set(G1.edges), set(G2.edges))
+
+    def test_seeded_networks_match_legacy_graph_fingerprints(self):
+        agents = _make_agents(24, attrs={
+            "ukge2019_vote_id": [i % 4 for i in range(24)],
+            "brexit_vote_id":   [i % 3 for i in range(24)],
+            "region_id":        [i % 5 for i in range(24)],
+        })
+        params = {
+            "stochastic_block": {"p_intra": 0.25, "p_inter": 0.07},
+            "erdos_renyi": {"p": 0.17},
+            "watts_strogatz": {"k": 4, "beta": 0.2},
+            "barabasi_albert": {"m": 2},
+            "homophily_weighted": {
+                "attributes": ["ukge2019_vote_id", "brexit_vote_id", "region_id"],
+                "weights": [1.0, 2.0, 1.0],
+                "scale": 5.0,
+                "threshold": 2.3,
+            },
+        }
+        # These fingerprints capture node order and edges from the prior CAG factory.
+        legacy_fingerprints = {
+            "stochastic_block": "89ba19b8e1999355494da8e157cbb8121083faf892fe85f151d2d522f29ea327",
+            "erdos_renyi": "497a594d6037a8965f4ff65958eb4b63b05fa204f03c2c8e927288a582b7bb2b",
+            "watts_strogatz": "6b55ca76fc299de86307479805929c3380bb92bb8adff327648b8fe545e97650",
+            "barabasi_albert": "7c4adfa37dee6629429d07a351368d18874fa6aec36a0ba7aca8f53ca9deddb8",
+            "homophily_weighted": "cd2dc8c0d09ef0f37bda56e95d0c948709fb1628abb96576544e9192643d42ba",
+        }
+
+        for net_type, expected in legacy_fingerprints.items():
+            with self.subTest(net_type=net_type):
+                graph = build_network(net_type, agents, params=params[net_type], seed=31)
+                payload = {
+                    "nodes": [str(node) for node in graph.nodes],
+                    "edges": sorted(
+                        tuple(sorted((str(u), str(v)))) for u, v in graph.edges
+                    ),
+                }
+                fingerprint = hashlib.sha256(
+                    json.dumps(payload, separators=(",", ":")).encode()
+                ).hexdigest()
+                self.assertEqual(fingerprint, expected)
+
+    def test_stochastic_block_preserves_empty_exposure_block(self):
+        for exposure, sizes in (("A-only", [8, 0]), ("B-only", [0, 8])):
+            with self.subTest(exposure=exposure):
+                agents = _make_agents(8, exposure_split=(exposure,))
+                graph = build_network(
+                    "stochastic_block",
+                    agents,
+                    params={"p_intra": 0.4, "p_inter": 0.05},
+                    seed=19,
+                )
+                expected = nx.stochastic_block_model(
+                    sizes,
+                    [[0.4, 0.05], [0.05, 0.4]],
+                    seed=19,
+                )
+                expected = nx.relabel_nodes(
+                    expected, {index: agent.id for index, agent in enumerate(agents)}
+                )
+                self.assertEqual(set(graph.edges), set(expected.edges))
 
     def test_erdos_renyi_invalid_p(self):
         with self.assertRaises(ValueError):
@@ -371,6 +434,10 @@ class TestAutoConnectComponents(unittest.TestCase):
         _auto_connect_components(n2, seed=123)
         self.assertEqual(sorted(n1.network.edges()),
                          sorted(n2.network.edges()))
+        self.assertEqual(
+            {tuple(sorted(edge)) for edge in n1.network.edges()},
+            {(0, 1), (0, 3), (1, 4), (1, 6), (2, 3), (4, 5), (6, 7)},
+        )
 
 
 class TestNetworkDiagnosticsAutoConnectedField(unittest.TestCase):

@@ -1,7 +1,8 @@
 # CAG to GABM Refactor Plan
 
 **Status:** integration baseline and published 0.3.0 compatibility validated;
-generic framework extraction not started.
+generic network extraction merged into GABM main, released as 0.4.0, and
+validated with the CAG adapter against the published wheel; CAG merge pending.
 
 **Documentation ownership checkpoint (2026-11-08):** before generic extraction,
 the Aire quickstart and primer were moved to `documentation/guides/`.
@@ -55,7 +56,7 @@ Local documentation/CLI tests pass; a scheduled cluster smoke job, compatible
 cached image/model, data approval, and service-binding/access advice are still
 deployment gates. This is not fresh evidence of checkpoint replay equivalence.
 
-**Audit date:** 2026-11-08.
+**Audit date:** 2026-11-09.
 
 ## Purpose
 
@@ -224,11 +225,10 @@ However, existing behaviour is not full fresh-process replay:
 - Peer selection uses process-wide Python random state, which the checkpoint
   does not save. The passing continuation tests explicitly preserve that state
   outside the checkpoint and use stateless mocked LLM political broadcasts.
-- Offline message-pool cursors are not restored: resumed broadcasts restart
-  their rotation. Package and single-policy offline continuation equivalence
-  tests are marked **strict expected failures** for this known limitation.
-  Unexpected success requires updating the tests; unrelated exceptions do not
-  satisfy the expected assertion-failure condition.
+- At the original baseline, offline message-pool cursors were not restored:
+  resumed broadcasts restarted their rotation. This was fixed in the separate
+  offline checkpoint slice below on 2026-11-09; both expected-failure markers
+  have been removed.
 
 No runtime fixes or dependency upgrades are part of this checkpoint. Address
 resume reproducibility in a separate, explicitly tested slice before claiming
@@ -338,6 +338,115 @@ diagnostic output, and existing connectivity-repair behaviour.
 tests and golden comparisons demonstrate unchanged graphs and downstream
 behaviour through the new API.
 
+#### Implementation and evidence (2026-11-09)
+
+`gabm.abm.networks` now owns the seeded graph builders, structural diagnostics,
+and deterministic component repair. Its API accepts caller-owned node IDs,
+block membership/order, and similarity feature rows; it does not select or
+interpret CAG attributes. GABM declares the NumPy and NetworkX runtime
+dependencies, includes independent API tests, and documents the module in its
+developer guide and API navigation.
+
+CAG retains political-exposure-to-block assignment, survey homophily fields,
+small-population defaults, network metadata, and result serialization. Its
+existing `cag.abm.networks` signatures now adapt those inputs to the generic
+API, while `network_repair` delegates graph repair. The adapter explicitly
+retains both SBM blocks, including an empty block, so seeded NetworkX draws
+remain unchanged for one-sided populations.
+
+Validation on 2026-11-09:
+
+- GABM network API tests: **11 passed**.
+- GABM full default suite: **210 passed, 10 deselected**.
+- CAG network tests: **32 passed, 17 subtests**.
+- CAG full suite: **744 passed, 1 skipped, 2 xfailed, 6 warnings, 30
+  subtests**. The committed golden fixture was not refreshed and its graph,
+  state, transport, and output fingerprints pass.
+- Compared the prior CAG implementation with the adapter for all five network
+  types, diagnostics (excluding elapsed time), and seeded component repair;
+  node order, edges, and diagnostic values matched. Added graph
+  fingerprints now cover exact node order and edges for every builder, and the
+  repair test asserts the exact seeded bridging edges.
+- A GABM 0.3.0 wheel built successfully and contains
+  `gabm/abm/networks.py`.
+- `make docs` succeeds and renders the new API module; it reports 77 warnings.
+  Generated dependency mirrors and autosummary stubs are build outputs, not
+  authored changes.
+
+Merge follow-up on 2026-11-09: GABM main at `c62c060` contains the generic
+network branch and the documentation follow-up. The merged network API tests
+pass (**11 passed**), and CAG's network and golden integration baseline tests
+pass against that main checkout (**38 passed, 2 xfailed, 17 subtests**).
+Validation used the `gabm` and `cag` Conda environments respectively, with
+GABM's source directory on `PYTHONPATH`.
+
+Published-package follow-up on 2026-11-09: PyPI provides GABM **0.4.0** as a
+wheel and source distribution. Runtime, development, and Conda manifests now
+pin `gabm==0.4.0`, and the development/Aire setup guides reflect that version.
+The downloaded PyPI wheel was installed in an isolated virtual environment
+using the `cag` Conda environment's existing scientific/test dependencies
+(`--system-site-packages`); the Conda environment itself was not modified.
+The imported network module was verified to come from that installed wheel.
+With only CAG's `src:scripts` on `PYTHONPATH` (no GABM source override), the
+full suite passed: **744 passed, 1 skipped, 2 xfailed, 6 warnings, 30 subtests**.
+The retained golden reference and exact seeded graph fingerprints pass.
+CAG's adapter and dependency changes are committed as `73fc9a7` on
+`refactor/gabm-network-consumer`; the published-package acceptance gate is
+satisfied and merge remains pending.
+
+#### Network follow-up (2026-11-09)
+
+CAG retains explicit NetworkX requirements because its environment, plotting,
+analysis, and integration tests still use NetworkX directly. GABM owns the
+reusable algorithms, not every use of the graph library.
+
+GABM's generic test suite now additionally covers similarity groups, missing
+features, default weights, exact diagnostic metrics and largest-component
+behaviour, disabled timeouts, the installed POSIX alarm handler and cleanup,
+size-cap boundaries, and exact seeded repair bridges. These tests use neutral
+nodes/features rather than CAG survey attributes. Focused API suite:
+**23 passed** in the `gabm` environment. No framework implementation changed.
+
+`scripts/estimate_connectivity_threshold.py` now uses GABM's builder with
+explicit two-block membership/order. CAG retains the research sweep and
+outputs. A main guard prevents import-time computation/output; the unnecessary
+global NumPy reseed was removed because graph generation uses an explicit
+seed. Regression tests compare exact nodes/edges for odd, even, and single-node
+populations across three seeds, compare trial connectivity rates, and exercise
+CSV/PNG generation in a reduced sweep. Analysis, network, and golden-baseline
+tests against installed PyPI GABM 0.4.0: **56 passed, 2 xfailed, 17 subtests**
+using `PYTHONPATH=src:scripts` in `cag`. Existing CAG adapter/integration tests
+remain in place to guard application behaviour. CAG's analysis follow-up is
+included in `73fc9a7`; GABM's test-only follow-up is committed as `6dd5168` on
+`test/network-regressions`. These do not imply a CAG merge or another GABM release.
+
+#### Offline checkpoint correctness slice (2026-11-09)
+
+Running both offline continuation cases with `--runxfail` confirmed divergence
+in the resumed request sequence. Checkpoints now include JSON-safe per-cell
+rotation state with the message-set ID, seed, state version, and a fingerprint
+of ordered message records. Resume validates content, complete cell coverage,
+and integer cursor bounds before changing the pool. State validation is atomic:
+invalid input leaves existing cursors unchanged.
+
+The approved legacy policy rejects offline checkpoints missing rotation state
+with a clear fresh-run error. LLM-only checkpoints do not require that field.
+Checkpoint schema version 1 remains readable for state hydration and LLM
+resumes; the offline runtime enforces its additional state requirement.
+
+Both offline continuation equivalence cases now pass without `xfail`, for
+package and single-policy modes. Added tests cover JSON roundtrips,
+wraparound, repeated restoration, content/identity mismatch, malformed cursors,
+and the legacy offline/LLM compatibility policy. Focused pool, checkpoint,
+and integration suite: **49 passed, 18 subtests**. Full CAG suite against
+installed PyPI GABM 0.4.0: **769 passed, 1 skipped, 6 warnings, 48 subtests**,
+with no expected failures. The original golden fixture is unchanged.
+
+Python random state is still manually preserved in the continuation tests;
+its persistence and prompt-log/timeline hydration remain out of scope.
+This fix does not establish exact fresh-process replay. The fix is committed
+as `9119488` on `refactor/gabm-network-consumer`; merge remains pending.
+
 ### 4. Adapt LLM transport, then evaluate memory extraction
 
 Inventory and reuse GABM's existing services before moving CAG transport code
@@ -387,10 +496,11 @@ separately from structural refactor regressions.
 | Checkpoint | Status |
 |---|---|
 | Published-package audit and unchanged 0.2.18 baseline | Complete, 2026-11-08 |
-| Golden real-nation integration fixture | Implemented and validated, 2026-11-08; 6 passing tests and 2 strict expected failures characterize offline continuation limitations |
+| Golden real-nation integration fixture | Original golden reference retained; both offline continuation expected failures resolved in the separate 2026-11-09 cursor slice |
 | Published 0.3.0 compatibility | Implemented and independently validated, 2026-11-08; 693 passed, 1 skipped, 2 expected failures; original golden reference unchanged |
-| Generic network extraction and CAG wiring | Proposed first upstream extraction |
-| LLM transport adaptation | Pending network slice; boundary review required |
+| Generic network extraction and CAG wiring | GABM 0.4.0 published; CAG pinned and validated against the PyPI wheel, 2026-11-09; 744 passed, 1 skipped, 2 xfailed, 30 subtests; CAG merge pending |
+| Offline checkpoint cursor restoration | Implemented and validated, 2026-11-09; full suite 769 passed, 1 skipped, no xfails; random-state persistence remains separate |
+| LLM transport adaptation | Next extraction after CAG network merge; boundary review required |
 | Memory and further extractions | Candidates; scope not yet committed |
 
 Update statuses only with the relevant test and comparison evidence. Record
