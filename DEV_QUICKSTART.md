@@ -73,29 +73,18 @@ pip install -r requirements.txt -r requirements-dev.txt
 
 `requirements.txt` provides the runtime stack (numpy, pandas, networkx, the LLM clients, …); `requirements-dev.txt` adds the test, docs, and packaging tools.
 
-### Updating an existing checkout to GABM 0.4.0
+### Updating an existing checkout to GABM 0.5.0
 
-On the development branch `refactor/gabm-survey-consumer`, survey execution
-requires the unreleased API on GABM's `feature/two-stage-survey` branch.
-The published 0.4.0 package is insufficient for this branch. For local
-development in an isolated environment, install that GABM checkout or its
-built wheel after the dependencies below. For source-based tests with the
-adjacent workspace checkout, use:
-
-```bash
-PYTHONPATH=src:scripts:../GABM/src python -m pytest
-```
-
-Do not merge the adapter or change the production pin until the GABM API is
-released and validated against its published wheel.
-
-The dependency manifests pin `gabm==0.4.0`. In your activated development
+The dependency manifests pin `gabm==0.5.0`. In your activated development
 environment, rerun the combined installation command above, then run
 `make test`. The integration tests compare against the retained 0.2.18 golden
 reference; do not regenerate that reference just because the dependency changed.
 
-GABM 0.4.0 supplies the generic network builders, diagnostics, and component
-repair used by CAG's adapter. The published 0.3.0 package lacks this API.
+GABM 0.5.0 supplies the two-stage survey executor as well as the generic
+network builders, diagnostics, and component repair used by CAG's adapters.
+GABM 0.4.0 lacks the survey executor. No adjacent GABM checkout or source
+override is needed for normal installation and testing. For cross-repository
+development, see the workflow in [DEV_GUIDE.md](DEV_GUIDE.md).
 
 In notebooks or external scripts, import the survey-specific `PoliticsID`,
 `EthnicityID`, and `FamilyID` from `cag.abm.attributes.politics`,

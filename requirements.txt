@@ -2,7 +2,7 @@
 # Install with: pip install -r requirements.txt
 
 # GABM
-gabm==0.4.0
+gabm==0.5.0
 
 # For climate-action specific development
 numpy==2.4.2
