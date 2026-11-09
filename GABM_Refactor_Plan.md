@@ -750,6 +750,26 @@ this slice; address them explicitly before advertising generic ingestion.
 Population construction and survey execution are separate capabilities, even
 when demonstrated by one eventual end-to-end example.
 
+##### Row-factory implementation follow-up (2026-11-09)
+
+Committed the characterization baseline as `b485dad`, then extracted
+`citizen_from_survey_row(row, *, environment, year)` into
+[`cag.abm.population`](src/cag/abm/population.py) on the same stacked
+`refactor/survey-population-review` branch. `__main__.build_nation` retains its
+public entry point, map construction, positional iteration and registration.
+The factory retains the supplied Series without registering the citizen;
+field conversions and all characterized defaults are unchanged.
+
+Added direct row-identity/non-mutation/persona checks and a delegation-order
+test. Original characterization tests remain unchanged. No ingestion error
+policy, duplicate handling, sampling, or GABM runtime code changed.
+Using `cag` with GABM `af446a1` on
+`PYTHONPATH=src:scripts:../GABM/src`: focused population/CLI/golden suite
+**63 passed**; full CAG suite **786 passed, 1 skipped, 6 warnings, 50 subtests**.
+The original golden fixture is unchanged. The factory implementation is tracked
+on this feature branch and depends on the parent branch's unreleased survey
+executor; merge and published-package acceptance remain pending.
+
 ### 5. Evaluate further extractions
 
 Consider checkpoint infrastructure and experiment provenance/comparison helpers
@@ -800,7 +820,7 @@ separately from structural refactor regressions.
 | Generic network extraction and CAG wiring | Merged into CAG main `17111e3`; GABM 0.4.0 published and released-wheel acceptance recorded above |
 | Offline checkpoint cursor restoration | Merged into CAG main `17111e3`; full suite 769 passed, 1 skipped, no xfails before merge; random-state persistence remains separate |
 | Survey-execution extraction | Implemented and validated against a local development wheel, 2026-11-09; GABM 228 passed, CAG 771 passed; new framework release and published-wheel gates pending |
-| Survey-derived population construction | Review and synthetic characterization added, 2026-11-09; 61 focused passes; recommend a CAG row-factory seam before a generic GABM API |
+| Survey-derived population construction | Characterization committed as `b485dad`; CAG row factory implemented, 2026-11-09; 63 focused passes, full suite 786 passed; generic GABM API remains a candidate |
 | LLM transport adaptation | Existing service gaps identified; provider parity and migration remain separate from the first survey-execution slice |
 | Memory and further extractions | Candidates; scope not yet committed |
 

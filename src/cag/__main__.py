@@ -72,6 +72,7 @@ from gabm.abm.democracy.election import ElectionID
 from cag.io.survey import load
 from cag.abm.agent import SurveyedCitizen
 from cag.abm.environment import SurveyedNation
+from cag.abm.population import citizen_from_survey_row
 from cag.abm.attributes.opinion import ALL_CLIMATE_POLICIES, ClimatePolicyID
 from cag.abm.attributes.region import UKRegionMap, RegionID
 from cag.abm.attributes.education import SurveyEducationMap, EducationID
@@ -233,28 +234,7 @@ def build_nation(data, year=2026):
 
     for i in range(len(data)):
         row = data.iloc[i]
-        sc = SurveyedCitizen(
-            agent_id=row.get("ID", None),
-            environment=sn,
-            year_of_birth=year - int(row.get("age", 0)),
-            gender_id=GenderID.MALE if int(row.get("male_dummy", 0)) == 1 else GenderID.FEMALE,
-            region_id=RegionID(int(row.get("tprofile_GOR", 0))),
-            education_id=EducationID(int(row.get("profile_education_level", 0))),
-            income_id=IncomeID(int(row.get("tprofile_gross_household", 0))),
-            ethnicity_id=EthnicityID(int(row.get("ethnicity_R", 0))),
-            family_id=FamilyID.PARENT if int(row.get("parent_dummy", 0)) == 1 else FamilyID.NOT_PARENT,
-            ukge2019_vote_id=UKGE2019VoteID(int(row.get("Vote2019R", 0))),
-            brexit_vote_id=BrexitVoteID(int(row.get("pastvote_EURef", 0))),
-            politics_id=PoliticsID(int(row.get("Political_Left_Right", 0))),
-            selftransc_id=rescale_1_6(int(row.get("Selftransc_Val", 0))),
-            selfenh_id=rescale_1_6(int(row.get("Selfenh_Values", 0))),
-            openness_id=rescale_1_6(int(row.get("Openness", 0))),
-            conformtrad_id=rescale_1_6(int(row.get("ConformTrad", 0))),
-            sdo_id=rescale_1_7(int(row.get("SDO", 0))),
-            edo_id=rescale_1_7(int(row.get("EDO", 0))),
-            rwa_id=rescale_1_6(int(row.get("RWA", 0))),
-            original_survey_data=data.iloc[i],
-        )
+        sc = citizen_from_survey_row(row, environment=sn, year=year)
         sn.agents_active[sc.id] = sc
 
     return sn

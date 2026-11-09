@@ -6,6 +6,7 @@ import pandas as pd
 import pytest
 
 from cag import __main__ as cli
+from cag.abm.population import citizen_from_survey_row
 from cag.abm.attributes.narratives import HIGH, LOW, MODERATE, UNKNOWN
 from cag.abm.attributes.opinion import (
     ClimatePolicyID, PRO_CLIMATE_INDEX_COLUMN, SURVEY_COLUMN_MAP,
@@ -196,3 +197,35 @@ def test_builder_empty_population_is_allowed():
     nation = cli.build_nation(pd.DataFrame())
 
     assert nation.agents_active == {}
+
+
+def test_row_factory_retains_row_identity_without_registering_or_mutating():
+    row = pd.Series(_respondent(), name=80)
+    before = row.copy(deep=True)
+    nation = cli.build_nation(pd.DataFrame(), year=2030)
+
+    citizen = citizen_from_survey_row(row, environment=nation, year=2030)
+
+    assert citizen.original_survey_data is row
+    assert citizen.environment is nation
+    assert nation.agents_active == {}
+    pd.testing.assert_series_equal(row, before)
+    expected = cli.build_nation(pd.DataFrame([row]), year=2030).agents_active[citizen.id]
+    assert citizen.get_persona() == expected.get_persona()
+    assert citizen.year_of_birth == expected.year_of_birth
+
+
+def test_builder_delegates_rows_to_factory_in_positional_order(monkeypatch):
+    from unittest.mock import Mock
+
+    data = pd.DataFrame([_respondent(31), _respondent(7)], index=[80, 20])
+    factory = Mock(wraps=citizen_from_survey_row)
+    monkeypatch.setattr(cli, "citizen_from_survey_row", factory)
+
+    nation = cli.build_nation(data, year=2030)
+
+    assert factory.call_count == 2
+    for index, invocation in enumerate(factory.call_args_list):
+        assert invocation.kwargs == {"environment": nation, "year": 2030}
+        pd.testing.assert_series_equal(invocation.args[0], data.iloc[index])
+    assert list(nation.agents_active) == [31, 7]
