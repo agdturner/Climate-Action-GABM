@@ -138,6 +138,112 @@ class TestDebiasedSurvey(unittest.TestCase):
         citizen.get_narrative = mock.MagicMock(return_value="I value independence.")
         return citizen
 
+    def test_exact_survey_requests_options_and_recording_order(self):
+        from cag.abm import agent as agent_module
+        from cag.abm.attributes.opinion import ClimatePolicyID, PACKAGE_SCOPE
+
+        citizen = self._make_citizen()
+        citizen._capture_prompts = True
+        citizen.environment._next_sim_step.side_effect = [101, 102, 103]
+        citizen.get_system_prompt = mock.Mock(return_value="Exact package context\n")
+        policy = ClimatePolicyID.BAN_PETROL_CARS
+        options = dict(
+            api_key="test-key", model="test-model", provider="local",
+            temperature=0.25, thinking=True,
+        )
+        observed = []
+
+        def send(system, user, **kwargs):
+            self.assertEqual(kwargs, options)
+            self.assertEqual(citizen.survey_assembled_context[policy], [
+                (3, "Exact package context\n"),
+            ])
+            self.assertEqual(citizen._survey_assembled_context_steps[policy], [101])
+            if not observed:
+                self.assertNotIn(policy, citizen.survey_reasoning)
+                self.assertEqual(citizen.prompt_log, [])
+                response = "Reasoning verbatim.\n"
+            else:
+                self.assertEqual(citizen.survey_reasoning[policy], [
+                    (3, "Reasoning verbatim.\n"),
+                ])
+                self.assertEqual(citizen._survey_reasoning_steps[policy], [102])
+                self.assertEqual(
+                    [entry["stage"] for entry in citizen.prompt_log],
+                    ["survey_reasoning"],
+                )
+                self.assertNotIn(policy, citizen.survey_raw_response)
+                self.assertNotIn(policy, citizen.opinion_history)
+                response = "F"
+            observed.append((system, user))
+            return response
+
+        with mock.patch("cag.abm.agent.send_chat", side_effect=send):
+            result = citizen.administer_survey(
+                policy, day=3, context_policy_id=PACKAGE_SCOPE, **options,
+            )
+
+        citizen.get_system_prompt.assert_called_once_with(
+            day=3, policy_id=PACKAGE_SCOPE, target_policy_id=policy,
+        )
+        question = agent_module.SURVEY_QUESTIONS[policy]
+        self.assertEqual(observed, [
+            ("Exact package context\n", agent_module._DEBIAS_STEP1_TEMPLATE.format(
+                anti_sycophancy=agent_module._ANTI_SYCOPHANCY,
+                policy_question=question,
+            )),
+            ("Exact package context\n\n\nYour reasoning about this policy:\n"
+             "Reasoning verbatim.\n", agent_module._DEBIAS_STEP2_TEMPLATE.format(
+                 policy_question=question,
+                 response_options="\n".join(
+                     f"{letter}. {label}"
+                     for letter, label in agent_module.RESPONSE_LABELS.items()
+                 ),
+             )),
+        ])
+        self.assertEqual(result, ("F", 2))
+        self.assertEqual(citizen.survey_raw_response[policy], [(3, "F")])
+        self.assertEqual(citizen._survey_raw_response_steps[policy], [103])
+        self.assertEqual(citizen.opinion_history[policy], [(3, 2)])
+        self.assertEqual(
+            [entry["stage"] for entry in citizen.prompt_log],
+            ["survey_reasoning", "survey_answer"],
+        )
+        for entry in citizen.prompt_log:
+            self.assertEqual(
+                (entry["day"], entry["phase"], entry["policy_id"]),
+                (3, "survey", str(policy)),
+            )
+
+    def test_transport_failure_preserves_only_completed_survey_state(self):
+        from cag.abm.attributes.opinion import ClimatePolicyID
+
+        policy = ClimatePolicyID.BAN_PETROL_CARS
+        for failure_call in (1, 2):
+            with self.subTest(failure_call=failure_call):
+                citizen = self._make_citizen()
+                citizen._capture_prompts = True
+                citizen.environment._next_sim_step.side_effect = [101, 102, 103]
+                citizen.get_system_prompt = mock.Mock(return_value="context")
+                error = RuntimeError("transport failed")
+                responses = [error] if failure_call == 1 else ["notes", error]
+                with mock.patch(
+                    "cag.abm.agent.send_chat", side_effect=responses,
+                ) as send:
+                    with self.assertRaises(RuntimeError) as raised:
+                        citizen.administer_survey(policy, day=2)
+                self.assertIs(raised.exception, error)
+                self.assertEqual(send.call_count, failure_call)
+                self.assertEqual(citizen.survey_assembled_context[policy], [(2, "context")])
+                self.assertNotIn(policy, citizen.survey_raw_response)
+                self.assertNotIn(policy, citizen.opinion_history)
+                if failure_call == 2:
+                    self.assertEqual(citizen.survey_reasoning[policy], [(2, "notes")])
+                    self.assertEqual(citizen._survey_reasoning_steps[policy], [102])
+                else:
+                    self.assertNotIn(policy, citizen.survey_reasoning)
+                self.assertEqual(len(citizen.prompt_log), failure_call - 1)
+
     @mock.patch("cag.abm.agent.send_chat", side_effect=["Some reasoning about factors.", "D"])
     def test_debias_true_two_calls(self, mock_send):
         citizen = self._make_citizen()

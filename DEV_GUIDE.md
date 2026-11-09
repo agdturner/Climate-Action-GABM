@@ -76,7 +76,12 @@ git push origin my_feature
 The root project directory contains documentation and files needed for building and deploying. The sub-diretories include: 
 - `data/`: For data including log files
 - `dist/`: Output directory for built distributions.
-- `docs/`: Documentation
+- `documentation/`: Authoritative long-form documentation: maintained guides,
+  research material, archives, and presentations. Start at
+  [documentation/README.md](documentation/README.md).
+- `docs/`: Sphinx configuration/navigation plus temporary staged content and
+  generated site output. Do not author new usage guides here; see
+  [Developing Documentation](#developing-documentation).
 - `scripts/`: Utility scripts
 - `src/`: Python source code
 - `tests/`: Test suite for src
@@ -118,13 +123,95 @@ goal.
 
 Establish deterministic integration evidence before runtime edits. Develop
 generic APIs and tests in GABM, retain CAG-specific research logic and tests
-here, and wire one bounded extraction at a time. An isolated editable GABM
-checkout is appropriate for development, but validate CAG against the built
-wheel and the subsequent published release before updating production pins.
+here, and wire one bounded extraction at a time. Separate the fast development
+loop from packaging validation and release: a small extraction does not require
+an immediate PyPI release.
 Do not change prompts, random-number usage, cache policy, output schemas, or
 checkpoint/resume behaviour incidentally during extraction.
 
-Update the plan's progress with test and comparison evidence after each slice.
+### Local development loop
+
+Use adjacent CAG and GABM checkouts on focused feature branches. From the CAG
+repository root, create a dedicated integration environment so the normal `cag`
+environment can retain the published dependency:
+
+```bash
+conda create --name cag-integration --clone cag
+conda activate cag-integration
+python -m pip install -r requirements.txt -r requirements-dev.txt
+python -m pip install -e ../GABM
+PYTHONPATH=src:scripts python -m pytest -q
+```
+
+The relative path assumes the framework checkout is named `GABM` beside CAG;
+adjust it for your workspace. Install CAG's requirements **before** the editable
+framework: rerunning them afterward can replace it with the published pin.
+An editable installation exposes Python source edits immediately. Reinstall
+after dependency or packaging changes; rebuild any compiled components.
+
+Check which framework is actually imported:
+
+```bash
+python -c "import gabm; print(gabm.__file__)"
+git -C ../GABM rev-parse HEAD
+git -C ../GABM status --short
+```
+
+Record both repository commits and any uncommitted changes with test evidence.
+Package version metadata alone does not distinguish an unreleased checkout
+from the published artifact carrying the same version.
+Run focused tests during each change, then relevant full suites before review.
+Keep small commits/PRs; do not combine population construction, survey execution,
+transport, memory, and inheritance changes into one refactor.
+
+### Reproducible integration outside the workspace
+
+For CI, collaborators, or HPC, use an exact committed GABM revision instead of
+a moving branch or a developer's editable directory. For example, after
+replacing `FULL_COMMIT_SHA` with the full commit hash:
+
+```bash
+python -m pip install \
+  "gabm @ git+https://github.com/compolis/gabm.git@FULL_COMMIT_SHA"
+```
+
+Use the repository or fork containing that commit and an approved authentication
+method; never put credentials in requirements or documentation. This needs Git
+and access to that repository. As with the editable installation, apply the
+override after CAG's normal dependencies and verify the imported package.
+For automated installs, a separate integration requirements input may replace
+the published GABM entry with this direct reference. Do not combine incompatible
+PyPI and Git requirements for `gabm` in the same resolver invocation.
+
+A commit reference captures committed code, not local edits, and does not lock
+the entire environment. Record Python/dependency versions and run configuration
+as well. Test the same deterministic CAG reference run; live LLM smoke tests are
+supplementary evidence, not exact equivalence gates.
+
+### Packaging milestones and batched releases
+
+Merge stable, backward-compatible GABM additions after review without requiring
+a release for every PR. Keep dependent CAG work on a feature/integration branch
+while several related slices mature. CAG `main` must remain installable using
+its declared dependencies: do not merge code requiring an unpublished API while
+its manifests still pin a release that lacks it.
+
+At meaningful milestones, build a GABM wheel and install it in a separate
+validation environment **instead of** the editable/Git dependency. Run CAG
+without GABM's source directory on `PYTHONPATH` and verify the import comes from
+the installed wheel. This tests packaging without publishing. Do not upload a
+development wheel under an already published version.
+
+Publish when a coherent, validated capability is ready, not after every small
+change. Then update all CAG production manifests, validate the actual PyPI
+artifact without source overrides, and merge the dependent CAG integration.
+Keep the original golden fixtures unless an intentional behaviour change is
+separately approved.
+
+Update the [refactor plan](GABM_Refactor_Plan.md) after each slice with commits,
+test/comparison evidence, and whether validation used editable source, an exact
+Git revision, a local wheel, or a published artifact. These are distinct gates;
+development success is not published-package acceptance.
 
 
 ## Python Package Entry Point
@@ -200,20 +287,43 @@ repository root. Longer-form authored material belongs in `documentation/`:
 - `documentation/presentations/`: authored presentation assets such as the
   standalone HTML handover deck.
 
-Create each category as its first source is migrated; empty placeholder
-directories are unnecessary. `docs/` is the staging directory where
-documentation is copied and pre-processed for Sphinx, not a second place to
-author guides or plans.
+These categories already contain authored sources. Use
+[documentation/README.md](documentation/README.md) as the reader-facing index.
+Keep project entry points, contribution instructions, release history, and
+maintained project plans in the root as described under
+[Root documents](#root-documents). Do not duplicate those documents under
+`documentation/`.
 
-The exceptions are Sphinx configuration and navigation sources, such as
-`docs/conf.py`, `docs/index.md`, and API directives in `docs/api.rst`; these
-belong in `docs/` and may be edited directly. Generated documentation copies,
-autosummary files, and rendered output are not authoritative sources.
+### What belongs in `docs/`
 
-Some existing authored guides still live in `docs/`. Until each is migrated,
-edit its existing source rather than deleting it or creating a second copy.
-Move these guides incrementally, updating links, staging, navigation, and
-cleanup together; no bulk relocation is required.
+`docs/` is the Sphinx site workspace, not a second source tree for prose.
+It contains a deliberate mixture of maintained build inputs and disposable
+build products:
+
+| Content | Edit directly? | Commit? |
+|---|---|---|
+| [docs/conf.py](docs/conf.py): Sphinx configuration | Yes | Yes |
+| [docs/index.md](docs/index.md): site navigation/toctrees | Yes | Yes |
+| [docs/api.rst](docs/api.rst): maintained API directives | Yes | Yes |
+| Intentionally maintained Sphinx templates or site assets, if added | Yes | Yes |
+| Copies staged from the root or `documentation/`, including renamed pages and `supplementary_docs/` pages | No; edit the authoritative source | No |
+| Dependency mirrors generated from the root requirements | No; edit the requirements | No |
+| Newly generated `docs/_autosummary/` stubs | No, not as prose sources | No |
+| Staged presentation assets in `docs/_extra/` | No; edit `documentation/presentations/` | No |
+| Rendered HTML and other build output in `docs/_build/` | No | No |
+
+Some autosummary stubs are tracked legacy generated files. Leave unrelated
+changes to them out of commits; deliberately update/remove tracked stubs only
+when changing their API/navigation ownership. The historical
+[docs/index.rst](docs/index.rst) is excluded from the build and is not the active
+site index.
+
+**Practical rule:** to change instructions, research prose, or a presentation,
+edit its root or `documentation/` source. To change how the site is built or
+navigated, edit the maintained Sphinx inputs in `docs/`. Never copy a guide
+there manually and treat both copies as editable sources.
+
+### Staging authored content into the site
 
 The Aire guides, code tour, local LLM setup, prompts/personas V2, output guide,
 and configuration guide now have authoritative sources in
@@ -339,7 +449,12 @@ To build run:
 make docs
 ```
 
-- This effectively runs `scripts/docs.py` to copy key documentation files from the project root to the `docs/` directory, pre-processes them for building the Sphinx documentation, then delete those copied files once the build completes.
+- This runs [scripts/docs.py](scripts/docs.py) to stage registered sources from
+  the repository root and `documentation/` into `docs/`, rewrite links and
+  generate dependency pages, then build the site. After a successful build,
+  cleanup removes registered staging files, not their authored sources or
+  the rendered output in `docs/_build/`. A failed build can leave staged
+  files behind; use `make docs-clean` after inspecting the failure.
 
 **Note on Sphinx/MyST Documentation Warnings:**
 

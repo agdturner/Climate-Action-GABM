@@ -75,6 +75,20 @@ pip install -r requirements.txt -r requirements-dev.txt
 
 ### Updating an existing checkout to GABM 0.4.0
 
+On the development branch `refactor/gabm-survey-consumer`, survey execution
+requires the unreleased API on GABM's `feature/two-stage-survey` branch.
+The published 0.4.0 package is insufficient for this branch. For local
+development in an isolated environment, install that GABM checkout or its
+built wheel after the dependencies below. For source-based tests with the
+adjacent workspace checkout, use:
+
+```bash
+PYTHONPATH=src:scripts:../GABM/src python -m pytest
+```
+
+Do not merge the adapter or change the production pin until the GABM API is
+released and validated against its published wheel.
+
 The dependency manifests pin `gabm==0.4.0`. In your activated development
 environment, rerun the combined installation command above, then run
 `make test`. The integration tests compare against the retained 0.2.18 golden
