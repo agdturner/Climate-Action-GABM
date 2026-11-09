@@ -68,7 +68,7 @@ def _config_hash(serialised_config):
     return hashlib.sha256(blob).hexdigest()
 
 
-def _write_checkpoint(nation, cfg, last_day, checkpoint_dir):
+def _write_checkpoint(nation, cfg, last_day, checkpoint_dir, *, message_pool=None):
     """Write a per-day checkpoint to ``checkpoint_dir`` (atomic)."""
     checkpoint_dir = Path(checkpoint_dir)
     checkpoint_dir.mkdir(parents=True, exist_ok=True)
@@ -89,6 +89,8 @@ def _write_checkpoint(nation, cfg, last_day, checkpoint_dir):
         "config_hash": _config_hash(serialised),
         "written_at": datetime.now().isoformat(timespec="seconds"),
     }
+    if message_pool is not None:
+        meta["message_pool_state"] = message_pool.export_state()
     _atomic_write_json(meta, checkpoint_dir / "checkpoint_meta.json")
     logging.info(
         f"Checkpoint written for day {last_day} to {checkpoint_dir}"

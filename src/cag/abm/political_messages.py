@@ -33,9 +33,10 @@ __copyright__ = "Copyright (c) 2026 Climate-Action-GABM contributors, University
 # Standard library imports
 import csv
 import hashlib
+import json
 import logging
 import random
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Iterable
 
@@ -116,6 +117,63 @@ class MessagePool:
     sources: dict[str, SourceRecord] = field(default_factory=dict)
 
     # -- public API -------------------------------------------------------
+
+    def export_state(self) -> dict:
+        """Return JSON-safe rotation state tied to the loaded message content."""
+        content = [
+            [side, policy, [asdict(record) for record in self._cells[(side, policy)]]]
+            for side, policy in sorted(self._cells)
+        ]
+        fingerprint = hashlib.sha256(
+            json.dumps(content, sort_keys=True).encode("utf-8")
+        ).hexdigest()
+        return {
+            "version": 1,
+            "set_id": self.set_id,
+            "seed": self.seed,
+            "content_hash": fingerprint,
+            "cursors": [
+                {"side": side, "policy": policy, "index": self._cursors[(side, policy)]}
+                for side, policy in sorted(self._cells)
+            ],
+        }
+
+    def restore_state(self, state: dict) -> None:
+        """Validate saved content and all cursors before replacing rotation state."""
+        expected = self.export_state()
+        if not isinstance(state, dict) or any(
+            state.get(key) != expected[key]
+            for key in ("version", "set_id", "seed", "content_hash")
+        ):
+            raise MessagePoolError(
+                "Checkpoint offline message-pool identity/content mismatch. "
+                "Use the original message set and seed or start a fresh run."
+            )
+        entries = state.get("cursors")
+        if not isinstance(entries, list):
+            raise MessagePoolError("Invalid checkpoint offline message-pool cursors.")
+        cursors = {}
+        for entry in entries:
+            if not isinstance(entry, dict):
+                raise MessagePoolError("Invalid checkpoint offline message-pool cursor.")
+            side, policy, index = (
+                entry.get("side"), entry.get("policy"), entry.get("index")
+            )
+            if not isinstance(side, str) or not isinstance(policy, str):
+                raise MessagePoolError("Invalid checkpoint offline message-pool cell.")
+            key = (side, policy)
+            if (
+                key not in self._cells or key in cursors
+                or type(index) is not int
+                or not 0 <= index < len(self._cells[key])
+            ):
+                raise MessagePoolError(
+                    f"Invalid checkpoint offline message-pool cursor for {key!r}."
+                )
+            cursors[key] = index
+        if cursors.keys() != self._cells.keys():
+            raise MessagePoolError("Incomplete checkpoint offline message-pool cursors.")
+        self._cursors = cursors
 
     def has_cell(self, side: str, policy_key: int | str) -> bool:
         return self._cell_key(side, policy_key) in self._cells

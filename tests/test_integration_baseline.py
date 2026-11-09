@@ -277,13 +277,7 @@ def test_real_checkpoint_roundtrip(mode, tmp_path):
 
 
 @pytest.mark.parametrize("mode", ["package", "single_policy"])
-@pytest.mark.parametrize("source", [
-    "llm",
-    pytest.param("offline", marks=pytest.mark.xfail(
-        strict=True, raises=AssertionError,
-        reason="Offline message-pool cursors are not restored from checkpoints",
-    )),
-])
+@pytest.mark.parametrize("source", ["llm", "offline"])
 def test_real_checkpoint_continuation_with_preserved_rng(mode, source, tmp_path):
     with _runtime() as requests:
         config = _config(mode)
@@ -315,3 +309,28 @@ def test_real_checkpoint_continuation_with_preserved_rng(mode, source, tmp_path)
             "survey_raw_response", "survey_assembled_context",
         ):
             assert actual[name].to_csv(index=False) == expected[name].to_csv(index=False)
+
+
+@pytest.mark.parametrize("source", ["offline", "llm"])
+def test_legacy_checkpoint_without_pool_state(source, tmp_path):
+    with _runtime():
+        config = _config("package")
+        config["political_message_source"] = source
+        partial_config = deepcopy(config)
+        partial_config["days"] = partial_config["days"][:1]
+        run_simulation(
+            partial_config, _make_nation(), checkpoint_dir=tmp_path,
+            checkpoint_every_day=True,
+        )
+        meta_path = tmp_path / "checkpoint_meta.json"
+        meta = json.loads(meta_path.read_text())
+        meta.pop("message_pool_state", None)
+        meta_path.write_text(json.dumps(meta))
+
+        if source == "offline":
+            with pytest.raises(ValueError, match="lacks message-pool rotation state"):
+                run_simulation(
+                    config, _make_nation(), checkpoint_dir=tmp_path, resume=True,
+                )
+        else:
+            run_simulation(config, _make_nation(), checkpoint_dir=tmp_path, resume=True)

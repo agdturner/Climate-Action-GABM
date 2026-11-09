@@ -733,6 +733,17 @@ it stopped. When you resume, the model compares your new configuration against t
   provider (including the survey ones), `thinking`, `llm_temperature`, and the three local-
   model settings.
 
+Offline checkpoints also store the next-message cursor for every message-pool
+cell and a fingerprint of the ordered message content. Resume requires the
+same message set, seed, and content. Older offline checkpoints without this
+rotation state are rejected with an explicit error: start a fresh run rather
+than silently restarting the rotation. Older LLM-only checkpoints do not need
+message-pool state.
+
+This restores offline broadcast rotation, not full fresh-process
+reproducibility. Checkpoints still do not save Python's process-wide random
+state used for peer selection, and full prompt logs are not hydrated.
+
 ---
 
 ## 8. For developers, and where to look next

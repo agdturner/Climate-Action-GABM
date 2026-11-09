@@ -797,6 +797,14 @@ def run_simulation(config, nation, checkpoint_dir=None, resume=False,
             )
         meta = _load_checkpoint_meta(checkpoint_dir)
         _validate_resume_config(meta, cfg, nation)
+        if rt["message_pool"] is not None:
+            if "message_pool_state" not in meta:
+                raise ValueError(
+                    "Offline checkpoint lacks message-pool rotation state. "
+                    "Start a fresh run; exact continuation of this older "
+                    "checkpoint is not supported."
+                )
+            rt["message_pool"].restore_state(meta["message_pool_state"])
         last_day = _load_checkpoint(nation, checkpoint_dir)
         start_day_index = last_day  # next day to run is last_day + 1 (1-indexed)
         logging.info(
@@ -838,14 +846,20 @@ def run_simulation(config, nation, checkpoint_dir=None, resume=False,
             )
 
         if checkpoint_every_day:
-            _write_checkpoint(nation, cfg, last_day=0, checkpoint_dir=checkpoint_dir)
+            _write_checkpoint(
+                nation, cfg, last_day=0, checkpoint_dir=checkpoint_dir,
+                message_pool=rt["message_pool"],
+            )
 
     # Daily loop
     for day_index in range(start_day_index, n_days):
         day = day_index + 1
         _run_one_day(nation, day, days[day_index], n_days, rt)
         if checkpoint_every_day:
-            _write_checkpoint(nation, cfg, last_day=day, checkpoint_dir=checkpoint_dir)
+            _write_checkpoint(
+                nation, cfg, last_day=day, checkpoint_dir=checkpoint_dir,
+                message_pool=rt["message_pool"],
+            )
 
     return _collect_results(nation, cfg)
 
