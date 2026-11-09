@@ -32,7 +32,7 @@ dependencies:
   - pip
   - pip:
       # GABM base framework (PyPI only).
-      - gabm==0.4.0
+      - gabm==0.5.0
       # LLM provider clients. `openai` is REQUIRED even for the default
       # provider="local" path: the local backend talks to the vLLM server
       # through the openai SDK. `anthropic` is optional (cloud fallback).

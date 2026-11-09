@@ -191,7 +191,7 @@ These were read from the adjacent GABM checkout at
 [`2ea3f5f`](https://github.com/compolis/gabm/tree/2ea3f5f01b6b610fd92274be16b57484d9f2a553)
 on 2026-11-08. They are repository evidence, not independently verified cluster
 policy or fresh deployment tests. Their contents are not installed by the
-`gabm==0.4.0` dependency pin.
+`gabm==0.5.0` dependency pin.
 
 The active guide records historical Apertus-v1.5-70B serving on four Calder
 H200 GPUs with vLLM 0.23.1/0.23.1rc1 and tensor parallelism of four. This differs

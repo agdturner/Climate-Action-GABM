@@ -26,12 +26,13 @@ development stage, not necessarily the current code or a verified public tag.
 
 ## [Unreleased]
 
-- **Two-stage survey adapter (development only, 2026-11-09).** Survey execution
+- **Two-stage survey adapter (2026-11-09).** Survey execution
   delegates to the new GABM executor while CAG retains exact prompts,
   transport, context selection, audit/event ordering, parsing, and histories.
-  Requires the unreleased GABM survey API; the production pin remains 0.4.0
-  until framework release and published-package validation. Tested against a
-  locally built wheel, not the published 0.4.0 package.
+  Runtime, development, and Conda dependencies now pin published GABM 0.5.0,
+  which supplies the survey API without a local-source override.
+  Published-wheel validation: 771 passed, 1 skipped, 50 subtests, with the
+  original integration golden fixture unchanged.
 
 - **Offline checkpoint rotation (2026-11-09).** Checkpoints now save and
   restore message-pool cursors, validating the set, seed, and ordered message

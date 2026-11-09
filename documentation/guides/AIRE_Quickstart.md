@@ -249,7 +249,7 @@ module load miniforge
 conda env create -f environment.yaml
 ```
 
-This creates the `cag` simulation-client environment, including GABM 0.4.0;
+This creates the `cag` simulation-client environment, including GABM 0.5.0;
 vLLM runs separately in the container. The YAML does not install the Sphinx
 documentation toolchain. Build times vary. Keep dependency manifests aligned;
 update with `conda env update -f environment.yaml --prune` from the repo.
