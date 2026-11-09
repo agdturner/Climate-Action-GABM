@@ -11,6 +11,8 @@ __copyright__ = "Copyright (c) 2026 Climate-Action-GABM contributors, University
 from copy import deepcopy
 from datetime import date
 
+from gabm.abm.survey import execute_two_stage_question
+
 from cag.io.llm import send_chat, parse_letter_response
 from cag.abm.attributes.opinion import (
     PACKAGE_SCOPE,
@@ -698,35 +700,40 @@ class SurveyedCitizen():
             anti_sycophancy=_ANTI_SYCOPHANCY,
             policy_question=policy_question,
         )
-        reasoning = self._chat(
-            system_prompt, step1_prompt, stage="survey_reasoning",
-            day=day, phase="survey", policy_id=policy_id,
-            api_key=api_key, model=model,
-            provider=provider, temperature=temperature, thinking=thinking,
-        )
+        def send(system, user, stage):
+            return self._chat(
+                system, user, stage=f"survey_{stage}",
+                day=day, phase="survey", policy_id=policy_id,
+                api_key=api_key, model=model, provider=provider,
+                temperature=temperature, thinking=thinking,
+            )
 
-        # Store reasoning for post-hoc analysis (not fed back into agent context)
-        if policy_id not in self.survey_reasoning:
-            self.survey_reasoning[policy_id] = []
-            self._survey_reasoning_steps[policy_id] = []
-        self.survey_reasoning[policy_id].append((day, reasoning))
-        self._survey_reasoning_steps[policy_id].append(self._sim_step())
+        def record_reasoning(reasoning):
+            if policy_id not in self.survey_reasoning:
+                self.survey_reasoning[policy_id] = []
+                self._survey_reasoning_steps[policy_id] = []
+            self.survey_reasoning[policy_id].append((day, reasoning))
+            self._survey_reasoning_steps[policy_id].append(self._sim_step())
 
-        # Step 2: Get answer with reasoning appended to system prompt
+        def build_answer_system(system, reasoning):
+            return system + "\n\nYour reasoning about this policy:\n" + reasoning
+
         response_options = "\n".join(
             f"{letter}. {label}" for letter, label in RESPONSE_LABELS.items()
         )
-        step2_system = system_prompt + "\n\nYour reasoning about this policy:\n" + reasoning
         step2_prompt = _DEBIAS_STEP2_TEMPLATE.format(
             policy_question=policy_question,
             response_options=response_options,
         )
-        llm_response = self._chat(
-            step2_system, step2_prompt, stage="survey_answer",
-            day=day, phase="survey", policy_id=policy_id,
-            api_key=api_key, model=model,
-            provider=provider, temperature=temperature, thinking=thinking,
+        result = execute_two_stage_question(
+            system_prompt=system_prompt,
+            reasoning_prompt=step1_prompt,
+            answer_prompt=step2_prompt,
+            send=send,
+            build_answer_system=build_answer_system,
+            on_reasoning=record_reasoning,
         )
+        llm_response = result.answer
 
         # Store raw Step-2 text for post-hoc parser audit.
         if policy_id not in self.survey_raw_response:

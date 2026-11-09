@@ -1,8 +1,9 @@
 # CAG to GABM Refactor Plan
 
-**Status:** integration baseline and published 0.3.0 compatibility validated;
-generic network extraction merged into GABM main, released as 0.4.0, and
-validated with the CAG adapter against the published wheel; CAG merge pending.
+**Status:** network integration and offline cursor restoration merged into
+CAG main; GABM 0.4.0 published and generic network follow-up tests merged.
+Survey-execution boundary reviewed and implemented on local feature branches;
+framework release and published-package acceptance remain pending.
 
 **Documentation ownership checkpoint (2026-11-08):** before generic extraction,
 the Aire quickstart and primer were moved to `documentation/guides/`.
@@ -462,6 +463,190 @@ question scope, and checkpoint state.
 comparisons verify prompts, call order, memory, and outputs. Any intentional
 difference is separately approved and tested.
 
+#### Survey-execution boundary review (2026-11-09)
+
+Reviewed CAG main `17111e3` and GABM main `fab60b9`. The network and offline
+cursor changes are merged; GABM's expanded network tests are also merged.
+The initial review changed documentation only. The API below was subsequently
+implemented in the local feature-branch follow-up; it is not yet published.
+
+**Scope adjustment:** use survey execution as the next concrete reuse case.
+It can initially accept an injected chat callable backed by CAG's existing
+transport. This does not migrate transport or establish provider parity.
+Compare and adapt GABM transport separately before replacing CAG's provider
+implementations; memory extraction remains later work.
+
+##### Observed call flow and ownership
+
+The reference path is
+`sim._run_baseline_surveys` or `SurveyedNation.run_end_of_day_survey` ->
+`SurveyedCitizen.administer_survey` -> `_chat` -> `cag.io.llm.send_chat`.
+Day-0 ground-truth and ground-truth-with-rationale paths are separate and must
+remain unchanged.
+
+For each question, `administer_survey` currently:
+
+1. Selects memory context using `context_policy_id`, while retaining the
+   question's `policy_id` as the target for anchors/reasoning.
+2. Builds and records the exact system context, consuming an event step.
+3. Formats the anti-sycophancy reasoning prompt and calls `_chat`.
+4. Stores reasoning and consumes another event step **before** the answer call.
+5. Appends reasoning to the system context using the existing exact separator,
+   formats the answer prompt/options, and calls `_chat` again.
+6. Stores raw answer text and its event step, parses/scales the answer, and
+   appends opinion history.
+
+`_chat` records sampled-agent prompt/response pairs immediately after successful
+transport calls. `send_chat` owns provider dispatch, request roles/options,
+local configuration/model defaults, and resilient request handling.
+The environment owns agent iteration, previous-versus-current opinion shifts,
+and survey scheduling. These responsibilities are not one generic operation.
+
+| Responsibility | Proposed owner |
+|---|---|
+| Execute reasoning then answer, passing exact strings through a supplied chat callable | GABM |
+| Return the two raw response strings in a typed result | GABM |
+| Question text, anti-sycophancy instructions, response options, and reasoning-to-context formatting | CAG supplies these inputs |
+| Policy/package context selection and context-history recording | CAG |
+| Stage/day/phase/policy metadata, prompt logging, and event-step allocation | CAG |
+| Parsing A-G responses, numeric scale, opinion history, and output/checkpoint schemas | CAG |
+| Provider SDKs, retries, local-server options, error and cache policy | Existing CAG transport initially; separate GABM parity review |
+
+##### Existing GABM facilities and gaps
+
+- [`gabm.abm.survey`](../GABM/src/gabm/abm/survey.py) already provides `Answer`,
+  `Question`, `Survey`, and `SurveyConversation`. Extend this module additively
+  rather than introduce a second survey subsystem or replace existing APIs.
+- `Question.get_prompt()` supplies its own prose. CAG must not use that formatter
+  for this slice because it would change research prompts.
+- `SurveyConversation.conduct()` reads `person.profile`, concatenates that with
+  question text, and calls `send` with a single context argument plus keywords.
+  It does not implement CAG's separate system/user prompts, two-stage protocol,
+  parsing, or intermediate recording.
+- `SurveyConversation.__init__` assumes service methods `get_api_key` and
+  `get_default_model`, which the `LLMService` base does not define.
+  `_build_context` refers to `self.person_profile`, `question.options`, and
+  `question.metadata`, which the inspected constructors do not establish.
+  These are compatibility gaps to characterize separately, not silently fix
+  while extracting CAG behaviour.
+- [`LLMService.send`](../GABM/src/gabm/io/llm/llm_service.py) takes
+  `(api_key, message, model, request_options)`, rather than CAG's chat signature.
+  Its error helper can return error dictionaries. The inspected OpenAI service
+  builds a user-role message, enables shared response caching by default through
+  the base class, and returns provider/cache results. Direct substitution is not
+  demonstrated to preserve CAG's roles, text return type, errors, or cache policy.
+- No survey-named Python test files were found under GABM's test directory.
+  This is not evidence that no indirect coverage exists; add focused independent
+  tests for the proposed API.
+
+##### Proposed first implementation slice
+
+Add a small opt-in two-stage question executor in `gabm.abm.survey`.
+Illustrative contract (names to be confirmed during implementation):
+
+```python
+@dataclass(frozen=True)
+class TwoStageSurveyResult:
+    reasoning: str
+    answer: str
+
+def execute_two_stage_question(
+    *,
+    system_prompt: str,
+    reasoning_prompt: str,
+    answer_prompt: str,
+    send: Callable[[str, str, str], str],
+    build_answer_system: Callable[[str, str], str],
+    on_reasoning: Callable[[str], None],
+) -> TwoStageSurveyResult:
+    ...
+```
+
+`send(system, user, stage)` uses neutral stage names `reasoning` and `answer`;
+CAG's closure translates them to its existing audit stages and delegates to
+`self._chat` with unchanged model/provider/options and day/phase/policy metadata.
+`build_answer_system(system, reasoning)` is supplied by CAG so the framework
+does not embed policy wording or assume a particular prompt separator.
+`on_reasoning(reasoning)` runs immediately after the first successful call and
+before constructing/sending the answer; CAG uses it to append reasoning and
+allocate the existing event step. It is necessary to preserve intermediate
+state if the answer call fails, not a general-purpose plugin/event framework.
+The executor must not catch transport/recording errors or turn them into
+successful-looking survey results.
+
+The resulting CAG flow is:
+
+1. Build/record context exactly as today.
+2. Supply the existing prompt templates, chat closure, reasoning recorder,
+   and answer-context formatter to the GABM executor.
+3. Record the returned raw answer, parse/score it, and append opinion history
+   exactly as today. Retain the public method signature and return tuple.
+
+This is deliberately an optional two-stage protocol, not the definition of all
+GABM surveying. Do not force existing `SurveyConversation` users, one-stage
+surveys, or ground-truth anchoring through it. Do not add a general workflow
+engine, change agent inheritance/IDs, or move population loading in this slice.
+
+##### Acceptance gates and implementation order
+
+1. Add neutral mocked-chat tests in GABM for exact prompts/stages, call order,
+   answer-context construction, intermediate callback order, and typed raw
+   results. Cover errors in the first call, recorder, and second call:
+   subsequent work must not run and errors must propagate.
+2. Add/retain focused CAG checks for exact templates, package context versus
+   target question, identical options on both calls, and audit/event ordering.
+   Explicitly test second-call failure: context and reasoning remain recorded,
+   but no answer/raw-response/history entry is fabricated.
+3. Wire only `administer_survey` through the new API. Compare deterministic
+   real-nation request/response sequences, state, CSV/output fingerprints, and
+   checkpoint continuation in both modes. Keep the original golden fixture;
+   do not regenerate it to accommodate differences.
+4. Add a tiny neutral example/test with in-memory questions and mocked chat.
+   No credentials, real respondent data, or live LLM is required.
+5. Run focused suites, then the full CAG suite and relevant GABM suites.
+   Build/test the new GABM wheel, release it, then update CAG's pin and repeat
+   acceptance without a GABM source-path override.
+
+**Later, separate slice:** trace CAG's `__main__.build_nation` and `io.survey`
+to assess reusable respondent-to-agent mapping/validation against GABM's
+existing population constructors. Preserve CAG codebooks, missing-data policy,
+respondent IDs, row selection/order, and factory behaviour. Do not invent
+sampling/weighting machinery without a demonstrated requirement.
+
+##### Implementation and validation follow-up (2026-11-09)
+
+Implemented the proposed `execute_two_stage_question` and immutable
+`TwoStageSurveyResult` additively in GABM's existing survey module on
+`feature/two-stage-survey`. CAG's `refactor/gabm-survey-consumer` delegates only
+the two-call execution; context/prompt formatting, the intermediate reasoning
+recorder, transport options, scoring, and histories remain application-owned.
+Existing `SurveyConversation` and provider implementations were not changed.
+
+GABM has six focused tests, including a neutral library-visitor example,
+exact execution order/raw strings, result immutability, and propagation from
+both calls, the recorder, and the answer-context formatter. New CAG tests
+verify exact templates/options, package context versus target question,
+prompt audit stages, event steps, and partial state after first/second-call
+failure.
+
+- GABM focused survey suite: **6 passed**.
+- GABM full default suite: **228 passed, 10 deselected**.
+- CAG agent, golden integration, and transport suites against local GABM
+  source: **75 passed, 2 subtests**.
+- Built a development wheel and installed it without dependency changes in
+  an isolated virtual environment using the `cag` scientific/test stack.
+  Verified that the survey module was imported from that installed wheel.
+  CAG full suite with only `PYTHONPATH=src:scripts`: **771 passed, 1 skipped,
+  6 warnings, 50 subtests**. The retained golden fixture was not changed.
+
+The development wheel still carries version 0.4.0 because no version bump or
+release was performed; it is **not** the published PyPI 0.4.0 artifact and must
+not be uploaded under that version. CAG's production manifests remain pinned
+to 0.4.0, which cannot supply the new API. This adapter branch therefore
+requires the GABM development checkout/wheel, as documented in the quickstart.
+Do not merge it until a new GABM release is published, pins are updated, and
+the published-wheel gates pass. Changes are uncommitted in both repositories.
+
 ### 5. Evaluate further extractions
 
 Consider checkpoint infrastructure and experiment provenance/comparison helpers
@@ -471,15 +656,26 @@ merely to match a framework example.
 
 ## Two-repository development and release workflow
 
+The maintained operational instructions are in
+[Cross-Repository Refactoring](DEV_GUIDE.md#cross-repository-refactoring).
+Use a fast integration loop and batch releases at coherent milestones; the
+following gates do not require a separate release for every extraction.
+
 1. Keep CAG as the active application workspace and GABM as the framework
    development/reference checkout. Use separate, focused changes in each.
 2. For each extraction, document the API boundary and acceptance evidence.
    Add generic tests in GABM and keep domain/integration tests in CAG.
 3. Test CAG against an isolated editable GABM checkout while developing new
-   APIs. Record the GABM commit; an editable checkout is not release evidence.
-4. Validate the built GABM wheel with CAG before publishing a new release.
-5. Release GABM, then pin CAG to that published version and rerun the gates
-   without source-path overrides. GABM 0.3.0 cannot supply APIs added later.
+   APIs. Record both commits and dirty state; use exact Git revisions for
+   reproducible CI/collaborator integration. Apply these overrides separately
+   from the incompatible published requirement.
+4. Review small PRs independently; stable backward-compatible GABM additions
+   can merge without immediate publication. Keep CAG code requiring unreleased
+   APIs on integration branches. Validate built GABM wheels at milestones.
+5. Batch related validated capabilities into a GABM release, then pin CAG to
+   that published version and rerun the gates without source-path overrides.
+   Merge dependent CAG changes only when declared dependencies supply the API.
+   Editable/Git/local-wheel evidence is not published-package acceptance.
 6. Update this plan's progress, the change log, and affected usage/API docs.
    Follow each repository's contribution and release process.
 
@@ -498,9 +694,10 @@ separately from structural refactor regressions.
 | Published-package audit and unchanged 0.2.18 baseline | Complete, 2026-11-08 |
 | Golden real-nation integration fixture | Original golden reference retained; both offline continuation expected failures resolved in the separate 2026-11-09 cursor slice |
 | Published 0.3.0 compatibility | Implemented and independently validated, 2026-11-08; 693 passed, 1 skipped, 2 expected failures; original golden reference unchanged |
-| Generic network extraction and CAG wiring | GABM 0.4.0 published; CAG pinned and validated against the PyPI wheel, 2026-11-09; 744 passed, 1 skipped, 2 xfailed, 30 subtests; CAG merge pending |
-| Offline checkpoint cursor restoration | Implemented and validated, 2026-11-09; full suite 769 passed, 1 skipped, no xfails; random-state persistence remains separate |
-| LLM transport adaptation | Next extraction after CAG network merge; boundary review required |
+| Generic network extraction and CAG wiring | Merged into CAG main `17111e3`; GABM 0.4.0 published and released-wheel acceptance recorded above |
+| Offline checkpoint cursor restoration | Merged into CAG main `17111e3`; full suite 769 passed, 1 skipped, no xfails before merge; random-state persistence remains separate |
+| Survey-execution extraction | Implemented and validated against a local development wheel, 2026-11-09; GABM 228 passed, CAG 771 passed; new framework release and published-wheel gates pending |
+| LLM transport adaptation | Existing service gaps identified; provider parity and migration remain separate from the first survey-execution slice |
 | Memory and further extractions | Candidates; scope not yet committed |
 
 Update statuses only with the relevant test and comparison evidence. Record

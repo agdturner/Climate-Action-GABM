@@ -26,6 +26,13 @@ development stage, not necessarily the current code or a verified public tag.
 
 ## [Unreleased]
 
+- **Two-stage survey adapter (development only, 2026-11-09).** Survey execution
+  delegates to the new GABM executor while CAG retains exact prompts,
+  transport, context selection, audit/event ordering, parsing, and histories.
+  Requires the unreleased GABM survey API; the production pin remains 0.4.0
+  until framework release and published-package validation. Tested against a
+  locally built wheel, not the published 0.4.0 package.
+
 - **Offline checkpoint rotation (2026-11-09).** Checkpoints now save and
   restore message-pool cursors, validating the set, seed, and ordered message
   content before restoring. Older offline checkpoints without rotation state
