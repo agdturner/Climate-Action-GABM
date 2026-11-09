@@ -1,9 +1,9 @@
 # CAG to GABM Refactor Plan
 
 **Status:** network integration and offline cursor restoration merged into
-CAG main; GABM 0.4.0 published and generic network follow-up tests merged.
-Survey-execution boundary reviewed and implemented on local feature branches;
-framework release and published-package acceptance remain pending.
+CAG main; generic network follow-up tests merged. Survey-execution extraction
+is merged in both repositories. GABM 0.5.0 is published; CAG dependency pins
+are updated and published-wheel acceptance passes.
 
 **Documentation ownership checkpoint (2026-11-08):** before generic extraction,
 the Aire quickstart and primer were moved to `documentation/guides/`.
@@ -639,15 +639,26 @@ failure.
   CAG full suite with only `PYTHONPATH=src:scripts`: **771 passed, 1 skipped,
   6 warnings, 50 subtests**. The retained golden fixture was not changed.
 
-The development wheel still carries version 0.4.0 because no version bump or
-release was performed; it is **not** the published PyPI 0.4.0 artifact and must
-not be uploaded under that version. CAG's production manifests remain pinned
-to 0.4.0, which cannot supply the new API. This adapter branch therefore
-requires the GABM development checkout/wheel, as documented in the quickstart.
-Do not merge it until a new GABM release is published, pins are updated, and
-the published-wheel gates pass. Subsequent commits: GABM `af446a1` on
+At the initial implementation checkpoint, the development wheel still carried
+version 0.4.0; it was **not** the published PyPI 0.4.0 artifact and was not
+suitable for publication under that version. Published-wheel acceptance was
+then pending. Subsequent commits: GABM `af446a1` on
 `feature/two-stage-survey`, CAG `b49d711` on `refactor/gabm-survey-consumer`;
 CAG developer workflow/documentation guidance is committed as `bf5b241`.
+
+Published-package follow-up (2026-11-09): the executor and string-contract
+guards are merged into GABM main, and the CAG adapter is merged into CAG main
+`9100172`. PyPI now provides GABM **0.5.0**. Runtime, development, and Conda
+manifests pin that version; no GABM source override is required.
+
+Installed the published wheel in a temporary `--system-site-packages` virtual
+environment over the existing `cag` scientific/test stack. Verified version
+0.5.0 and the import location inside that environment's `site-packages`.
+With only `PYTHONPATH=src:scripts`, the full CAG suite passes:
+**771 passed, 1 skipped, 6 warnings, 50 subtests**. The original golden
+fixture is unchanged. This validates the published GABM artifact against
+the existing CAG stack, not a fully fresh resolution of all dependencies.
+The temporary environment was removed after validation.
 
 #### Survey-derived population review (2026-11-09)
 
@@ -767,8 +778,15 @@ Using `cag` with GABM `af446a1` on
 `PYTHONPATH=src:scripts:../GABM/src`: focused population/CLI/golden suite
 **63 passed**; full CAG suite **786 passed, 1 skipped, 6 warnings, 50 subtests**.
 The original golden fixture is unchanged. The factory implementation is tracked
-on this feature branch and depends on the parent branch's unreleased survey
-executor; merge and published-package acceptance remain pending.
+on this feature branch. Its survey-executor dependency is now supplied by
+published GABM 0.5.0; population-branch published-wheel acceptance follows.
+
+After merging main's dependency update into this branch, installed PyPI GABM
+0.5.0 in a temporary virtual environment over the existing `cag` stack and
+verified its `site-packages` import origin. With only `PYTHONPATH=src:scripts`,
+the full population-branch suite passes: **786 passed, 1 skipped, 6 warnings,
+50 subtests**. No GABM source override or golden-fixture change was needed.
+The temporary environment was removed after validation; PR merge remains pending.
 
 ### 5. Evaluate further extractions
 
@@ -819,7 +837,7 @@ separately from structural refactor regressions.
 | Published 0.3.0 compatibility | Implemented and independently validated, 2026-11-08; 693 passed, 1 skipped, 2 expected failures; original golden reference unchanged |
 | Generic network extraction and CAG wiring | Merged into CAG main `17111e3`; GABM 0.4.0 published and released-wheel acceptance recorded above |
 | Offline checkpoint cursor restoration | Merged into CAG main `17111e3`; full suite 769 passed, 1 skipped, no xfails before merge; random-state persistence remains separate |
-| Survey-execution extraction | Implemented and validated against a local development wheel, 2026-11-09; GABM 228 passed, CAG 771 passed; new framework release and published-wheel gates pending |
+| Survey-execution extraction | Merged in both repositories; GABM 0.5.0 published and pinned; published-wheel CAG validation: 771 passed, 1 skipped, 50 subtests, 2026-11-09 |
 | Survey-derived population construction | Characterization committed as `b485dad`; CAG row factory implemented, 2026-11-09; 63 focused passes, full suite 786 passed; generic GABM API remains a candidate |
 | LLM transport adaptation | Existing service gaps identified; provider parity and migration remain separate from the first survey-execution slice |
 | Memory and further extractions | Candidates; scope not yet committed |
