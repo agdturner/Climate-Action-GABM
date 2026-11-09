@@ -152,6 +152,13 @@ These are small, mostly-static, and you'll rarely touch them unless you add a po
 
 ### 4.5 CLI surface
 
+Respondent field conversion lives in
+[`src/cag/abm/population.py`](../../src/cag/abm/population.py):
+`citizen_from_survey_row(row, environment=..., year=...)` constructs a citizen
+and retains its original response Series without registering it. The CLI's
+`build_nation` still owns nation/map setup, positional row iteration, and agent
+registration. Loading/filtering and seeded sampling remain separate.
+
 > **[src/cag/__main__.py](../../src/cag/__main__.py)** *(~631 ln)* — `python -m cag`: flags → config → nation → run → outputs. The headless entry point AIRE calls.
 >   **Staying?** `build_config` is the precedence rule in one place (defaults ← preset ← CLI); `build_nation` constructs the population; `build_days` expands an integer day-count into the alternating P-A/P-B/C schedule; `_ARG_TO_SIM` covers the few flags whose names don't match their config keys. **Breadcrumb:** read `build_config`, then trace one `--dry-run` to see the fully-resolved config without launching anything.
 

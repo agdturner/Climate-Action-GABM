@@ -26,6 +26,12 @@ development stage, not necessarily the current code or a verified public tag.
 
 ## [Unreleased]
 
+- **Survey population organisation (2026-11-09).** Extracted CAG's
+  `citizen_from_survey_row` factory from the CLI into `cag.abm.population`.
+  Loading, sampling, conversion defaults, respondent IDs, and registration
+  behaviour are unchanged. Added synthetic population characterization and
+  direct factory tests; no generic GABM population API is introduced.
+
 - **Two-stage survey adapter (2026-11-09).** Survey execution
   delegates to the new GABM executor while CAG retains exact prompts,
   transport, context selection, audit/event ordering, parsing, and histories.

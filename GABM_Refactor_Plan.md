@@ -642,7 +642,9 @@ failure.
 At the initial implementation checkpoint, the development wheel still carried
 version 0.4.0; it was **not** the published PyPI 0.4.0 artifact and was not
 suitable for publication under that version. Published-wheel acceptance was
-then pending.
+then pending. Subsequent commits: GABM `af446a1` on
+`feature/two-stage-survey`, CAG `b49d711` on `refactor/gabm-survey-consumer`;
+CAG developer workflow/documentation guidance is committed as `bf5b241`.
 
 Published-package follow-up (2026-11-09): the executor and string-contract
 guards are merged into GABM main, and the CAG adapter is merged into CAG main
@@ -657,6 +659,134 @@ With only `PYTHONPATH=src:scripts`, the full CAG suite passes:
 fixture is unchanged. This validates the published GABM artifact against
 the existing CAG stack, not a fully fresh resolution of all dependencies.
 The temporary environment was removed after validation.
+
+#### Survey-derived population review (2026-11-09)
+
+**Review/test slice only:** branch `refactor/survey-population-review` is based
+on CAG `bf5b241`, including the unreleased survey adapter. No runtime changes,
+new framework API, dependency changes, or respondent data are introduced.
+Synthetic characterization lives in
+[`tests/test_survey_population.py`](tests/test_survey_population.py).
+
+##### Existing path and observed contracts
+
+1. [`io.survey.load`](src/cag/io/survey.py) reads CSV and selects an ordered
+   application-owned column list. It drops a whole respondent if any selected
+   value is missing, including outcome responses. It then tries to cast `ID`
+   to integer, warning but retaining original values if conversion fails.
+   Education `<=18`, ethnicity `<=5`, and referendum vote `<4` are literal
+   filter predicates, not general codebook membership validation.
+   Surviving row order and original DataFrame indices are retained; unrelated
+   CSV columns are discarded. Missing files/columns and an empty retained
+   dataset return `None` with logging where implemented.
+2. [`__main__.main`](src/cag/__main__.py) samples with
+   `data.sample(n=..., random_state=seed).reset_index(drop=True)`.
+   Sampling is outside the loader and population constructor. Changing to
+   another sampling algorithm or RNG would change respondent selection/order.
+3. `build_nation` constructs a `SurveyedNation` with CAG maps and walks rows
+   positionally with `iloc`, not by DataFrame index labels. Each citizen retains
+   the original row as a pandas Series, including its name and outcome values.
+   IDs come from that row without wrapping in a GABM agent-ID type; pandas
+   row coercion can affect their scalar type even after the column was cast.
+4. The builder owns field translation: year minus integer age; binary flags
+   true only when their integer value is 1; typed codebook IDs; integer
+   truncation before narrative rescaling (including the existing RWA 1-6 rule).
+   Absent columns receive existing zero/default values, but present missing or
+   malformed age values raise conversion errors if the loader is bypassed.
+5. Registration is `nation.agents_active[citizen.id] = citizen`. Duplicate IDs
+   replace the earlier citizen without moving the key's original position.
+   An empty input creates an empty nation. Neither is an approved future
+   validation policy merely because it is characterized here.
+
+The new tests cover column selection, missing/out-of-codebook filtering,
+survivor indices, logged ID-conversion failure, seeded selection order, mapped
+agent attributes, original response retention, source-frame non-mutation,
+default and malformed input paths, duplicate-ID replacement, score truncation,
+and initial empty histories/neighbours. They use no real survey data.
+Focused population, CLI, and golden-integration suites:
+**61 passed**, using the `cag` environment with
+`PYTHONPATH=src:scripts:../GABM/src` and GABM `af446a1`.
+No full-suite rerun is claimed for this test/documentation-only slice.
+
+##### GABM comparison and recommended next implementation
+
+[`Environment.create_random_people`](../GABM/src/gabm/abm/environment.py)
+generates `Person` objects, sequential wrapped IDs, sampled ages/genders,
+and seeded traits/interests. It is not a respondent-driven constructor:
+reusing it here would change IDs, persona state, and random draws.
+[`GABMAttributeMap`](../GABM/src/gabm/abm/attribute.py) already provides typed
+attribute lookup; CAG's `SurveyEducationMap` and related codebooks correctly
+reuse it. Move neither the survey codes nor their descriptions into GABM.
+The source search found no `read_csv`/row-iteration/record-factory equivalent
+for surveyed populations in GABM; its survey module concerns asking questions,
+not loading respondent populations.
+
+**Recommendation:** first extract a CAG-local
+`citizen_from_survey_row(row, *, environment, year)` in a focused population
+module, leaving `build_nation` as a compatibility entry point and preserving
+its nation/map construction and registration order. This removes field
+translation from the CLI without immediately designing a mapping framework.
+Tests above should pass unchanged; also compare exact factory arguments,
+Series retention, personas, and the original deterministic simulation outputs.
+Keep loading/filtering and sampling untouched in that implementation.
+
+After that seam exists, evaluate a small additive GABM population function
+using an ordered record iterable, caller-supplied record-to-agent factory,
+and an environment registry. Any helper must earn its abstraction: prove
+the same mechanism with a second neutral in-memory population and independent
+tests before adding it. A helper that merely replaces a three-line loop
+without useful validation or reuse is not sufficient. Avoid a declarative
+converter/plugin system, new pandas runtime dependency, or mandatory agent
+inheritance without demonstrated need.
+
+| Mechanism | Ownership |
+|---|---|
+| CSV schema, codebooks, complete-case rules, respondent selection and sampling | CAG |
+| Field conversion and survey-specific citizen construction | CAG row factory initially |
+| Original outcomes, survey provenance and persona interpretation | CAG |
+| Generic ordered factory/registration machinery, if justified by independent use | Candidate GABM API |
+| Existing attribute-map base and environment registry | Reuse GABM as already done |
+
+##### Decisions and defects to keep separate
+
+Do not silently fix behaviour while relocating code. Duplicate-ID rejection,
+missing/invalid ID policy, truncation versus strict numeric validation, and
+loader defaults versus explicit schema validation need separate decisions.
+The inspected loader also catches filter errors and can then reference
+unassigned `df4`; custom `required_columns` still interacts with hard-coded
+filter columns. The CLI calls `.sample` without handling the loader's `None`
+result and relies on pandas for insufficient-population errors.
+These are observed error-path gaps, not fixed or validated as desirable by
+this slice; address them explicitly before advertising generic ingestion.
+Population construction and survey execution are separate capabilities, even
+when demonstrated by one eventual end-to-end example.
+
+##### Row-factory implementation follow-up (2026-11-09)
+
+Committed the characterization baseline as `b485dad`, then extracted
+`citizen_from_survey_row(row, *, environment, year)` into
+[`cag.abm.population`](src/cag/abm/population.py) on the same stacked
+`refactor/survey-population-review` branch. `__main__.build_nation` retains its
+public entry point, map construction, positional iteration and registration.
+The factory retains the supplied Series without registering the citizen;
+field conversions and all characterized defaults are unchanged.
+
+Added direct row-identity/non-mutation/persona checks and a delegation-order
+test. Original characterization tests remain unchanged. No ingestion error
+policy, duplicate handling, sampling, or GABM runtime code changed.
+Using `cag` with GABM `af446a1` on
+`PYTHONPATH=src:scripts:../GABM/src`: focused population/CLI/golden suite
+**63 passed**; full CAG suite **786 passed, 1 skipped, 6 warnings, 50 subtests**.
+The original golden fixture is unchanged. The factory implementation is tracked
+on this feature branch. Its survey-executor dependency is now supplied by
+published GABM 0.5.0; population-branch published-wheel acceptance follows.
+
+After merging main's dependency update into this branch, installed PyPI GABM
+0.5.0 in a temporary virtual environment over the existing `cag` stack and
+verified its `site-packages` import origin. With only `PYTHONPATH=src:scripts`,
+the full population-branch suite passes: **786 passed, 1 skipped, 6 warnings,
+50 subtests**. No GABM source override or golden-fixture change was needed.
+The temporary environment was removed after validation; PR merge remains pending.
 
 ### 5. Evaluate further extractions
 
@@ -708,6 +838,7 @@ separately from structural refactor regressions.
 | Generic network extraction and CAG wiring | Merged into CAG main `17111e3`; GABM 0.4.0 published and released-wheel acceptance recorded above |
 | Offline checkpoint cursor restoration | Merged into CAG main `17111e3`; full suite 769 passed, 1 skipped, no xfails before merge; random-state persistence remains separate |
 | Survey-execution extraction | Merged in both repositories; GABM 0.5.0 published and pinned; published-wheel CAG validation: 771 passed, 1 skipped, 50 subtests, 2026-11-09 |
+| Survey-derived population construction | Characterization committed as `b485dad`; CAG row factory implemented, 2026-11-09; 63 focused passes, full suite 786 passed; generic GABM API remains a candidate |
 | LLM transport adaptation | Existing service gaps identified; provider parity and migration remain separate from the first survey-execution slice |
 | Memory and further extractions | Candidates; scope not yet committed |
 
