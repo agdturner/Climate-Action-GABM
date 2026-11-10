@@ -7,7 +7,7 @@ are updated and published-wheel acceptance passes.
 
 ## Resume here: checkpoint (2026-11-10)
 
-- **CAG baseline:** `main` at `5e22571`, synchronized after PR #113.
+- **CAG baseline:** `main` at `a731626`, synchronized after PR #114.
   Survey execution, the published GABM dependency update, the population
   factory, and survey-ingestion reliability work are all merged. No outstanding
   feature branch is needed to continue.
@@ -44,10 +44,13 @@ are updated and published-wheel acceptance passes.
 - **Latest cleanup:** survey region, education, and income ID isolation was
   merged as `5e22571` (PR #113). Full validation: **797 passed, 1 skipped,
   6 existing warnings, 50 subtests**; original golden fixture unchanged.
-- **Active implementation:** `refactor/agent-memory-review` contains the
-  characterization baseline committed as `9226331`, followed by a CAG-local
-  pure memory-selection/formatting extraction. Focused helper/memory/config/
-  golden suite: **112 passed**. No GABM memory framework is introduced.
+- **Latest memory extraction:** daily compression input formatting was merged
+  as `a731626` (PR #114), including characterization commit `9226331`.
+  Full validation: **808 passed, 1 skipped, 6 existing warnings, 50 subtests**.
+- **Active review:** `refactor/context-rendering-review` adds exact-output
+  context characterization tests and review findings only. Focused context/
+  memory/config/golden suite: **109 passed**. No runtime changes or new GABM
+  API are introduced.
 
 On resuming, check `git status --short --branch` in both repositories before
 changing anything. The `cag-integration` environment may use editable GABM;
@@ -60,6 +63,48 @@ untouched.
 
 The dated sections below retain historical development checkpoints; their
 then-pending merge/release statements are superseded by this checkpoint.
+
+### Context-section rendering review (2026-11-10)
+
+Reviewed `assemble_context` and the seven section renderers against existing
+memory/configuration tests. Added `tests/test_context_rendering.py` with exact
+whole-context assertions, stage-override and non-mutation checks, package
+anchor ordering, and the empty-persona separator contract.
+
+Important details for any subsequent extraction:
+
+- Assembly order is persona, anchor, summaries, reflections, own reasoning,
+  optional trajectory, today-so-far. `MEMORY_SECTIONS` lists the last two in
+  a different order; do not use that tuple to silently reorder the prompt.
+- Persona text is appended even when empty. Other empty sections are omitted.
+  An enabled empty persona can therefore produce a leading double newline.
+- Package context selects package-scoped summaries/reflections, not all policy
+  entries. This differs deliberately from package compression input, which
+  gathers all same-day reflections. `None` context scope includes all scopes.
+- Anchor and own-reasoning text is stripped; reflection and summary text is
+  not. Section separators are exactly two newlines.
+- Target anchor uses the first Day-0 entry; package anchors use canonical
+  survey-question order. Reflections, own reasoning, and trajectory retain
+  history order, not chronological sorting. Within-day answers use the last
+  same-day numeric/reasoning entries and string-sorted policy keys.
+- Trajectory includes history up to the requested day independently of the
+  verbatim window. Stage overrides select sections without mutating global
+  configuration. Preserve existing day/window/TTL boundaries.
+
+Recommended next implementation: move only recent-reflection and recent-own-
+reasoning filtering/rendering into pure CAG-local functions in the existing
+`cag.abm.memory` module. Keep agent section methods as thin compatibility
+wrappers. Leave assembly, stage resolution, anchors, trajectory, and within-day
+answers untouched for this first rendering slice. These two renderers share
+the existing verbatim-window helper but have different scope and whitespace
+rules; do not force them through a configurable generic rendering engine.
+The framework comparison from the prior review still applies: no equivalent
+GABM episodic-memory renderer was found, and no GABM change is proposed.
+
+Validation with published GABM 0.5.0 in `cag`: focused context/memory/config/
+golden suite **109 passed**. No full-suite rerun is claimed for this
+test/documentation-only slice. Runtime code and golden fixtures are unchanged.
+Changes remain uncommitted for review.
 
 ### Agent memory/context boundary review (2026-11-10)
 
