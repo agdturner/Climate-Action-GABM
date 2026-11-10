@@ -14,7 +14,11 @@ from datetime import date
 from gabm.abm.survey import execute_two_stage_question
 
 from cag.io.llm import send_chat, parse_letter_response
-from cag.abm.memory import build_daily_memory_input
+from cag.abm.memory import (
+    build_daily_memory_input,
+    render_recent_reflections,
+    render_recent_own_reasoning,
+)
 from cag.abm.attributes.opinion import (
     PACKAGE_SCOPE,
     PRO_CLIMATE_INDEX_COLUMN,
@@ -28,7 +32,6 @@ from cag.abm.attributes.opinion import (
 from cag.abm.config.memory import (
     DEFAULT_MEMORY_CONFIG,
     resolve_stage_memory,
-    verbatim_days,
     summary_upper_exclusive,
     compression_target_day,
 )
@@ -455,16 +458,9 @@ class SurveyedCitizen():
         Keeps reflections whose ``day`` falls in ``verbatim_days(window, day)``,
         filtered to the context scope (``policy_id``).
         """
-        if day < 1:
-            return ""
-        keep_days = verbatim_days(window, day)
-        recent_reflections = [r for r in self.reflections
-                              if r["day"] in keep_days
-                              and (policy_id is None or r.get("policy_id") == policy_id)]
-        if not recent_reflections:
-            return ""
-        ref_lines = [f"- Day {r['day']}: {r['text']}" for r in recent_reflections]
-        return "Recent reflections following received messages:\n" + "\n".join(ref_lines)
+        return render_recent_reflections(
+            self.reflections, day=day, policy_id=policy_id, window=window,
+        )
 
 
     def _section_day0_anchor(self, target_policy_id):
@@ -513,19 +509,10 @@ class SurveyedCitizen():
         ``verbatim_days(window, day)``. Day-0 entries are excluded — they live
         in the anchor section.
         """
-        if day < 1 or target_policy_id is None or target_policy_id == PACKAGE_SCOPE:
-            return ""
-        keep_days = verbatim_days(window, day)
-        entries = self.survey_reasoning.get(target_policy_id, [])
-        label = SURVEY_SHORT_LABELS.get(target_policy_id, str(target_policy_id))
-        lines = [
-            f"- Day {d} \u2014 {label}: {text.strip()}"
-            for d, text in entries
-            if d in keep_days and d > 0
-        ]
-        if not lines:
-            return ""
-        return "Your considered position in recent days:\n" + "\n".join(lines)
+        return render_recent_own_reasoning(
+            self.survey_reasoning, day=day,
+            target_policy_id=target_policy_id, window=window,
+        )
 
     def _section_opinion_trajectory(self, day, target_policy_id):
         """Optional numeric opinion trajectory for the target policy.

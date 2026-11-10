@@ -47,10 +47,11 @@ are updated and published-wheel acceptance passes.
 - **Latest memory extraction:** daily compression input formatting was merged
   as `a731626` (PR #114), including characterization commit `9226331`.
   Full validation: **808 passed, 1 skipped, 6 existing warnings, 50 subtests**.
-- **Active review:** `refactor/context-rendering-review` adds exact-output
-  context characterization tests and review findings only. Focused context/
-  memory/config/golden suite: **109 passed**. No runtime changes or new GABM
-  API are introduced.
+- **Active implementation:** `refactor/context-rendering-review` contains
+  characterization baseline `ca89c0c` and an uncommitted extraction of pure
+  recent-reflection and recent-own-reasoning renderers. Focused renderer/
+  context/memory/config/golden suite: **121 passed**. Context assembly remains
+  on the agent; no new GABM API is introduced.
 
 On resuming, check `git status --short --branch` in both repositories before
 changing anything. The `cag-integration` environment may use editable GABM;
@@ -104,7 +105,25 @@ GABM episodic-memory renderer was found, and no GABM change is proposed.
 Validation with published GABM 0.5.0 in `cag`: focused context/memory/config/
 golden suite **109 passed**. No full-suite rerun is claimed for this
 test/documentation-only slice. Runtime code and golden fixtures are unchanged.
-Changes remain uncommitted for review.
+The characterization baseline was subsequently committed as `ca89c0c`.
+
+#### Recent-memory renderer extraction (2026-11-10)
+
+Extracted `render_recent_reflections` and `render_recent_own_reasoning` into
+the existing `cag.abm.memory` module. Agent section methods remain thin
+wrappers with unchanged signatures. Scope filtering, verbatim-window rules,
+history order, duplicate handling, and per-section whitespace behavior are
+preserved. Assembly, stage configuration, anchors, trajectory, within-day
+answers, compression, and transport remain untouched.
+
+Added direct helper tests for scope, bounded/unbounded window boundaries,
+Day-0 exclusion differences, future-entry exclusion, empty data, unknown
+labels, duplicates, non-mutation, and wrapper delegation. The whole-context
+characterization tests pass unchanged. Focused renderer/context/memory/config/
+golden suite: **121 passed**. Pylance reports no diagnostics in the memory
+module. Full suite against published GABM 0.5.0 in `cag`: **824 passed,
+1 skipped, 6 existing warnings, 50 subtests**. The original golden fixture is
+unchanged. Implementation remains uncommitted for review.
 
 ### Agent memory/context boundary review (2026-11-10)
 
