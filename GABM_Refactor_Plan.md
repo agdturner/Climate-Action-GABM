@@ -44,10 +44,10 @@ are updated and published-wheel acceptance passes.
 - **Latest cleanup:** survey region, education, and income ID isolation was
   merged as `5e22571` (PR #113). Full validation: **797 passed, 1 skipped,
   6 existing warnings, 50 subtests**; original golden fixture unchanged.
-- **Active review:** `refactor/agent-memory-review` contains characterization
-  tests and findings only; no runtime changes. Focused memory/config/golden
-  suite: **105 passed**. The next proposed implementation is a CAG-local pure
-  memory-selection/formatting seam, not a new GABM memory framework.
+- **Active implementation:** `refactor/agent-memory-review` contains the
+  characterization baseline committed as `9226331`, followed by a CAG-local
+  pure memory-selection/formatting extraction. Focused helper/memory/config/
+  golden suite: **112 passed**. No GABM memory framework is introduced.
 
 On resuming, check `git status --short --branch` in both repositories before
 changing anything. The `cag-integration` environment may use editable GABM;
@@ -113,6 +113,26 @@ tests and delegation checks, then rerun the golden baseline. Evaluate context
 rendering separately rather than moving all memory responsibilities at once.
 Do not introduce a generic workflow engine or GABM memory API at this stage.
 Notebook modernization remains deferred for collaborator discussion.
+
+#### Daily compression input extraction (2026-11-10)
+
+After committing characterization as `9226331`, extracted
+`build_daily_memory_input` into `src/cag/abm/memory.py`. It takes reflections,
+survey reasoning, day, and policy scope, returning the exact compression input
+without mutating histories or making transport calls. The agent's existing
+`compress_daily_memory` entry point delegates selection/formatting only.
+Transport, prompt template, summary storage, event-step allocation, and
+`manage_memory` scheduling remain unchanged.
+
+Direct tests cover package/single-policy scope, exact text, duplicate entries,
+whitespace, source non-mutation, unknown-policy labels, empty histories, and
+reflections-only/reasoning-only inputs. A delegation test checks the original
+history objects and transport options. Existing characterization and golden
+tests remain unchanged. Focused helper/memory/config/golden suite:
+**112 passed**. Pylance reports no diagnostics in the new helper module.
+Full suite against published GABM 0.5.0 in `cag`: **808 passed, 1 skipped,
+6 existing warnings, 50 subtests**. The original golden fixture is unchanged.
+Implementation remains uncommitted for review.
 
 ### Survey codebook isolation (2026-11-10)
 

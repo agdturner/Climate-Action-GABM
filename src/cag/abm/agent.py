@@ -14,6 +14,7 @@ from datetime import date
 from gabm.abm.survey import execute_two_stage_question
 
 from cag.io.llm import send_chat, parse_letter_response
+from cag.abm.memory import build_daily_memory_input
 from cag.abm.attributes.opinion import (
     PACKAGE_SCOPE,
     PRO_CLIMATE_INDEX_COLUMN,
@@ -616,42 +617,11 @@ class SurveyedCitizen():
         reasoning for that policy. Stores one summary at
         ``daily_summaries[(day, policy_id)]``.
         """
-        if policy_id == PACKAGE_SCOPE:
-            day_reflections = [r for r in self.reflections if r["day"] == day]
-        else:
-            day_reflections = [r for r in self.reflections
-                              if r["day"] == day and r.get("policy_id") == policy_id]
-
-        day_reasoning = []
-        if policy_id == PACKAGE_SCOPE:
-            for pid in sorted(self.survey_reasoning.keys(), key=str):
-                if pid == PACKAGE_SCOPE:
-                    continue
-                for d, text in self.survey_reasoning[pid]:
-                    if d == day:
-                        label = SURVEY_SHORT_LABELS.get(pid, str(pid))
-                        day_reasoning.append((label, text))
-        else:
-            for d, text in self.survey_reasoning.get(policy_id, []):
-                if d == day:
-                    label = SURVEY_SHORT_LABELS.get(policy_id, str(policy_id))
-                    day_reasoning.append((label, text))
-
-        if not day_reflections and not day_reasoning:
+        memories = build_daily_memory_input(
+            self.reflections, self.survey_reasoning, day=day, policy_id=policy_id,
+        )
+        if not memories:
             return ""
-
-        parts = []
-        if day_reflections:
-            parts.append(
-                "Reflections after messages:\n"
-                + "\n".join(f"- {r['text']}" for r in day_reflections)
-            )
-        if day_reasoning:
-            parts.append(
-                "My own survey reasoning today:\n"
-                + "\n".join(f"- {label}: {text}" for label, text in day_reasoning)
-            )
-        memories = "\n\n".join(parts)
         summary = self.compress_memories(memories, api_key=api_key, model=model, provider=provider, temperature=temperature)
         self.daily_summaries[(day, policy_id)] = summary
         self._daily_summary_steps[(day, policy_id)] = self._sim_step()
