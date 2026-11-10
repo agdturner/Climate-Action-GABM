@@ -5,6 +5,76 @@ CAG main; generic network follow-up tests merged. Survey-execution extraction
 is merged in both repositories. GABM 0.5.0 is published; CAG dependency pins
 are updated and published-wheel acceptance passes.
 
+## Resume here: end-of-day checkpoint (2026-11-09)
+
+- **CAG baseline:** `main` at `6d2bbe3`, synchronized with upstream and origin.
+  Survey execution, the published GABM dependency update, and the population
+  factory are all merged. No outstanding feature branch is needed to continue.
+- **GABM baseline:** the two-stage executor and string-contract guards are
+  merged into main and published as **0.5.0**. CAG runtime, development, and
+  Conda manifests all pin `gabm==0.5.0`. No new GABM release is needed for
+  the next CAG-only slice.
+- **Latest validation:** population branch after merging the dependency update,
+  against the published PyPI wheel: **786 passed, 1 skipped, 6 existing
+  warnings, 50 subtests**. Import origin was verified in a temporary
+  environment's `site-packages`, without a GABM source override. The
+  environment reused the existing CAG scientific/test stack; this was not
+  a fully fresh dependency installation. Temporary environments were removed.
+  The original integration golden fixture is unchanged.
+- **Current task:** CAG-only survey-ingestion reliability work is underway on
+  `fix/survey-ingestion-reliability`. The loader now requires custom column
+  lists to include all mandatory eligibility-filter columns, logs filter
+  failures and returns `None`, and the CLI rejects unavailable data or
+  insufficient eligible rows before sampling. The user's custom-column
+  contract decision was to require the filter columns. Focused and full-suite
+  validation results are recorded below. This work preserves successful
+  filtering and seeded sampling; duplicate-ID and strict numeric validation
+  policies remain separate decisions.
+- **After this slice:** defer a generic GABM population API until a second
+  neutral use case demonstrates meaningful reuse.
+- **Framework scope:** defer a generic GABM population API until a second
+  neutral use case demonstrates meaningful reuse.
+
+On resuming, check `git status --short --branch` in both repositories before
+changing anything. The `cag-integration` environment may use editable GABM;
+verify import origin rather than treating its results as published-wheel
+acceptance. Normal CAG tests use `PYTHONPATH=src:scripts python -m pytest -q`
+with published GABM 0.5.0 installed. See
+[the development workflow](DEV_GUIDE.md#cross-repository-refactoring).
+Leave the unrelated tracked deletions under GABM's `venv-build-test/`
+untouched.
+
+The dated sections below retain historical development checkpoints; their
+then-pending merge/release statements are superseded by this checkpoint.
+
+### Survey-ingestion reliability follow-up (2026-11-10)
+
+Implemented on `fix/survey-ingestion-reliability`:
+
+- Custom `required_columns` must include education, ethnicity, and referendum
+  fields used by the mandatory eligibility filters. The loader reports missing
+  filter columns and returns `None`; it does not silently disable filters or
+  append hidden columns.
+- Filter exceptions are logged with traceback and return `None`, avoiding the
+  prior path that could reference unassigned `df4`.
+- The CLI checks for usable loaded data before sampling and exits with an
+  explicit error. If the eligible population is smaller than requested, the
+  error reports both counts. Sufficient populations retain the exact pandas
+  seeded sampling operation and reset-index behavior.
+- Synthetic tests cover the chosen custom-column contract, filter failures,
+  load failure, insufficient counts, and unchanged successful sample order.
+
+At the start of this slice, the existing `cag` environment still had GABM
+0.4.0 and could not import the merged survey executor. Initial validation used
+a temporary environment with published GABM 0.5.0: focused population/CLI/
+golden suite **69 passed**; full suite **792 passed, 1 skipped, 6 warnings,
+50 subtests**. The `cag` environment has since been upgraded to GABM 0.5.0;
+its package import was verified from the environment's `site-packages`.
+After upgrading, the full suite passed: **792 passed, 1 skipped, 6 warnings,
+50 subtests**. The CLI load-failure message and assertion were included.
+No golden fixture, sampling algorithm, or successful filter predicate
+changed.
+
 **Documentation ownership checkpoint (2026-11-08):** before generic extraction,
 the Aire quickstart and primer were moved to `documentation/guides/`.
 The five maintained usage/code/configuration guides were subsequently moved
@@ -786,7 +856,9 @@ After merging main's dependency update into this branch, installed PyPI GABM
 verified its `site-packages` import origin. With only `PYTHONPATH=src:scripts`,
 the full population-branch suite passes: **786 passed, 1 skipped, 6 warnings,
 50 subtests**. No GABM source override or golden-fixture change was needed.
-The temporary environment was removed after validation; PR merge remains pending.
+The temporary environment was removed after validation. The population PR was
+subsequently merged into CAG main as `6d2bbe3`; local main, upstream/main,
+and origin/main were synchronized at the end-of-day checkpoint above.
 
 ### 5. Evaluate further extractions
 
@@ -838,7 +910,7 @@ separately from structural refactor regressions.
 | Generic network extraction and CAG wiring | Merged into CAG main `17111e3`; GABM 0.4.0 published and released-wheel acceptance recorded above |
 | Offline checkpoint cursor restoration | Merged into CAG main `17111e3`; full suite 769 passed, 1 skipped, no xfails before merge; random-state persistence remains separate |
 | Survey-execution extraction | Merged in both repositories; GABM 0.5.0 published and pinned; published-wheel CAG validation: 771 passed, 1 skipped, 50 subtests, 2026-11-09 |
-| Survey-derived population construction | Characterization committed as `b485dad`; CAG row factory implemented, 2026-11-09; 63 focused passes, full suite 786 passed; generic GABM API remains a candidate |
+| Survey-derived population construction | Merged into CAG main `6d2bbe3`; published GABM 0.5.0 validation: 786 passed, 1 skipped, 50 subtests; generic GABM API deferred pending a second neutral use case |
 | LLM transport adaptation | Existing service gaps identified; provider parity and migration remain separate from the first survey-execution slice |
 | Memory and further extractions | Candidates; scope not yet committed |
 

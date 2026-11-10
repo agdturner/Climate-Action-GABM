@@ -207,6 +207,29 @@ def build_days(n_days, broadcasts_a=1, broadcasts_b=1, interleave=True):
     return plan
 
 
+def _sample_survey_data(data, n_citizens, seed, source):
+    """Validate the eligible respondent count, then preserve seeded sampling."""
+    if data is None:
+        logging.error(
+            "Cannot sample citizens: no usable survey data is available from %s.",
+            source,
+        )
+        raise SystemExit(1)
+
+    available = len(data)
+    if available < n_citizens:
+        logging.error(
+            "Cannot sample requested citizens: requested %d, but only %d "
+            "eligible respondents are available in %s.",
+            n_citizens,
+            available,
+            source,
+        )
+        raise SystemExit(1)
+
+    return data.sample(n=n_citizens, random_state=seed).reset_index(drop=True)
+
+
 def build_nation(data, year=2026):
     """Create a SurveyedNation and populate it with citizens."""
     UKGE2019_ELECTION_ID = ElectionID(0)
@@ -643,7 +666,12 @@ def main(argv=None):
     t0 = time.perf_counter()
     logging.info("Loading survey data from %s ...", args.data)
     data = load(args.data)
-    data = data.sample(n=config["n_citizens"], random_state=seed).reset_index(drop=True)
+    data = _sample_survey_data(
+        data,
+        n_citizens=config["n_citizens"],
+        seed=seed,
+        source=args.data,
+    )
     t_load = time.perf_counter() - t0
     logging.info("Sampled %d citizens [%.2fs]", len(data), t_load)
 

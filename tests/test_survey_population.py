@@ -85,6 +85,44 @@ def test_loader_reports_missing_file_and_missing_columns(tmp_path, caplog):
     assert "Missing required columns" in caplog.text
 
 
+def test_loader_custom_columns_must_include_all_eligibility_filter_columns(
+    tmp_path, caplog
+):
+    path = _write_rows(tmp_path, [_respondent()])
+
+    data = load(path, required_columns=["ID", "age"])
+
+    assert data is None
+    assert "must include eligibility filter columns" in caplog.text
+    assert "profile_education_level" in caplog.text
+    assert "ethnicity_R" in caplog.text
+    assert "pastvote_EURef" in caplog.text
+
+
+def test_loader_applies_eligibility_filters_to_custom_required_columns(tmp_path):
+    path = _write_rows(tmp_path, [
+        _respondent(31), _respondent(32, profile_education_level=19),
+    ])
+    required_columns = [
+        "ID", "profile_education_level", "ethnicity_R", "pastvote_EURef",
+    ]
+
+    data = load(path, required_columns=required_columns)
+
+    assert data is not None
+    assert data.columns.tolist() == required_columns
+    assert data["ID"].tolist() == [31]
+
+
+def test_loader_filter_failure_is_logged_and_returns_none(tmp_path, caplog):
+    path = _write_rows(tmp_path, [_respondent(profile_education_level="unknown")])
+
+    data = load(path)
+
+    assert data is None
+    assert "Error filtering survey data rows" in caplog.text
+
+
 def test_loader_keeps_unconvertible_respondent_ids_with_a_warning(tmp_path, caplog):
     data = load(_write_rows(tmp_path, [_respondent("synthetic-id")]))
 
@@ -143,6 +181,35 @@ def test_load_sample_build_retains_selected_respondent_order(tmp_path):
     assert list(nation.agents_active) == [7, 9, 42]
     for citizen, (_, row) in zip(nation.agents_active.values(), selected.iterrows()):
         pd.testing.assert_series_equal(citizen.original_survey_data, row)
+
+
+def test_sampling_reports_load_failure_without_sampling(caplog):
+    with pytest.raises(SystemExit) as exc_info:
+        cli._sample_survey_data(None, n_citizens=1, seed=42, source="missing.csv")
+
+    assert exc_info.value.code == 1
+    assert "no usable survey data is available from missing.csv" in caplog.text
+
+
+def test_sampling_reports_requested_and_available_eligible_counts(caplog):
+    data = pd.DataFrame([_respondent(31), _respondent(7)])
+
+    with pytest.raises(SystemExit) as exc_info:
+        cli._sample_survey_data(data, n_citizens=3, seed=42, source="survey.csv")
+
+    assert exc_info.value.code == 1
+    assert "requested 3, but only 2 eligible respondents" in caplog.text
+
+
+def test_sampling_preserves_seeded_selection_for_sufficient_population():
+    data = pd.DataFrame([_respondent(i) for i in [31, 7, 42, 18, 9]])
+    expected = data.sample(n=3, random_state=42).reset_index(drop=True)
+
+    actual = cli._sample_survey_data(
+        data, n_citizens=3, seed=42, source="survey.csv",
+    )
+
+    pd.testing.assert_frame_equal(actual, expected)
 
 
 def test_builder_missing_columns_use_existing_defaults():
