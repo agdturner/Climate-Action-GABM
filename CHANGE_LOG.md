@@ -26,6 +26,13 @@ development stage, not necessarily the current code or a verified public tag.
 
 ## [Unreleased]
 
+- **Survey codebook isolation (2026-11-10).** Region, education, and income
+  IDs are now CAG-local types using GABM's base ID and existing attribute/map
+  machinery. Importing CAG no longer overwrites shared GABM region constants
+  or adds survey constants to generic codebooks. Survey codes, descriptions,
+  order, and persona text are unchanged. Callers must import survey IDs from
+  `cag.abm.attributes`; generic GABM IDs are intentionally distinct.
+
 - **Survey-ingestion reliability (2026-11-10).** Custom loader column lists
   must include all mandatory eligibility-filter fields. Filter failures now
   log and return a clear load failure rather than reaching an unassigned

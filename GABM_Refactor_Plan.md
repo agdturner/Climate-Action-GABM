@@ -41,6 +41,10 @@ are updated and published-wheel acceptance passes.
   implementing it; do not create an artificial consumer just to justify
   abstraction. Duplicate-ID and strict numeric validation policies remain
   separate decisions.
+- **Active cleanup:** `refactor/cag-cleanup` isolates survey region, education,
+  and income ID classes from GABM's generic codebooks. Implementation and
+  regression tests are complete but uncommitted; validation and the intentional
+  import/type compatibility change are recorded below.
 
 On resuming, check `git status --short --branch` in both repositories before
 changing anything. The `cag-integration` environment may use editable GABM;
@@ -53,6 +57,46 @@ untouched.
 
 The dated sections below retain historical development checkpoints; their
 then-pending merge/release statements are superseded by this checkpoint.
+
+### Survey codebook isolation (2026-11-10)
+
+The bounded attribute-map review found that CAG imported GABM's generic
+`RegionID`, `EducationID`, and `IncomeID` classes and assigned survey constants
+directly onto those shared classes. Region names overlapped with different
+codes: importing CAG changed generic `RegionID.NORTH_WEST` from 1 to 2,
+and could change subsequent generic map construction in the same process.
+The map machinery itself was already reused appropriately; no new generic
+GABM helper or framework release is needed.
+
+With the user's approval, these three survey ID classes now derive directly
+from GABM's `GABMAttributeID`, following CAG's existing family/politics pattern.
+Attribute objects and `GABMAttributeMap` continue to come from GABM. Survey
+codes, descriptions, entry order, ID string representations, and constructor
+keyword names are retained. The intentional compatibility change is that
+generic GABM IDs are no longer survey IDs: callers must import the latter
+from `cag.abm.attributes.region`, `.education`, and `.income`. Updated the
+affected tests, imports in three notebooks, quickstart, and code tour.
+
+Before editing the maps, captured fingerprints of their complete ordered
+code/description entries. New tests assert those exact fingerprints,
+cross-codebook inequality and lookup separation, and generic-map/constants
+preservation in fresh processes for both import orders. Focused
+codebook/agent/persona/population/golden suite: **73 passed, 2 subtests**.
+Full suite with published GABM 0.5.0 in `cag`: **797 passed, 1 skipped,
+6 existing warnings, 50 subtests**. The original golden fixture is unchanged.
+No GABM source files were modified.
+
+Notebook follow-up is deferred for discussion with collaborators. Manual
+execution of the agent-profile notebook exposed a pre-existing call to the
+removed `get_narrative()` method. Its display cell now prints the combined
+`get_persona()` once; this cell was executed with five synthetic citizens,
+without LLM calls. The notebook's saved 1086-row output is historical:
+current and pre-ingestion-change loaders both return identical 1483-row
+dataframes for the current local survey file. Full notebook execution has
+not been validated; no live external LLM calls were made for this review.
+Do not treat historical notebook outputs as acceptance criteria or broaden
+this PR into notebook modernization. Keep manual execution outputs separate
+from the intended source changes when preparing the commit.
 
 ### Survey-ingestion reliability follow-up (2026-11-10)
 

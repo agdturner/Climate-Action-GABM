@@ -9,8 +9,16 @@ __copyright__ = "Copyright (c) 2026 Climate-Action-GABM contributors, University
 # Standard library imports
 import logging
 # Local imports
-from gabm.abm.attributes.education import EducationID, Education
-from gabm.abm.attribute import GABMAttributeMap
+from gabm.abm.attributes.education import Education
+from gabm.abm.attribute import GABMAttributeID, GABMAttributeMap
+
+
+class EducationID(GABMAttributeID):
+    """Identifier for CAG's survey education categories, not GABM's codebook."""
+
+    def __init__(self, education_id: int):
+        super().__init__(education_id)
+
 
 EducationID.UNKNOWN = EducationID(0)
 EducationID.NO_FORMAL_QUALIFICATIONS = EducationID(1)

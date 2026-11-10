@@ -131,6 +131,11 @@ These are small, mostly-static, and you'll rarely touch them unless you add a po
 
 > **[src/cag/abm/attributes/](../../src/cag/abm/attributes) — the demographic maps** — `politics.py`, `region.py`, `education.py`, `income.py`, `family.py`, `ethnicity.py`: one small ID→string table each, used to write persona text.
 
+Survey region, education, and income IDs are CAG-local subclasses of GABM's
+`GABMAttributeID`. Their maps reuse GABM's attribute objects and
+`GABMAttributeMap`, but do not modify the generic GABM codebooks. Import survey
+IDs from `cag.abm.attributes`, not the same-named generic GABM modules.
+
 > **[src/cag/abm/democracy/elections/](../../src/cag/abm/democracy/elections)** — `ukge2019.py` (`UKGE2019VoteMap`) and `brexit.py` (`BrexitVoteMap`): vote-choice maps used both in persona text and in affinity scoring.
 
 ### 4.4 Persistence — the model and the files
