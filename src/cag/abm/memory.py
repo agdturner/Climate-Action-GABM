@@ -7,6 +7,53 @@ from cag.abm.attributes.opinion import (
     PACKAGE_SCOPE,
     SURVEY_SHORT_LABELS,
 )
+from cag.abm.config.memory import verbatim_days
+
+
+def render_recent_reflections(
+    reflections: Sequence[Mapping[str, object]],
+    *,
+    day: int,
+    policy_id: ClimatePolicyID | str | None,
+    window: int | None,
+) -> str:
+    """Render in-window reflections in history order, retaining raw whitespace."""
+    if day < 1:
+        return ""
+    keep_days = verbatim_days(window, day)
+    entries = [
+        r for r in reflections
+        if r["day"] in keep_days
+        and (policy_id is None or r.get("policy_id") == policy_id)
+    ]
+    if not entries:
+        return ""
+    return "Recent reflections following received messages:\n" + "\n".join(
+        f"- Day {r['day']}: {r['text']}" for r in entries
+    )
+
+
+def render_recent_own_reasoning(
+    survey_reasoning: Mapping[ClimatePolicyID | str, Sequence[tuple[int, str]]],
+    *,
+    day: int,
+    target_policy_id: ClimatePolicyID | str | None,
+    window: int | None,
+) -> str:
+    """Render target reasoning in history order, stripping text and excluding Day 0."""
+    if day < 1 or target_policy_id is None or target_policy_id == PACKAGE_SCOPE:
+        return ""
+    keep_days = verbatim_days(window, day)
+    entries = survey_reasoning.get(target_policy_id, [])
+    label = SURVEY_SHORT_LABELS.get(target_policy_id, str(target_policy_id))
+    lines = [
+        f"- Day {d} \u2014 {label}: {text.strip()}"
+        for d, text in entries
+        if d in keep_days and d > 0
+    ]
+    if not lines:
+        return ""
+    return "Your considered position in recent days:\n" + "\n".join(lines)
 
 
 def build_daily_memory_input(

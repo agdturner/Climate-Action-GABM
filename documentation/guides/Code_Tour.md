@@ -124,7 +124,9 @@ Daily compression input selection and formatting live in
 [`abm/memory.py`](../../src/cag/abm/memory.py), a pure CAG helper.
 `SurveyedCitizen.compress_daily_memory` delegates to it but retains the LLM
 call, raw summary storage, and event-step recording. Compression scheduling
-and context-section assembly remain unchanged.
+and context-section assembly remain on the agent. Pure recent-reflection and
+recent-own-reasoning renderers also live in that module; agent section methods
+delegate while preserving their existing signatures and exact output.
 
 ### 4.3 Vocabulary — persona building blocks
 

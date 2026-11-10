@@ -26,6 +26,11 @@ development stage, not necessarily the current code or a verified public tag.
 
 ## [Unreleased]
 
+- **Recent-memory rendering separation (2026-11-10).** Recent reflections
+  and target-policy reasoning now render through pure helpers in
+  `cag.abm.memory`. Agent section methods remain compatibility wrappers;
+  context assembly, window rules, policy scope, and exact text are unchanged.
+
 - **Daily memory input separation (2026-11-10).** Extracted pure selection
   and formatting of compression input into `cag.abm.memory`. Agent methods
   retain transport, raw summary storage, event recording, and scheduling.
