@@ -21,17 +21,17 @@ are updated and published-wheel acceptance passes.
   environment reused the existing CAG scientific/test stack; this was not
   a fully fresh dependency installation. Temporary environments were removed.
   The original integration golden fixture is unchanged.
-- **Next task (recommended, not started):** a separate CAG survey-ingestion
-  reliability branch. Start with failure-path tests in
-  [`tests/test_survey_population.py`](tests/test_survey_population.py), then
-  address the loader in [`src/cag/io/survey.py`](src/cag/io/survey.py) and
-  sampling boundary in [`src/cag/__main__.py`](src/cag/__main__.py).
-  Report load failure before sampling, report requested versus available
-  eligible respondents, and fix the filter exception path that can reference
-  unassigned `df4`. Agree the custom-column/filter-column contract before
-  changing it. Preserve successful filtering, sampling algorithm/order,
-  IDs, conversions, and golden results; duplicate-ID and strict numeric
-  validation policies remain separate decisions.
+- **Current task:** CAG-only survey-ingestion reliability work is underway on
+  `fix/survey-ingestion-reliability`. The loader now requires custom column
+  lists to include all mandatory eligibility-filter columns, logs filter
+  failures and returns `None`, and the CLI rejects unavailable data or
+  insufficient eligible rows before sampling. The user's custom-column
+  contract decision was to require the filter columns. Focused and full-suite
+  validation results are recorded below. This work preserves successful
+  filtering and seeded sampling; duplicate-ID and strict numeric validation
+  policies remain separate decisions.
+- **After this slice:** defer a generic GABM population API until a second
+  neutral use case demonstrates meaningful reuse.
 - **Framework scope:** defer a generic GABM population API until a second
   neutral use case demonstrates meaningful reuse.
 
@@ -46,6 +46,34 @@ untouched.
 
 The dated sections below retain historical development checkpoints; their
 then-pending merge/release statements are superseded by this checkpoint.
+
+### Survey-ingestion reliability follow-up (2026-11-10)
+
+Implemented on `fix/survey-ingestion-reliability`:
+
+- Custom `required_columns` must include education, ethnicity, and referendum
+  fields used by the mandatory eligibility filters. The loader reports missing
+  filter columns and returns `None`; it does not silently disable filters or
+  append hidden columns.
+- Filter exceptions are logged with traceback and return `None`, avoiding the
+  prior path that could reference unassigned `df4`.
+- The CLI checks for usable loaded data before sampling and exits with an
+  explicit error. If the eligible population is smaller than requested, the
+  error reports both counts. Sufficient populations retain the exact pandas
+  seeded sampling operation and reset-index behavior.
+- Synthetic tests cover the chosen custom-column contract, filter failures,
+  load failure, insufficient counts, and unchanged successful sample order.
+
+At the start of this slice, the existing `cag` environment still had GABM
+0.4.0 and could not import the merged survey executor. Initial validation used
+a temporary environment with published GABM 0.5.0: focused population/CLI/
+golden suite **69 passed**; full suite **792 passed, 1 skipped, 6 warnings,
+50 subtests**. The `cag` environment has since been upgraded to GABM 0.5.0;
+its package import was verified from the environment's `site-packages`.
+After upgrading, the full suite passed: **792 passed, 1 skipped, 6 warnings,
+50 subtests**. The CLI load-failure message and assertion were included.
+No golden fixture, sampling algorithm, or successful filter predicate
+changed.
 
 **Documentation ownership checkpoint (2026-11-08):** before generic extraction,
 the Aire quickstart and primer were moved to `documentation/guides/`.

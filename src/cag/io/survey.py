@@ -12,13 +12,50 @@ from pathlib import Path
 # Data handling
 import pandas as pd
 
+_FILTER_COLUMNS = (
+    "profile_education_level",
+    "ethnicity_R",
+    "pastvote_EURef",
+)
+
+_DEFAULT_REQUIRED_COLUMNS = (
+    "ID",
+    "age",
+    "male_dummy",
+    "tprofile_GOR",
+    "profile_education_level",
+    "tprofile_gross_household",
+    "ethnicity_R",
+    "parent_dummy",
+    "Vote2019R",
+    "pastvote_EURef",
+    "Political_Left_Right",
+    "Selftransc_Val",
+    "Selfenh_Values",
+    "Openness",
+    "ConformTrad",
+    "SDO",
+    "EDO",
+    "RWA",
+    "page5posttreatment6_1",
+    "page5posttreatment6_4",
+    "page5posttreatment6_5",
+    "page5posttreatment6_7",
+    "page5posttreatment6_9",
+    "page5posttreatment6_11",
+    "ProClimatePolSupp",
+)
+
+
 def load(file_path: str | Path, required_columns: list[str] = None) -> 'pd.DataFrame | None':
     """
     Load survey data from a CSV file, validate columns, and clean data.
 
     Pars:
         file_path (str | Path): Path to the CSV file containing survey data.
-        required_columns (list[str]): List of columns required for processing.
+        required_columns (list[str]): Columns required for processing. Custom
+            lists must include the education, ethnicity, and referendum
+            columns used by the mandatory eligibility filters.
 
     Returns:
         pd.DataFrame | None: Cleaned DataFrame, or None if loading fails.
@@ -27,35 +64,21 @@ def load(file_path: str | Path, required_columns: list[str] = None) -> 'pd.DataF
     if not file_path.exists():
         logging.error(f"Survey data file not found: {file_path}")
         return None
-    # If required_columns is empty
+    custom_required_columns = bool(required_columns)
     if not required_columns:
-        required_columns = [
-            'ID',
-            'age', # Used to determine year of birth
-            'male_dummy', # Used to determine gender 0 = female, 1 = male
-            'tprofile_GOR', # Used to determine region
-            "profile_education_level", # Used to determine education level
-            'tprofile_gross_household', # Used to determine income level
-            'ethnicity_R', # Used to determine ethnicity
-            'parent_dummy', # Used to determine family status
-            'Vote2019R', # Used to determine UK General Election 2019 vote
-            'pastvote_EURef', # Used to determine Brexit referendum vote
-            'Political_Left_Right', # Used to determine political views
-            'Selftransc_Val',
-            'Selfenh_Values',
-            'Openness',
-            'ConformTrad',
-            'SDO',
-            'EDO',
-            'RWA',
-            'page5posttreatment6_1',
-            'page5posttreatment6_4',
-            'page5posttreatment6_5',
-            'page5posttreatment6_7',
-            'page5posttreatment6_9',
-            'page5posttreatment6_11',
-            'ProClimatePolSupp'
+        required_columns = list(_DEFAULT_REQUIRED_COLUMNS)
+    elif custom_required_columns:
+        missing_filter_columns = [
+            column for column in _FILTER_COLUMNS
+            if column not in required_columns
         ]
+        if missing_filter_columns:
+            logging.error(
+                "Custom required_columns must include eligibility filter "
+                "columns: %s",
+                missing_filter_columns,
+            )
+            return None
 
     # Read the CSV file into a Pandas DataFrame
     df = None
@@ -101,7 +124,8 @@ def load(file_path: str | Path, required_columns: list[str] = None) -> 'pd.DataF
             (df3['pastvote_EURef'] < 4)
         ]
     except Exception as e:
-        logging.warning(f"Error filtering survey data rows: {e}")
+        logging.exception("Error filtering survey data rows: %s", e)
+        return None
     del df3  # Free memory
     # Log the number of rows remaining after filtering
     logging.info(f"{len(df4)} rows after filtering.")

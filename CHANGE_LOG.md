@@ -26,6 +26,12 @@ development stage, not necessarily the current code or a verified public tag.
 
 ## [Unreleased]
 
+- **Survey-ingestion reliability (2026-11-10).** Custom loader column lists
+  must include all mandatory eligibility-filter fields. Filter failures now
+  log and return a clear load failure rather than reaching an unassigned
+  dataframe; CLI load failures and undersized eligible populations are
+  reported before sampling. The successful seeded sampling path is unchanged.
+
 - **Survey population organisation (2026-11-09).** Extracted CAG's
   `citizen_from_survey_row` factory from the CLI into `cag.abm.population`.
   Loading, sampling, conversion defaults, respondent IDs, and registration
