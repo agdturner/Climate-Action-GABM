@@ -7,7 +7,7 @@ are updated and published-wheel acceptance passes.
 
 ## Resume here: checkpoint (2026-11-10)
 
-- **CAG baseline:** `main` at `7379b9f`, synchronized with upstream and origin.
+- **CAG baseline:** `main` at `5e22571`, synchronized after PR #113.
   Survey execution, the published GABM dependency update, the population
   factory, and survey-ingestion reliability work are all merged. No outstanding
   feature branch is needed to continue.
@@ -41,10 +41,13 @@ are updated and published-wheel acceptance passes.
   implementing it; do not create an artificial consumer just to justify
   abstraction. Duplicate-ID and strict numeric validation policies remain
   separate decisions.
-- **Active cleanup:** `refactor/cag-cleanup` isolates survey region, education,
-  and income ID classes from GABM's generic codebooks. Implementation and
-  regression tests are complete but uncommitted; validation and the intentional
-  import/type compatibility change are recorded below.
+- **Latest cleanup:** survey region, education, and income ID isolation was
+  merged as `5e22571` (PR #113). Full validation: **797 passed, 1 skipped,
+  6 existing warnings, 50 subtests**; original golden fixture unchanged.
+- **Active review:** `refactor/agent-memory-review` contains characterization
+  tests and findings only; no runtime changes. Focused memory/config/golden
+  suite: **105 passed**. The next proposed implementation is a CAG-local pure
+  memory-selection/formatting seam, not a new GABM memory framework.
 
 On resuming, check `git status --short --branch` in both repositories before
 changing anything. The `cag-integration` environment may use editable GABM;
@@ -57,6 +60,59 @@ untouched.
 
 The dated sections below retain historical development checkpoints; their
 then-pending merge/release statements are superseded by this checkpoint.
+
+### Agent memory/context boundary review (2026-11-10)
+
+Reviewed `SurveyedCitizen.assemble_context`, its section renderers,
+`compress_memories`, `compress_daily_memory`, `manage_memory`, the shared
+memory configuration, and the simulation's end-of-day ordering.
+
+Observed contracts to preserve:
+
+- The simulation runs memory management after message phases and before
+  end-of-day surveys. The compression target uses the global verbatim window;
+  section inclusion uses stage-resolved configuration. Preserve this distinction.
+- Context scope selects summaries/reflections; target policy selects Day-0
+  rationale, own reasoning, trajectory, and within-day answers. Actual assembly
+  places optional opinion trajectory before today-so-far, irrespective of the
+  order of names in `MEMORY_SECTIONS`.
+- Package compression keeps all same-day reflections in insertion order,
+  then adds reasoning in policy-key string order (not canonical survey order).
+  Duplicate same-day reasoning entries are retained. The package sentinel's
+  own reasoning bucket is excluded.
+- Compression sends exact CAG-owned system/user strings through `send_chat`,
+  not the prompt-capturing `_chat` wrapper. Transport options pass through
+  unchanged. Do not silently add logging records, retries, or normalization.
+- Successful raw summaries are stored before allocating their event step.
+  Transport failure leaves summary/step state unchanged; a failure allocating
+  the step would occur after summary storage. No rollback is currently provided.
+- No matching input returns an empty string without transport or recording.
+  Existing summary keys prevent recompression even if their text is empty.
+  `manage_memory` targets just the day leaving the window; it does not backfill
+  skipped days or prune retained source histories.
+
+GABM comparison: the inspected framework source contains agent demographic/
+trait/opinion profiles and survey execution, but no equivalent tiered episodic
+memory store, day-window scheduler, or compression pipeline. The LLM utilities
+are transport/model-management utilities, not a memory abstraction. Replacing
+CAG's pipeline with those APIs is not an equivalent reuse opportunity.
+
+Added four tests to `tests/test_memory.py` for exact package compression
+input/prompt/options/call order/raw-result/event recording, transport failure,
+no-input behavior, and lack of skipped-day backfill. Existing tests already
+cover context sections, scope, toggles, TTL, and bounded/unbounded windows.
+Focused memory/config/golden suite with published GABM 0.5.0:
+**105 passed**. No full-suite rerun is claimed for this test/documentation-only
+review. Runtime files and golden fixtures are unchanged.
+
+Recommended next implementation: extract pure selection/formatting of a day's
+compression input into a CAG-local memory module, leaving existing agent
+methods as compatibility entry points and retaining transport, summary state,
+step recording, and simulation scheduling where they are. Add exact helper
+tests and delegation checks, then rerun the golden baseline. Evaluate context
+rendering separately rather than moving all memory responsibilities at once.
+Do not introduce a generic workflow engine or GABM memory API at this stage.
+Notebook modernization remains deferred for collaborator discussion.
 
 ### Survey codebook isolation (2026-11-10)
 
