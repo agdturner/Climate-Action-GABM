@@ -120,6 +120,12 @@ Now the file-by-file detail, grouped by layer.
 > **[src/cag/abm/political_messages.py](../../src/cag/abm/political_messages.py)** *(~456 ln)* — loads the curated offline broadcast pool and serves one message per `(side, policy)`.
 >   **Staying?** `load_message_pool` reads the CSV and validates it; `MessagePool` serves messages in a seeded rotation. The validation in `_resolve_runtime` is what aborts the run early if a `(side, policy)` cell is empty. **Breadcrumb:** read the header of `data/political_messages/v1/messages_v1.csv` — the `(side, policy_id)` cell convention is the whole API. This is the *default* message source; the `PoliticalAgent.generate_*` methods only fire if you switch to `political_message_source="llm"` (see [§5.4](#54-offline-vs-llm-messages)).
 
+Daily compression input selection and formatting live in
+[`abm/memory.py`](../../src/cag/abm/memory.py), a pure CAG helper.
+`SurveyedCitizen.compress_daily_memory` delegates to it but retains the LLM
+call, raw summary storage, and event-step recording. Compression scheduling
+and context-section assembly remain unchanged.
+
 ### 4.3 Vocabulary — persona building blocks
 
 These are small, mostly-static, and you'll rarely touch them unless you add a policy or a demographic.

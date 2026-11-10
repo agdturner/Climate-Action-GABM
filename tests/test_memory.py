@@ -462,6 +462,103 @@ class TestManageMemory:
         mock_send.assert_not_called()
 
 
+class TestCompressionBoundaryContracts:
+    """Exact transport and recording contracts for a future local extraction."""
+
+    @mock.patch("cag.abm.agent.send_chat", return_value="  Raw summary.\n")
+    def test_exact_package_input_order_transport_and_recording(self, send):
+        c = _make_citizen()
+        renewable = ClimatePolicyID.RENEWABLE_ENERGY
+        carbon = ClimatePolicyID.CARBON_TAX
+        c.reflections = [
+            {"day": 2, "policy_id": carbon, "text": " first reflection "},
+            {"day": 1, "policy_id": carbon, "text": "wrong day"},
+            {"day": 2, "policy_id": PACKAGE_SCOPE, "text": "second reflection"},
+        ]
+        c.survey_reasoning = {
+            carbon: [(2, " carbon reasoning "), (1, "wrong day")],
+            PACKAGE_SCOPE: [(2, "excluded package reasoning")],
+            renewable: [(2, "renewable first"), (2, "renewable second")],
+        }
+        c._sim_step = mock.Mock(return_value=37)
+        events = mock.Mock()
+        events.attach_mock(send, "send")
+        events.attach_mock(c._sim_step, "step")
+
+        result = c.compress_daily_memory(
+            2, PACKAGE_SCOPE, api_key="test-key", model="test-model",
+            provider="local", temperature=0.25,
+        )
+
+        memories = (
+            "Reflections after messages:\n"
+            "-  first reflection \n"
+            "- second reflection\n\n"
+            "My own survey reasoning today:\n"
+            f"- {SURVEY_SHORT_LABELS[renewable]}: renewable first\n"
+            f"- {SURVEY_SHORT_LABELS[renewable]}: renewable second\n"
+            f"- {SURVEY_SHORT_LABELS[carbon]}:  carbon reasoning "
+        )
+        prompt = (
+            "Concisely summarise the following day in 4\u20135 first-person "
+            "sentences. Cover: the positions you landed on and your key "
+            "reasoning, which received messages you found compelling and "
+            "which you pushed back on, and whether your thinking shifted on "
+            "any aspect of the policy.\n\n"
+            "Day's reflections and your own reasoning:\n" + memories
+        )
+        assert events.mock_calls == [
+            mock.call.send(
+                "You are a concise summariser.", prompt, api_key="test-key",
+                model="test-model", provider="local", temperature=0.25,
+            ),
+            mock.call.step(),
+        ]
+        assert result == "  Raw summary.\n"
+        assert c.daily_summaries == {(2, PACKAGE_SCOPE): result}
+        assert c._daily_summary_steps == {(2, PACKAGE_SCOPE): 37}
+
+    @mock.patch("cag.abm.agent.send_chat", side_effect=RuntimeError("transport failed"))
+    def test_transport_failure_leaves_summary_and_step_state_unchanged(self, send):
+        c = _make_citizen()
+        pid = ClimatePolicyID.CARBON_TAX
+        _add_reflections(c, day=2, n=1, policy_id=pid)
+        c.daily_summaries[(1, pid)] = "existing summary"
+        c._daily_summary_steps[(1, pid)] = 9
+        c._sim_step = mock.Mock()
+
+        with pytest.raises(RuntimeError, match="transport failed"):
+            c.compress_daily_memory(2, pid)
+
+        send.assert_called_once()
+        c._sim_step.assert_not_called()
+        assert c.daily_summaries == {(1, pid): "existing summary"}
+        assert c._daily_summary_steps == {(1, pid): 9}
+
+    def test_no_memories_does_not_send_or_allocate_step(self):
+        c = _make_citizen()
+        c.compress_memories = mock.Mock()
+        c._sim_step = mock.Mock()
+
+        assert c.compress_daily_memory(2, PACKAGE_SCOPE) == ""
+
+        c.compress_memories.assert_not_called()
+        c._sim_step.assert_not_called()
+        assert c.daily_summaries == {}
+        assert c._daily_summary_steps == {}
+
+    def test_manage_memory_does_not_backfill_skipped_days(self):
+        c = _make_citizen()
+        c.compress_daily_memory = mock.Mock()
+
+        c.manage_memory(7, PACKAGE_SCOPE)
+
+        c.compress_daily_memory.assert_called_once_with(
+            5, PACKAGE_SCOPE, api_key=None, model="gpt-5-mini",
+            provider="openai", temperature=0.5,
+        )
+
+
 # ===================================================================
 # Deterministic EOD survey shuffle (sim-level)
 # ===================================================================
@@ -648,4 +745,3 @@ class TestMemoryConfigToggles:
             day=2, policy_id=PACKAGE_SCOPE, target_policy_id=pid, stage="reflection")
         assert "Your considered position in recent days:" not in survey_ctx
         assert "Your considered position in recent days:" in reflect_ctx
-

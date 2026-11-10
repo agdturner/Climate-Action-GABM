@@ -26,6 +26,12 @@ development stage, not necessarily the current code or a verified public tag.
 
 ## [Unreleased]
 
+- **Daily memory input separation (2026-11-10).** Extracted pure selection
+  and formatting of compression input into `cag.abm.memory`. Agent methods
+  retain transport, raw summary storage, event recording, and scheduling.
+  Policy scope, entry ordering, whitespace, and compression prompts are
+  unchanged; no new GABM dependency or memory framework is introduced.
+
 - **Survey codebook isolation (2026-11-10).** Region, education, and income
   IDs are now CAG-local types using GABM's base ID and existing attribute/map
   machinery. Importing CAG no longer overwrites shared GABM region constants
