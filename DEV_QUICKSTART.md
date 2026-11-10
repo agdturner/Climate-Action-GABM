@@ -92,6 +92,13 @@ In notebooks or external scripts, import the survey-specific `PoliticsID`,
 The old GABM modules no longer exist. Their CAG identifiers and descriptions
 are unchanged. `SurveyedNation(place="UK", ...)` remains supported.
 
+Likewise, construct survey `RegionID`, `EducationID`, and `IncomeID` values
+from `cag.abm.attributes.region`, `cag.abm.attributes.education`, and
+`cag.abm.attributes.income`. These CAG-local ID types use the survey's codes;
+the same-named GABM types describe different codebooks and are not
+interchangeable. CAG reuses GABM's base ID, attribute objects, and map machinery
+without modifying GABM's shared codebook constants.
+
 See [GABM_Refactor_Plan.md](GABM_Refactor_Plan.md) for compatibility evidence,
 the default ethnicity-map alignment, and existing checkpoint replay limitations.
 

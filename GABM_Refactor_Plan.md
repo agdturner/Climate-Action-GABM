@@ -5,35 +5,46 @@ CAG main; generic network follow-up tests merged. Survey-execution extraction
 is merged in both repositories. GABM 0.5.0 is published; CAG dependency pins
 are updated and published-wheel acceptance passes.
 
-## Resume here: end-of-day checkpoint (2026-11-09)
+## Resume here: checkpoint (2026-11-10)
 
-- **CAG baseline:** `main` at `6d2bbe3`, synchronized with upstream and origin.
-  Survey execution, the published GABM dependency update, and the population
-  factory are all merged. No outstanding feature branch is needed to continue.
+- **CAG baseline:** `main` at `7379b9f`, synchronized with upstream and origin.
+  Survey execution, the published GABM dependency update, the population
+  factory, and survey-ingestion reliability work are all merged. No outstanding
+  feature branch is needed to continue.
 - **GABM baseline:** the two-stage executor and string-contract guards are
   merged into main and published as **0.5.0**. CAG runtime, development, and
   Conda manifests all pin `gabm==0.5.0`. No new GABM release is needed for
   the next CAG-only slice.
-- **Latest validation:** population branch after merging the dependency update,
-  against the published PyPI wheel: **786 passed, 1 skipped, 6 existing
-  warnings, 50 subtests**. Import origin was verified in a temporary
-  environment's `site-packages`, without a GABM source override. The
-  environment reused the existing CAG scientific/test stack; this was not
-  a fully fresh dependency installation. Temporary environments were removed.
-  The original integration golden fixture is unchanged.
-- **Current task:** CAG-only survey-ingestion reliability work is underway on
-  `fix/survey-ingestion-reliability`. The loader now requires custom column
-  lists to include all mandatory eligibility-filter columns, logs filter
-  failures and returns `None`, and the CLI rejects unavailable data or
-  insufficient eligible rows before sampling. The user's custom-column
-  contract decision was to require the filter columns. Focused and full-suite
-  validation results are recorded below. This work preserves successful
-  filtering and seeded sampling; duplicate-ID and strict numeric validation
-  policies remain separate decisions.
-- **After this slice:** defer a generic GABM population API until a second
-  neutral use case demonstrates meaningful reuse.
-- **Framework scope:** defer a generic GABM population API until a second
-  neutral use case demonstrates meaningful reuse.
+- **Latest validation:** installed both runtime and development requirements
+  from scratch in `/tmp/cag-clean-install`; full CAG suite: **792 passed,
+  1 skipped, 6 existing warnings, 50 subtests**. The clean environment uses
+  the published GABM 0.5.0 dependency and its own `site-packages`, with no
+  local GABM source override. The original integration golden fixture remains
+  unchanged. The temporary environment has been removed.
+- **Latest completed slice:** survey-ingestion reliability was merged in
+  `7379b9f` (PR #112). Custom `required_columns` must include all mandatory
+  eligibility-filter fields; filter failures return a logged load failure;
+  CLI load errors and insufficient eligible counts are reported before
+  sampling. Full validation against published GABM 0.5.0: **792 passed,
+  1 skipped, 6 existing warnings, 50 subtests**. Successful filter predicates
+  and seeded sampling remain unchanged.
+- **Next priority:** continue tidying CAG and, where a clear reusable
+  capability exists, increase its use of GABM without changing research
+  behaviour. No real second consumer currently needs the same survey
+  population reconstruction. Survey-to-population construction may be a
+  common framework need, but keep the current row-to-citizen mapping CAG-local
+  until the generic responsibilities and extension points are clear. A
+  sensible future GABM layer could own neutral ordered-record iteration and
+  factory/registration mechanics while callers own survey schema, filtering,
+  sampling, and domain-specific conversion. Validate that boundary with
+  another credible consumer or a clearly specified neutral API contract before
+  implementing it; do not create an artificial consumer just to justify
+  abstraction. Duplicate-ID and strict numeric validation policies remain
+  separate decisions.
+- **Active cleanup:** `refactor/cag-cleanup` isolates survey region, education,
+  and income ID classes from GABM's generic codebooks. Implementation and
+  regression tests are complete but uncommitted; validation and the intentional
+  import/type compatibility change are recorded below.
 
 On resuming, check `git status --short --branch` in both repositories before
 changing anything. The `cag-integration` environment may use editable GABM;
@@ -46,6 +57,46 @@ untouched.
 
 The dated sections below retain historical development checkpoints; their
 then-pending merge/release statements are superseded by this checkpoint.
+
+### Survey codebook isolation (2026-11-10)
+
+The bounded attribute-map review found that CAG imported GABM's generic
+`RegionID`, `EducationID`, and `IncomeID` classes and assigned survey constants
+directly onto those shared classes. Region names overlapped with different
+codes: importing CAG changed generic `RegionID.NORTH_WEST` from 1 to 2,
+and could change subsequent generic map construction in the same process.
+The map machinery itself was already reused appropriately; no new generic
+GABM helper or framework release is needed.
+
+With the user's approval, these three survey ID classes now derive directly
+from GABM's `GABMAttributeID`, following CAG's existing family/politics pattern.
+Attribute objects and `GABMAttributeMap` continue to come from GABM. Survey
+codes, descriptions, entry order, ID string representations, and constructor
+keyword names are retained. The intentional compatibility change is that
+generic GABM IDs are no longer survey IDs: callers must import the latter
+from `cag.abm.attributes.region`, `.education`, and `.income`. Updated the
+affected tests, imports in three notebooks, quickstart, and code tour.
+
+Before editing the maps, captured fingerprints of their complete ordered
+code/description entries. New tests assert those exact fingerprints,
+cross-codebook inequality and lookup separation, and generic-map/constants
+preservation in fresh processes for both import orders. Focused
+codebook/agent/persona/population/golden suite: **73 passed, 2 subtests**.
+Full suite with published GABM 0.5.0 in `cag`: **797 passed, 1 skipped,
+6 existing warnings, 50 subtests**. The original golden fixture is unchanged.
+No GABM source files were modified.
+
+Notebook follow-up is deferred for discussion with collaborators. Manual
+execution of the agent-profile notebook exposed a pre-existing call to the
+removed `get_narrative()` method. Its display cell now prints the combined
+`get_persona()` once; this cell was executed with five synthetic citizens,
+without LLM calls. The notebook's saved 1086-row output is historical:
+current and pre-ingestion-change loaders both return identical 1483-row
+dataframes for the current local survey file. Full notebook execution has
+not been validated; no live external LLM calls were made for this review.
+Do not treat historical notebook outputs as acceptance criteria or broaden
+this PR into notebook modernization. Keep manual execution outputs separate
+from the intended source changes when preparing the commit.
 
 ### Survey-ingestion reliability follow-up (2026-11-10)
 
@@ -859,6 +910,10 @@ the full population-branch suite passes: **786 passed, 1 skipped, 6 warnings,
 The temporary environment was removed after validation. The population PR was
 subsequently merged into CAG main as `6d2bbe3`; local main, upstream/main,
 and origin/main were synchronized at the end-of-day checkpoint above.
+
+The ingestion reliability PR was subsequently merged into CAG main as
+`7379b9f` (PR #112); local main, upstream/main, and origin/main were
+synchronized. See the current checkpoint at the top of this document.
 
 ### 5. Evaluate further extractions
 

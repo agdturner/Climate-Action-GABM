@@ -9,8 +9,16 @@ __copyright__ = "Copyright (c) 2026 Climate-Action-GABM contributors, University
 # Standard library imports
 import logging
 # Local imports
-from gabm.abm.attributes.region import RegionID, Region
-from gabm.abm.attribute import GABMAttributeMap
+from gabm.abm.attributes.region import Region
+from gabm.abm.attribute import GABMAttributeID, GABMAttributeMap
+
+
+class RegionID(GABMAttributeID):
+    """Identifier for CAG's survey UK regions, not GABM's generic regions."""
+
+    def __init__(self, region_id: int):
+        super().__init__(region_id)
+
 
 RegionID.UNKNOWN = RegionID(0)
 RegionID.NORTH_EAST = RegionID(1)

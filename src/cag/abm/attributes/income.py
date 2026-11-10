@@ -9,8 +9,16 @@ __copyright__ = "Copyright (c) 2026 Climate-Action-GABM contributors, University
 # Standard library imports
 import logging
 # Local imports
-from gabm.abm.attributes.income import IncomeID, Income
-from gabm.abm.attribute import GABMAttributeMap
+from gabm.abm.attributes.income import Income
+from gabm.abm.attribute import GABMAttributeID, GABMAttributeMap
+
+
+class IncomeID(GABMAttributeID):
+    """Identifier for CAG's survey income categories, not GABM's codebook."""
+
+    def __init__(self, income_id: int):
+        super().__init__(income_id)
+
 
 IncomeID.UNKNOWN = IncomeID(0)
 IncomeID.UNDER_5000 = IncomeID(1)
