@@ -26,6 +26,14 @@ development stage, not necessarily the current code or a verified public tag.
 
 ## [Unreleased]
 
+- **Checkpoint citizen IDs.** Read checkpoint identifiers as text and map
+  citizen IDs back to the current nation, preserving leading zeros and ID
+  types for unambiguous matches. Ambiguous string-form collisions and unknown
+  message citizens are rejected. Numeric-ID timeline ordering after resume
+  now matches the tested uninterrupted runs. Checkpoint metadata stores ID
+  text, not original types, so it cannot detect a type change with the same
+  string form between runs.
+
 - **Checkpoint random-state continuation.** Checkpoints save Python's
   process-wide random state and restore it before continuing a run, affecting
   other users of that generator in the same process. Older checkpoints that

@@ -3,11 +3,12 @@
 **Status:** network integration and offline cursor restoration merged into
 CAG main; generic network follow-up tests merged. Survey-execution extraction
 is merged in both repositories. GABM 0.6.0 is published and pinned in CAG.
-The current branch addresses checkpoint random-state continuation.
+The current branch characterizes checkpoint output hydration and fixes
+unambiguous citizen-ID restoration.
 
 ## Resume here: checkpoint (2026-11-15)
 
-- **CAG baseline:** `main` at `4caaa02`, synchronized after PR #116.
+- **CAG baseline:** `main` at `da5b391`, synchronized after PR #117.
   Survey execution, the published GABM dependency update, the population
   factory, and survey-ingestion reliability work are all merged.
 - **GABM baseline:** the two-stage executor and string-contract guards are
@@ -20,7 +21,7 @@ The current branch addresses checkpoint random-state continuation.
   subtests**. The integration golden fixture is unchanged. This is not an
   HPC or live-model reproducibility test. The `cag` Conda environment was
   subsequently updated to 0.6.0 and passed the same full suite.
-- **Active checkpoint slice:** checkpoints now save Python's process-wide
+- **Merged checkpoint slice:** checkpoints now save Python's process-wide
   random state and restore it when continuing. Older checkpoints lacking it
   are rejected if days remain; loading completed checkpoints remains possible
   subject to other compatibility checks. Restoring changes the process-wide
@@ -30,6 +31,28 @@ The current branch addresses checkpoint random-state continuation.
   the original golden fixture is unchanged. Prompt-log and timeline
   hydration remain separate limitations; this is not live-model or HPC
   reproducibility validation.
+- **Checkpoint output review:** before the current fix, in the tested integer-ID scenarios, completed
+  checkpoints omit full prompt logs and timelines. A resumed fresh nation
+  captures only later prompts and restarts each agent's prompt sequence at
+  zero; directly hydrating an already-used nation leaves its existing prompt
+  logs untouched. Mixed political and citizen sender IDs reload from CSV as strings;
+  peer-sent timeline rows then use string agent IDs, changing the sort order
+  relative to numeric IDs. The tested timeline rows match when their agent IDs
+  are normalized to strings and sorted by agent, step, and event type; this
+  observation is not a general equivalence guarantee.
+  Any prompt persistence change should consider checkpoint size, sensitive
+  prompt content, sampling changes, old checkpoints, and sequence continuity.
+  The current fix reads IDs as text and maps them to the current nation,
+  rejecting collisions in their string representations. Metadata does not
+  preserve original ID types, so a type change with the same string form
+  cannot be detected. The pre-fix focused checkpoint,
+  integration, timeline, and prompt suites: **82 passed**; the four new
+  characterization cases also passed with `PYTHONHASHSEED=17`. The original
+  integration golden fixture is unchanged; resumed timelines are now checked
+  against its fresh-run timeline rather than the historical resumed fingerprint.
+  The full suite with the ID fix passed: **855 passed, 1 skipped, 6 warnings,
+  50 subtests**. A subsequent mixed numeric/string ID case also passed in the
+  focused ID test.
 - **Previous clean-install validation:** installed both runtime and development
   requirements from scratch in `/tmp/cag-clean-install`; full CAG suite: **792 passed,
   1 skipped, 6 existing warnings, 50 subtests**. The clean environment uses
@@ -73,7 +96,7 @@ verify import origin rather than treating its results as published-wheel
 acceptance. Normal CAG tests use `PYTHONPATH=src:scripts python -m pytest -q`
 with the pinned published GABM release installed. See
 [the development workflow](DEV_GUIDE.md#cross-repository-refactoring).
-Leave unrelated tracked changes under GABM's `venv-build-test/` untouched.
+GABM no longer tracks its temporary `venv-build-test/` directory.
 
 The dated sections below retain historical development checkpoints; their
 then-pending merge/release statements are superseded by this checkpoint.
@@ -494,12 +517,13 @@ graph, and core CSV serialization, and repeated hydration is idempotent.
 However, existing behaviour is not full fresh-process replay:
 
 - Full prompt logs are final-output-only and are not hydrated.
-- CSV hydration stringifies mixed sender IDs; their CSV text remains equal,
-  but timeline JSON metadata changes type. Separate fixed timeline fingerprints
-  characterize the restored output rather than concealing that difference.
-- Peer selection uses process-wide Python random state, which the checkpoint
-  does not save. The passing continuation tests explicitly preserve that state
-  outside the checkpoint and use stateless mocked LLM political broadcasts.
+- In the integer-ID baseline, CSV hydration stringifies mixed sender IDs;
+  their CSV text remains equal, but peer-sent timeline agent IDs become
+  strings and change the mixed-type sort order. Separate fixed timeline
+  fingerprints characterize the restored output. The earlier attribution to
+  timeline metadata types was incorrect for this fixture.
+- At this original baseline, peer selection used process-wide Python random
+  state that the checkpoint did not save. PR #117 later added its persistence.
 - At the original baseline, offline message-pool cursors were not restored:
   resumed broadcasts restarted their rotation. This was fixed in the separate
   offline checkpoint slice below on 2026-11-09; both expected-failure markers

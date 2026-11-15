@@ -267,16 +267,90 @@ def test_real_checkpoint_roundtrip(mode, tmp_path):
         ):
             assert results[name].to_csv(index=False) == loaded_results[name].to_csv(index=False)
         assert loaded_results["agent_prompts"].empty
-        # CSV hydration stringifies mixed sender IDs; timeline JSON retains that type.
+        # Resumed timelines now match the original fresh-run baseline.
         golden = json.loads(GOLDEN_PATH.read_text())
         timeline = loaded_results["agent_timeline"]
         assert {"rows": len(timeline), "sha256": _digest(timeline.to_csv(index=False))} == (
-            golden["checkpoint_timelines"][mode]
+            golden["scenarios"][mode]["tables"]["agent_timeline"]
         )
         # Hydration must also be idempotent.
         before = _digest(_agent_state(restored))
         assert _load_checkpoint(restored, tmp_path) == 3
         assert _digest(_agent_state(restored)) == before
+
+
+@pytest.mark.parametrize("mode", ["package", "single_policy"])
+def test_checkpoint_output_hydration_preserves_timeline_but_not_prompt_logs(
+    mode, tmp_path,
+):
+    with _runtime():
+        config = _config(mode)
+        original = _make_nation()
+        original_results = run_simulation(
+            config, original, checkpoint_dir=tmp_path, checkpoint_every_day=True,
+        )
+        assert not (tmp_path / "agent_prompts.csv").exists()
+        assert not (tmp_path / "agent_timeline.csv").exists()
+
+        restored = _make_nation()
+        loaded_results = run_simulation(
+            config, restored, checkpoint_dir=tmp_path, resume=True,
+        )
+        assert not original_results["agent_prompts"].empty
+        assert loaded_results["agent_prompts"].empty
+        original_logs = {
+            aid: deepcopy(agent.prompt_log)
+            for aid, agent in original.agents_active.items()
+        }
+        _load_checkpoint(original, tmp_path)
+        assert {
+            aid: agent.prompt_log for aid, agent in original.agents_active.items()
+        } == original_logs
+        assert original_results["messages"].to_csv(index=False) == (
+            loaded_results["messages"].to_csv(index=False)
+        )
+
+        original_messages = original_results["messages"]
+        loaded_messages = loaded_results["messages"]
+        original_peer_senders = original_messages.loc[
+            original_messages["message_type"] == "peer_message", "sender_id"
+        ].tolist()
+        loaded_peer_senders = loaded_messages.loc[
+            loaded_messages["message_type"] == "peer_message", "sender_id"
+        ].tolist()
+        assert original_peer_senders
+        assert all(type(sender) is int for sender in original_peer_senders)
+        assert all(type(sender) is int for sender in loaded_peer_senders)
+        assert original_peer_senders == loaded_peer_senders
+
+        original_timeline = original_results["agent_timeline"]
+        loaded_timeline = loaded_results["agent_timeline"]
+        assert original_timeline.to_csv(index=False) == loaded_timeline.to_csv(index=False)
+        sent = loaded_timeline["event_type"] == "peer_message_sent"
+        assert sent.any()
+        assert all(type(agent_id) is int for agent_id in loaded_timeline.loc[sent, "agent_id"])
+        assert all(type(agent_id) is int for agent_id in original_timeline["agent_id"])
+
+
+@pytest.mark.parametrize("mode", ["package", "single_policy"])
+def test_resumed_prompt_log_contains_only_new_calls_and_restarts_sequence(mode, tmp_path):
+    with _runtime():
+        config = _config(mode)
+        partial_config = deepcopy(config)
+        partial_config["days"] = partial_config["days"][:2]
+        partial = _make_nation()
+        before = run_simulation(
+            partial_config, partial, checkpoint_dir=tmp_path, checkpoint_every_day=True,
+        )
+        assert not before["agent_prompts"].empty
+        resumed = _make_nation()
+        after = run_simulation(config, resumed, checkpoint_dir=tmp_path, resume=True)
+        prompts = after["agent_prompts"]
+        assert not prompts.empty
+        assert set(prompts["day"]) == {3}
+        assert set(before["agent_prompts"]["day"]).isdisjoint(set(prompts["day"]))
+        for _, group in prompts.groupby("agent_id"):
+            assert group["prompt_seq"].tolist() == list(range(len(group)))
 
 
 @pytest.mark.parametrize("mode", ["package", "single_policy"])

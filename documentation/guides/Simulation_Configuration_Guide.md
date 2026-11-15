@@ -747,9 +747,15 @@ checkpoints without this state cannot be continued: start a fresh run.
 Loading a completed checkpoint with no days remaining does not require or
 restore the random state, though other compatibility requirements still apply.
 
+Checkpoint CSV citizen IDs are read as text and matched to the current
+nation's IDs, preserving leading zeros. IDs whose string forms collide
+(such as integer `1` and string `"1"`) cannot be checkpointed or hydrated
+unambiguously and are rejected. Checkpoints store ID text rather than its
+original type, so a change from integer `1` to string `"1"` between runs
+cannot be detected: use the same population and ID types on resume.
+
 These measures do not guarantee full fresh-process reproducibility. Full
-prompt logs are not hydrated, timeline sender-ID types can differ after
-hydration, and live model responses can vary.
+prompt logs are not hydrated, and live model responses can vary.
 
 ---
 
