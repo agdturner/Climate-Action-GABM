@@ -47,8 +47,9 @@ validation gates in [GABM_Refactor_Plan.md](GABM_Refactor_Plan.md).
   after the preceding bounded slices demonstrate a useful API boundary.
 - Offline message-pool cursor persistence is implemented and tested; older
   offline checkpoints without rotation state require a fresh run.
-  Resolve the remaining checkpoint limitations separately: peer-selection random state,
-  and the documented prompt-log/timeline hydration differences. Do not claim
+  Peer-selection random state is stored for continuation; older checkpoints
+  without it cannot continue with days remaining. Resolve the remaining
+  prompt-log/timeline hydration differences separately. Do not claim
   exact fresh-process replay until the relevant equivalence tests pass.
 
 ## Documentation and data organisation

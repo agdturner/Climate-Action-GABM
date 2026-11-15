@@ -2,15 +2,14 @@
 
 **Status:** network integration and offline cursor restoration merged into
 CAG main; generic network follow-up tests merged. Survey-execution extraction
-is merged in both repositories. GABM 0.6.0 is published; CAG dependency pins
-are being updated in the current feature branch.
+is merged in both repositories. GABM 0.6.0 is published and pinned in CAG.
+The current branch addresses checkpoint random-state continuation.
 
 ## Resume here: checkpoint (2026-11-15)
 
-- **CAG baseline:** `main` at `cffa66c`, synchronized after PR #115.
+- **CAG baseline:** `main` at `4caaa02`, synchronized after PR #116.
   Survey execution, the published GABM dependency update, the population
-  factory, and survey-ingestion reliability work are all merged. A feature
-  branch is updating the published GABM dependency.
+  factory, and survey-ingestion reliability work are all merged.
 - **GABM baseline:** the two-stage executor and string-contract guards are
   merged into main and published since **0.5.0**. CAG runtime, development, and
   Conda manifests now pin `gabm==0.6.0`.
@@ -19,8 +18,18 @@ are being updated in the current feature branch.
   its own site-packages and no local source override. `pip check` passed;
   the full suite passed with **824 passed, 1 skipped, 6 warnings, 50
   subtests**. The integration golden fixture is unchanged. This is not an
-  HPC or live-model reproducibility test, and the Conda environment was not
-  updated or independently validated.
+  HPC or live-model reproducibility test. The `cag` Conda environment was
+  subsequently updated to 0.6.0 and passed the same full suite.
+- **Active checkpoint slice:** checkpoints now save Python's process-wide
+  random state and restore it when continuing. Older checkpoints lacking it
+  are rejected if days remain; loading completed checkpoints remains possible
+  subject to other compatibility checks. Restoring changes the process-wide
+  generator. Mocked-transport tests cover fresh-process and repeated
+  continuation in both communication modes and message sources. The full
+  suite in `cag` passed: **841 passed, 1 skipped, 6 warnings, 50 subtests**;
+  the original golden fixture is unchanged. Prompt-log and timeline
+  hydration remain separate limitations; this is not live-model or HPC
+  reproducibility validation.
 - **Previous clean-install validation:** installed both runtime and development
   requirements from scratch in `/tmp/cag-clean-install`; full CAG suite: **792 passed,
   1 skipped, 6 existing warnings, 50 subtests**. The clean environment uses

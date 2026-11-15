@@ -6,6 +6,7 @@ Run with: python -m pytest tests/test_checkpoint.py -v
 """
 import json
 import os
+import random
 import sys
 import tempfile
 import unittest
@@ -18,6 +19,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../s
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
 from cag.abm.attributes.opinion import ClimatePolicyID
+from cag.io.checkpoint import _checkpoint_random_state
 from cag.abm.sim import (
     CHECKPOINT_SCHEMA_VERSION,
     _load_checkpoint,
@@ -46,6 +48,17 @@ def _base_config(tmp_dir):
         "llm_model": "mock-model",
         "llm_provider": "openai",
     }
+
+
+def test_random_state_json_roundtrip_preserves_cached_gaussian():
+    rng = random.Random(42)
+    rng.gauss(0, 1)
+    state = rng.getstate()
+    decoded = json.loads(json.dumps({"random_state": state}))
+    restored = random.Random()
+    restored.setstate(_checkpoint_random_state(decoded))
+    assert restored.getstate() == state
+    assert restored.gauss(0, 1) == rng.gauss(0, 1)
 
 
 @patch("cag.abm.sim.load_api_key", return_value="mock-key")
