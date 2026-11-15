@@ -70,8 +70,21 @@ def _config_hash(serialised_config):
     return hashlib.sha256(blob).hexdigest()
 
 
+def _agents_by_checkpoint_id(nation):
+    """Map serialized IDs to agents, rejecting ambiguous string forms."""
+    by_id = {}
+    for aid, agent in nation.agents_active.items():
+        key = str(aid)
+        if key in by_id:
+            raise ValueError(f"Ambiguous checkpoint agent ID {key!r}: "
+                             "multiple active IDs have the same string form.")
+        by_id[key] = agent
+    return by_id
+
+
 def _write_checkpoint(nation, cfg, last_day, checkpoint_dir, *, message_pool=None):
     """Write a per-day checkpoint to ``checkpoint_dir`` (atomic)."""
+    _agents_by_checkpoint_id(nation)
     random_state = random.getstate()
     checkpoint_dir = Path(checkpoint_dir)
     checkpoint_dir.mkdir(parents=True, exist_ok=True)
@@ -193,8 +206,11 @@ def _validate_resume_config(meta, cfg, nation):
         )
 
     # Agent ID set must match.
-    saved_ids = set(meta.get("agent_ids", []))
-    current_ids = {str(aid) for aid in nation.agents_active.keys()}
+    saved_id_list = meta.get("agent_ids", [])
+    saved_ids = set(saved_id_list)
+    if len(saved_ids) != len(saved_id_list):
+        raise ValueError("Cannot resume: checkpoint has ambiguous duplicate agent IDs.")
+    current_ids = set(_agents_by_checkpoint_id(nation))
     if saved_ids != current_ids:
         missing = saved_ids - current_ids
         extra = current_ids - saved_ids
@@ -251,9 +267,33 @@ def _load_checkpoint(nation, checkpoint_dir):
             return ""
         return value
 
-    # Index agents by str(id) so loaded CSV ids (which may be float-stringified)
-    # round-trip back to the original keys in agents_active.
-    by_id = {str(aid): agent for aid, agent in nation.agents_active.items()}
+    by_id = _agents_by_checkpoint_id(nation)
+    saved_ids = meta.get("agent_ids", [])
+    if len(set(saved_ids)) != len(saved_ids):
+        raise ValueError("Cannot load checkpoint: ambiguous duplicate agent IDs.")
+
+    def _read(name):
+        path = checkpoint_dir / f"{name}.csv"
+        if not path.exists():
+            return pd.DataFrame(columns=_RESULT_CSV_SCHEMAS[name])
+        df = pd.read_csv(path, converters={
+            "agent_id": str, "sender_id": str, "recipient_id": str,
+        })
+        # Replace NaN with None across the frame so str()/json.loads/dict-keys
+        # don't see literal 'nan' or float NaN downstream. Critical for
+        # messages.csv where package mode leaves policy_id empty.
+        return df.where(pd.notna(df), None)
+
+    def _citizen_id(value):
+        if value not in by_id:
+            raise ValueError(f"Checkpoint references unknown citizen ID {value!r}.")
+        return by_id[value].id
+
+    msgs = _read("messages")
+    for row in msgs.itertuples(index=False):
+        if row.sender_type == "citizen":
+            _citizen_id(row.sender_id)
+        _citizen_id(row.recipient_id)
 
     # Reset agent mutable state before hydration so re-loading is idempotent.
     for agent in by_id.values():
@@ -267,16 +307,6 @@ def _load_checkpoint(nation, checkpoint_dir):
         agent._survey_reasoning_steps = {}
         agent._survey_raw_response_steps = {}
         agent._survey_assembled_context_steps = {}
-
-    def _read(name):
-        path = checkpoint_dir / f"{name}.csv"
-        if not path.exists():
-            return pd.DataFrame(columns=_RESULT_CSV_SCHEMAS[name])
-        df = pd.read_csv(path)
-        # Replace NaN with None across the frame so str()/json.loads/dict-keys
-        # don't see literal 'nan' or float NaN downstream. Critical for
-        # messages.csv where package mode leaves policy_id empty.
-        return df.where(pd.notna(df), None)
 
     # opinion_history
     opin = _read("opinion_trajectories")
@@ -368,7 +398,6 @@ def _load_checkpoint(nation, checkpoint_dir):
         )
 
     # nation.message_log
-    msgs = _read("messages")
     nation.message_log = []
     for row in msgs.itertuples(index=False):
         try:
@@ -381,12 +410,16 @@ def _load_checkpoint(nation, checkpoint_dir):
             "phase": _str(row.phase),
             "message_type": _str(row.message_type),
             "sender_type": _str(row.sender_type),
-            "sender_id": row.sender_id,
+            "sender_id": (
+                _citizen_id(row.sender_id)
+                if row.sender_type == "citizen"
+                else row.sender_id
+            ),
             "sender_side": _str(row.sender_side),
             "policy_id": _to_policy(row.policy_id),
             "package_scope": _str(row.package_scope),
             "policy_ids": [_to_policy(p) for p in policy_ids],
-            "recipient_id": row.recipient_id,
+            "recipient_id": _citizen_id(row.recipient_id),
             "recipient_scope": _str(row.recipient_scope),
             "message_text": _str(row.message_text),
             "political_message_id": _str(getattr(row, "political_message_id", "")),

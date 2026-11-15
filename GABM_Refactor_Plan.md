@@ -3,7 +3,8 @@
 **Status:** network integration and offline cursor restoration merged into
 CAG main; generic network follow-up tests merged. Survey-execution extraction
 is merged in both repositories. GABM 0.6.0 is published and pinned in CAG.
-The current branch characterizes checkpoint output hydration.
+The current branch characterizes checkpoint output hydration and fixes
+unambiguous citizen-ID restoration.
 
 ## Resume here: checkpoint (2026-11-15)
 
@@ -30,7 +31,7 @@ The current branch characterizes checkpoint output hydration.
   the original golden fixture is unchanged. Prompt-log and timeline
   hydration remain separate limitations; this is not live-model or HPC
   reproducibility validation.
-- **Checkpoint output review:** in the tested integer-ID scenarios, completed
+- **Checkpoint output review:** before the current fix, in the tested integer-ID scenarios, completed
   checkpoints omit full prompt logs and timelines. A resumed fresh nation
   captures only later prompts and restarts each agent's prompt sequence at
   zero; directly hydrating an already-used nation leaves its existing prompt
@@ -41,11 +42,17 @@ The current branch characterizes checkpoint output hydration.
   observation is not a general equivalence guarantee.
   Any prompt persistence change should consider checkpoint size, sensitive
   prompt content, sampling changes, old checkpoints, and sequence continuity.
-  Restoring ID types requires an unambiguous representation, not a blanket
-  numeric conversion that could change string IDs. Focused checkpoint,
+  The current fix reads IDs as text and maps them to the current nation,
+  rejecting collisions in their string representations. Metadata does not
+  preserve original ID types, so a type change with the same string form
+  cannot be detected. The pre-fix focused checkpoint,
   integration, timeline, and prompt suites: **82 passed**; the four new
-  characterization cases also passed with `PYTHONHASHSEED=17`. No runtime
-  behavior or integration golden fixture was changed.
+  characterization cases also passed with `PYTHONHASHSEED=17`. The original
+  integration golden fixture is unchanged; resumed timelines are now checked
+  against its fresh-run timeline rather than the historical resumed fingerprint.
+  The full suite with the ID fix passed: **855 passed, 1 skipped, 6 warnings,
+  50 subtests**. A subsequent mixed numeric/string ID case also passed in the
+  focused ID test.
 - **Previous clean-install validation:** installed both runtime and development
   requirements from scratch in `/tmp/cag-clean-install`; full CAG suite: **792 passed,
   1 skipped, 6 existing warnings, 50 subtests**. The clean environment uses

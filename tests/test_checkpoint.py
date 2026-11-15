@@ -14,6 +14,7 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pandas as pd
+import pytest
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../src")))
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
@@ -29,7 +30,7 @@ from cag.abm.sim import (
     run_simulation,
 )
 
-from test_sim import _make_mock_nation
+from test_sim import _make_mock_agent, _make_mock_nation
 
 
 def _base_config(tmp_dir):
@@ -59,6 +60,99 @@ def test_random_state_json_roundtrip_preserves_cached_gaussian():
     restored.setstate(_checkpoint_random_state(decoded))
     assert restored.getstate() == state
     assert restored.gauss(0, 1) == rng.gauss(0, 1)
+
+
+@pytest.mark.parametrize("ids", [(1, 2), (1.0, 2.0), ("001", "02"), ("NA", "None"),
+                                ("1", "2"), ("001", 1)])
+def test_checkpoint_preserves_citizen_ids_and_political_sender(ids, tmp_path):
+    def nation():
+        result = _make_mock_nation(0)
+        result.agents_active = {aid: _make_mock_agent(aid) for aid in ids}
+        return result
+
+    original = nation()
+    original.agents_active[ids[0]].opinion_history = {
+        ClimatePolicyID.CARBON_TAX: [(0, 3)],
+    }
+    original.message_log = [
+        {"day": 1, "phase": "P-A", "message_type": "political_broadcast",
+         "sender_type": "political_agent", "sender_id": str(ids[0]),
+         "recipient_id": ids[1], "recipient_scope": "broadcast",
+         "message_text": "broadcast"},
+        {"day": 1, "phase": "C", "message_type": "peer_message",
+         "sender_type": "citizen", "sender_id": ids[0],
+         "recipient_id": ids[1], "recipient_scope": "direct",
+         "message_text": "peer"},
+    ]
+    _write_checkpoint(original, _base_config(tmp_path), 1, tmp_path)
+    restored = nation()
+    _load_checkpoint(restored, tmp_path)
+    assert restored.agents_active[ids[0]].opinion_history == (
+        original.agents_active[ids[0]].opinion_history
+    )
+    political, peer = restored.message_log
+    assert political["sender_id"] == str(ids[0])
+    assert type(political["sender_id"]) is str
+    assert peer["sender_id"] == ids[0] and type(peer["sender_id"]) is type(ids[0])
+    for event in (political, peer):
+        assert event["recipient_id"] == ids[1]
+        assert type(event["recipient_id"]) is type(ids[1])
+    _load_checkpoint(restored, tmp_path)
+    assert restored.message_log[1]["sender_id"] == ids[0]
+
+
+def test_checkpoint_rejects_colliding_string_forms_before_writing(tmp_path):
+    nation = _make_mock_nation(0)
+    nation.agents_active = {1: _make_mock_agent(1), "1": _make_mock_agent("1")}
+    with pytest.raises(ValueError, match="Ambiguous checkpoint agent ID"):
+        _write_checkpoint(nation, _base_config(tmp_path), 1, tmp_path)
+    assert not (tmp_path / "checkpoint_meta.json").exists()
+
+
+def test_checkpoint_rejects_collisions_before_hydrating(tmp_path):
+    original = _make_mock_nation(1)
+    _write_checkpoint(original, _base_config(tmp_path), 1, tmp_path)
+    ambiguous = _make_mock_nation(0)
+    ambiguous.agents_active = {
+        1: _make_mock_agent(1), "1": _make_mock_agent("1"),
+    }
+    ambiguous.agents_active[1].opinion_history = {"sentinel": [(0, 2)]}
+    with pytest.raises(ValueError, match="Ambiguous checkpoint agent ID"):
+        _load_checkpoint(ambiguous, tmp_path)
+    assert ambiguous.agents_active[1].opinion_history == {"sentinel": [(0, 2)]}
+
+
+def test_checkpoint_rejects_duplicate_saved_ids(tmp_path):
+    original = _make_mock_nation(1)
+    _write_checkpoint(original, _base_config(tmp_path), 1, tmp_path)
+    path = tmp_path / "checkpoint_meta.json"
+    meta = json.loads(path.read_text())
+    meta["agent_ids"] *= 2
+    path.write_text(json.dumps(meta))
+    with pytest.raises(ValueError, match="ambiguous duplicate agent IDs"):
+        _load_checkpoint(_make_mock_nation(1), tmp_path)
+    with pytest.raises(ValueError, match="ambiguous duplicate agent IDs"):
+        _validate_resume_config(meta, _base_config(tmp_path), _make_mock_nation(1))
+
+
+@pytest.mark.parametrize("column", ["sender_id", "recipient_id"])
+def test_unknown_message_citizen_does_not_clear_existing_state(column, tmp_path):
+    original = _make_mock_nation(1)
+    original.message_log = [{
+        "day": 1, "phase": "C", "message_type": "peer_message",
+        "sender_type": "citizen", "sender_id": 0.0, "recipient_id": 0.0,
+        "recipient_scope": "direct", "message_text": "hello",
+    }]
+    _write_checkpoint(original, _base_config(tmp_path), 1, tmp_path)
+    path = tmp_path / "messages.csv"
+    messages = pd.read_csv(path, dtype={column: str})
+    messages.loc[0, column] = "unknown"
+    messages.to_csv(path, index=False)
+    restored = _make_mock_nation(1)
+    restored.agents_active[0.0].opinion_history = {"sentinel": [(0, 2)]}
+    with pytest.raises(ValueError, match="unknown citizen ID 'unknown'"):
+        _load_checkpoint(restored, tmp_path)
+    assert restored.agents_active[0.0].opinion_history == {"sentinel": [(0, 2)]}
 
 
 @patch("cag.abm.sim.load_api_key", return_value="mock-key")
@@ -139,7 +233,7 @@ class TestCheckpointRoundtrip(unittest.TestCase):
                 "sender_type": "political_agent",
                 "sender_id": "agent_a",
                 "sender_side": "A",
-                "recipient_id": 0,
+                "recipient_id": 0.0,
                 "recipient_scope": "citizen",
                 "policy_id": ClimatePolicyID.CARBON_TAX,
                 "package_scope": "",

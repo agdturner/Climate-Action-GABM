@@ -267,11 +267,11 @@ def test_real_checkpoint_roundtrip(mode, tmp_path):
         ):
             assert results[name].to_csv(index=False) == loaded_results[name].to_csv(index=False)
         assert loaded_results["agent_prompts"].empty
-        # CSV hydration stringifies mixed sender IDs, affecting timeline order.
+        # Resumed timelines now match the original fresh-run baseline.
         golden = json.loads(GOLDEN_PATH.read_text())
         timeline = loaded_results["agent_timeline"]
         assert {"rows": len(timeline), "sha256": _digest(timeline.to_csv(index=False))} == (
-            golden["checkpoint_timelines"][mode]
+            golden["scenarios"][mode]["tables"]["agent_timeline"]
         )
         # Hydration must also be idempotent.
         before = _digest(_agent_state(restored))
@@ -280,7 +280,7 @@ def test_real_checkpoint_roundtrip(mode, tmp_path):
 
 
 @pytest.mark.parametrize("mode", ["package", "single_policy"])
-def test_checkpoint_output_hydration_characterizes_prompt_and_timeline_changes(
+def test_checkpoint_output_hydration_preserves_timeline_but_not_prompt_logs(
     mode, tmp_path,
 ):
     with _runtime():
@@ -320,25 +320,16 @@ def test_checkpoint_output_hydration_characterizes_prompt_and_timeline_changes(
         ].tolist()
         assert original_peer_senders
         assert all(type(sender) is int for sender in original_peer_senders)
-        assert all(type(sender) is str for sender in loaded_peer_senders)
-        assert [str(sender) for sender in original_peer_senders] == loaded_peer_senders
+        assert all(type(sender) is int for sender in loaded_peer_senders)
+        assert original_peer_senders == loaded_peer_senders
 
         original_timeline = original_results["agent_timeline"]
         loaded_timeline = loaded_results["agent_timeline"]
-        assert original_timeline.to_csv(index=False) != loaded_timeline.to_csv(index=False)
+        assert original_timeline.to_csv(index=False) == loaded_timeline.to_csv(index=False)
         sent = loaded_timeline["event_type"] == "peer_message_sent"
         assert sent.any()
-        assert all(type(agent_id) is str for agent_id in loaded_timeline.loc[sent, "agent_id"])
+        assert all(type(agent_id) is int for agent_id in loaded_timeline.loc[sent, "agent_id"])
         assert all(type(agent_id) is int for agent_id in original_timeline["agent_id"])
-
-        def timeline_rows(frame):
-            rows = frame.copy()
-            rows["agent_id"] = rows["agent_id"].map(str)
-            return rows.sort_values(
-                ["agent_id", "sim_step", "event_type"], kind="stable"
-            ).reset_index(drop=True).to_csv(index=False)
-
-        assert timeline_rows(original_timeline) == timeline_rows(loaded_timeline)
 
 
 @pytest.mark.parametrize("mode", ["package", "single_policy"])
