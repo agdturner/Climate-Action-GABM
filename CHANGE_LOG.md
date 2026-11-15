@@ -26,6 +26,13 @@ development stage, not necessarily the current code or a verified public tag.
 
 ## [Unreleased]
 
+- **Checkpoint random-state continuation.** Checkpoints save Python's
+  process-wide random state and restore it before continuing a run, affecting
+  other users of that generator in the same process. Older checkpoints that
+  lack it cannot continue with days remaining; completed checkpoints can
+  still be loaded subject to other compatibility checks. Prompt-log and
+  timeline hydration differences and live-model variability remain.
+
 - **GABM dependency update.** Runtime, development, and Conda manifests pin
   the published GABM 0.6.0 release. A clean pip install passed the full suite
   with 824 passed, 1 skipped, 6 warnings, and 50 subtests; the integration

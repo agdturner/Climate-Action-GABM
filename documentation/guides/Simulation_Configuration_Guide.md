@@ -740,9 +740,16 @@ rotation state are rejected with an explicit error: start a fresh run rather
 than silently restarting the rotation. Older LLM-only checkpoints do not need
 message-pool state.
 
-This restores offline broadcast rotation, not full fresh-process
-reproducibility. Checkpoints still do not save Python's process-wide random
-state used for peer selection, and full prompt logs are not hydrated.
+Checkpoints also save Python's process-wide random state. When resuming with
+days remaining, the simulation restores it before continuing peer selection;
+this changes the random state seen by other code in the same process. Older
+checkpoints without this state cannot be continued: start a fresh run.
+Loading a completed checkpoint with no days remaining does not require or
+restore the random state, though other compatibility requirements still apply.
+
+These measures do not guarantee full fresh-process reproducibility. Full
+prompt logs are not hydrated, timeline sender-ID types can differ after
+hydration, and live model responses can vary.
 
 ---
 

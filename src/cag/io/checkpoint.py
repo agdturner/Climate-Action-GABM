@@ -13,6 +13,8 @@ __version__ = "0.9.0"
 import hashlib
 import json
 import logging
+import math
+import random
 from datetime import datetime
 from pathlib import Path
 
@@ -70,6 +72,7 @@ def _config_hash(serialised_config):
 
 def _write_checkpoint(nation, cfg, last_day, checkpoint_dir, *, message_pool=None):
     """Write a per-day checkpoint to ``checkpoint_dir`` (atomic)."""
+    random_state = random.getstate()
     checkpoint_dir = Path(checkpoint_dir)
     checkpoint_dir.mkdir(parents=True, exist_ok=True)
 
@@ -87,6 +90,7 @@ def _write_checkpoint(nation, cfg, last_day, checkpoint_dir, *, message_pool=Non
         ),
         "config": serialised,
         "config_hash": _config_hash(serialised),
+        "random_state": random_state,
         "written_at": datetime.now().isoformat(timespec="seconds"),
     }
     if message_pool is not None:
@@ -95,6 +99,33 @@ def _write_checkpoint(nation, cfg, last_day, checkpoint_dir, *, message_pool=Non
     logging.info(
         f"Checkpoint written for day {last_day} to {checkpoint_dir}"
     )
+
+
+def _checkpoint_random_state(meta):
+    """Validate a JSON-decoded Python random state without changing global state."""
+    if "random_state" not in meta:
+        raise ValueError(
+            "Checkpoint lacks Python random state. Start a fresh run; exact "
+            "continuation of this older checkpoint is not supported."
+        )
+    state = meta["random_state"]
+    if (
+        not isinstance(state, list) or len(state) != 3
+        or type(state[0]) is not int
+        or not isinstance(state[1], list)
+        or not all(type(value) is int for value in state[1])
+        or (
+            state[2] is not None
+            and (type(state[2]) is not float or not math.isfinite(state[2]))
+        )
+    ):
+        raise ValueError("Invalid Python random state in checkpoint.")
+    restored = (state[0], tuple(state[1]), state[2])
+    try:
+        random.Random().setstate(restored)
+    except (TypeError, ValueError, OverflowError) as exc:
+        raise ValueError("Invalid Python random state in checkpoint.") from exc
+    return restored
 
 
 def _load_checkpoint_meta(checkpoint_dir):

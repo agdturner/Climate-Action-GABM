@@ -5,8 +5,11 @@ from copy import deepcopy
 from datetime import date
 import hashlib
 import json
+import os
 from pathlib import Path
 import random
+import subprocess
+import sys
 from unittest.mock import patch
 
 import networkx as nx
@@ -278,7 +281,7 @@ def test_real_checkpoint_roundtrip(mode, tmp_path):
 
 @pytest.mark.parametrize("mode", ["package", "single_policy"])
 @pytest.mark.parametrize("source", ["llm", "offline"])
-def test_real_checkpoint_continuation_with_preserved_rng(mode, source, tmp_path):
+def test_real_checkpoint_continuation_restores_rng(mode, source, tmp_path):
     with _runtime() as requests:
         config = _config(mode)
         config["political_message_source"] = source
@@ -294,9 +297,8 @@ def test_real_checkpoint_continuation_with_preserved_rng(mode, source, tmp_path)
         run_simulation(
             partial_config, partial, checkpoint_dir=tmp_path, checkpoint_every_day=True,
         )
-        rng_at_checkpoint = random.getstate()
         restored = _make_nation()
-        random.setstate(rng_at_checkpoint)
+        random.seed(123456)
         actual = run_simulation(config, restored, checkpoint_dir=tmp_path, resume=True)
 
         assert requests == expected_requests
@@ -309,6 +311,138 @@ def test_real_checkpoint_continuation_with_preserved_rng(mode, source, tmp_path)
             "survey_raw_response", "survey_assembled_context",
         ):
             assert actual[name].to_csv(index=False) == expected[name].to_csv(index=False)
+
+
+@pytest.mark.parametrize("mode", ["package", "single_policy"])
+@pytest.mark.parametrize("source", ["llm", "offline"])
+def test_checkpoint_continuation_in_fresh_process(mode, source, tmp_path):
+    with _runtime() as requests:
+        config = _config(mode)
+        config["political_message_source"] = source
+        uninterrupted = _make_nation()
+        expected = run_simulation(config, uninterrupted)
+        expected_requests = list(requests)
+        requests.clear()
+        random.seed(42)
+        partial = deepcopy(config)
+        partial["days"] = partial["days"][:2]
+        run_simulation(partial, _make_nation(), checkpoint_dir=tmp_path,
+                       checkpoint_every_day=True)
+        partial_requests = list(requests)
+        assert partial_requests == expected_requests[:len(partial_requests)]
+
+        script = """
+import importlib.util
+import json
+import random
+import sys
+from pathlib import Path
+spec = importlib.util.spec_from_file_location("baseline", sys.argv[1])
+t = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(t)
+with t._runtime() as requests:
+    config = t._config(sys.argv[2])
+    config["political_message_source"] = sys.argv[3]
+    random.seed(123456)
+    nation = t._make_nation()
+    result = t.run_simulation(config, nation, checkpoint_dir=Path(sys.argv[4]), resume=True)
+    names = ("opinion_trajectories", "package_index_trajectories", "messages",
+             "reflections", "daily_summaries", "survey_reasoning",
+             "survey_raw_response", "survey_assembled_context")
+    output = {"requests": requests, "state": t._digest(t._agent_state(nation)),
+              "step": nation._sim_step, "network": result["network_snapshot"],
+              "tables": {name: result[name].to_csv(index=False) for name in names}}
+    Path(sys.argv[5]).write_text(json.dumps(output))
+"""
+        output_path = tmp_path / "subprocess-result.json"
+        subprocess.run(
+            [sys.executable, "-c", script, str(Path(__file__).resolve()),
+             mode, source, str(tmp_path), str(output_path)],
+            check=True, capture_output=True, text=True,
+            env={**os.environ, "PYTHONHASHSEED": "0"},
+        )
+        actual = json.loads(output_path.read_text())
+        assert partial_requests + actual["requests"] == expected_requests
+        assert actual["state"] == _digest(_agent_state(uninterrupted))
+        assert actual["step"] == uninterrupted._sim_step
+        assert actual["network"] == expected["network_snapshot"]
+        for name, csv in actual["tables"].items():
+            assert csv == expected[name].to_csv(index=False)
+
+
+@pytest.mark.parametrize("mode", ["package", "single_policy"])
+@pytest.mark.parametrize("source", ["llm", "offline"])
+def test_repeated_checkpoint_continuation_restores_rng(mode, source, tmp_path):
+    with _runtime() as requests:
+        config = _config(mode)
+        config["political_message_source"] = source
+        uninterrupted = _make_nation()
+        expected = run_simulation(config, uninterrupted)
+        expected_requests = list(requests)
+        requests.clear()
+        random.seed(42)
+        first = deepcopy(config)
+        first["days"] = first["days"][:1]
+        run_simulation(first, _make_nation(), checkpoint_dir=tmp_path,
+                       checkpoint_every_day=True)
+        second = deepcopy(config)
+        second["days"] = second["days"][:2]
+        random.seed(100)
+        run_simulation(second, _make_nation(), checkpoint_dir=tmp_path,
+                       resume=True, checkpoint_every_day=True)
+        random.seed(200)
+        restored = _make_nation()
+        actual = run_simulation(config, restored, checkpoint_dir=tmp_path, resume=True)
+
+        assert requests == expected_requests
+        assert _digest(_agent_state(restored)) == _digest(_agent_state(uninterrupted))
+        assert restored._sim_step == uninterrupted._sim_step
+        for name in ("messages", "reflections", "opinion_trajectories",
+                     "daily_summaries", "survey_reasoning"):
+            assert actual[name].to_csv(index=False) == expected[name].to_csv(index=False)
+
+
+@pytest.mark.parametrize("source", ["offline", "llm"])
+def test_checkpoint_without_random_state_rejects_continuation_but_loads_completed(
+    source, tmp_path,
+):
+    with _runtime():
+        config = _config("package")
+        config["political_message_source"] = source
+        partial = deepcopy(config)
+        partial["days"] = partial["days"][:1]
+        run_simulation(partial, _make_nation(), checkpoint_dir=tmp_path,
+                       checkpoint_every_day=True)
+        meta_path = tmp_path / "checkpoint_meta.json"
+        meta = json.loads(meta_path.read_text())
+        del meta["random_state"]
+        meta_path.write_text(json.dumps(meta))
+
+        before = random.getstate()
+        with pytest.raises(ValueError, match="lacks Python random state"):
+            run_simulation(config, _make_nation(), checkpoint_dir=tmp_path, resume=True)
+        assert random.getstate() == before
+        run_simulation(partial, _make_nation(), checkpoint_dir=tmp_path, resume=True)
+        assert random.getstate() == before
+
+
+@pytest.mark.parametrize("state", [None, [], [3, [], None], [3, [True], None],
+                                    [3, [0], "invalid"], [999, [0], None]])
+def test_checkpoint_rejects_invalid_random_state_without_changing_rng(state, tmp_path):
+    with _runtime():
+        config = _config("single_policy")
+        partial = deepcopy(config)
+        partial["days"] = partial["days"][:1]
+        run_simulation(partial, _make_nation(), checkpoint_dir=tmp_path,
+                       checkpoint_every_day=True)
+        meta_path = tmp_path / "checkpoint_meta.json"
+        meta = json.loads(meta_path.read_text())
+        meta["random_state"] = state
+        meta_path.write_text(json.dumps(meta))
+        before = random.getstate()
+        with pytest.raises(ValueError, match="Invalid Python random state"):
+            run_simulation(config, _make_nation(), checkpoint_dir=tmp_path, resume=True)
+        assert random.getstate() == before
 
 
 @pytest.mark.parametrize("source", ["offline", "llm"])

@@ -6,6 +6,7 @@ __version__ = "0.9.0"
 
 import json
 import logging
+import random
 from copy import deepcopy
 from pathlib import Path
 
@@ -797,6 +798,8 @@ def run_simulation(config, nation, checkpoint_dir=None, resume=False,
             )
         meta = _load_checkpoint_meta(checkpoint_dir)
         _validate_resume_config(meta, cfg, nation)
+        last_day = int(meta["last_completed_day"])
+        random_state = _checkpoint_random_state(meta) if last_day < n_days else None
         if rt["message_pool"] is not None:
             if "message_pool_state" not in meta:
                 raise ValueError(
@@ -806,6 +809,8 @@ def run_simulation(config, nation, checkpoint_dir=None, resume=False,
                 )
             rt["message_pool"].restore_state(meta["message_pool_state"])
         last_day = _load_checkpoint(nation, checkpoint_dir)
+        if random_state is not None:
+            random.setstate(random_state)
         start_day_index = last_day  # next day to run is last_day + 1 (1-indexed)
         logging.info(
             f"Resuming from checkpoint at {checkpoint_dir} "
@@ -875,6 +880,7 @@ from cag.io.checkpoint import (  # noqa: E402,F401
     CHECKPOINT_SCHEMA_VERSION,
     _RESUME_HARD_KEYS,
     _RESUME_SOFT_KEYS,
+    _checkpoint_random_state,
     _config_hash,
     _load_checkpoint,
     _load_checkpoint_meta,

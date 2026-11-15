@@ -632,11 +632,12 @@ submission directory instead.
 If a valid completed checkpoint exists, continuation can start after its
 last completed day. Use the same run configuration and a directory under
 scratch. Checkpointing defaults on, but **exact fresh-process replay is not
-guaranteed**: the offline message cursor, peer RNG state, and prompt-log/timeline
-hydration limitations are recorded in the
-[refactor plan](../../GABM_Refactor_Plan.md). In particular, the default offline
-message path has expected-failure continuation tests. Do not treat a resumed
-run as scientifically equivalent without an appropriate equivalence check.
+guaranteed**: checkpoints restore offline message cursors and Python's
+process-wide random state, but prompt-log/timeline hydration and live-model
+variability remain limitations. Older checkpoints lacking random state cannot
+continue with days remaining. See the [refactor plan](../../GABM_Refactor_Plan.md)
+and do not treat a resumed run as scientifically equivalent without an
+appropriate equivalence check.
 
 ```bash
 RESUME_FROM=$SCRATCH/cag/runs/run_<old_jobid> sbatch scripts/aire/run.sh \
