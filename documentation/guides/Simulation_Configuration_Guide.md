@@ -748,8 +748,8 @@ Loading a completed checkpoint with no days remaining does not require or
 restore the random state, though other compatibility requirements still apply.
 
 These measures do not guarantee full fresh-process reproducibility. Full
-prompt logs are not hydrated, timeline sender-ID types can differ after
-hydration, and live model responses can vary.
+prompt logs are not hydrated, CSV-loaded sender-ID types can change the
+timeline's agent IDs and ordering, and live model responses can vary.
 
 ---
 
