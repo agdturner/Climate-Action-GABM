@@ -38,10 +38,9 @@ validation gates in [GABM_Refactor_Plan.md](GABM_Refactor_Plan.md).
   integration reference to guard subsequent behaviour.
 - Generic seeded graph generation, diagnostics, and component repair were
   released in GABM 0.4.0. The optional two-stage survey executor is now
-  released in GABM 0.5.0; both CAG adapters are merged. CAG pins 0.5.0 and its
-  full suite passes against the published wheel with the original golden
-  reference unchanged. Continue with bounded survey-population and ingestion
-  work before considering further framework extraction.
+  released in GABM 0.5.0; both CAG adapters are merged. CAG pins GABM 0.6.0.
+  Survey-population and ingestion work has also been merged; consider further
+  framework extraction only where a clear reusable boundary exists.
 - Review existing GABM LLM services before adapting CAG transport. Preserve
   prompt roles, request options, cache policy, and explicit failure behaviour.
 - Evaluate reusable memory, checkpoint, and experiment infrastructure only

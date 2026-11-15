@@ -2,21 +2,27 @@
 
 **Status:** network integration and offline cursor restoration merged into
 CAG main; generic network follow-up tests merged. Survey-execution extraction
-is merged in both repositories. GABM 0.5.0 is published; CAG dependency pins
-are updated and published-wheel acceptance passes.
+is merged in both repositories. GABM 0.6.0 is published; CAG dependency pins
+are being updated in the current feature branch.
 
-## Resume here: checkpoint (2026-11-10)
+## Resume here: checkpoint (2026-11-15)
 
-- **CAG baseline:** `main` at `a731626`, synchronized after PR #114.
+- **CAG baseline:** `main` at `cffa66c`, synchronized after PR #115.
   Survey execution, the published GABM dependency update, the population
-  factory, and survey-ingestion reliability work are all merged. No outstanding
-  feature branch is needed to continue.
+  factory, and survey-ingestion reliability work are all merged. A feature
+  branch is updating the published GABM dependency.
 - **GABM baseline:** the two-stage executor and string-contract guards are
-  merged into main and published as **0.5.0**. CAG runtime, development, and
-  Conda manifests all pin `gabm==0.5.0`. No new GABM release is needed for
-  the next CAG-only slice.
-- **Latest validation:** installed both runtime and development requirements
-  from scratch in `/tmp/cag-clean-install`; full CAG suite: **792 passed,
+  merged into main and published since **0.5.0**. CAG runtime, development, and
+  Conda manifests now pin `gabm==0.6.0`.
+- **0.6.0 validation:** a clean Python 3.12 virtual environment installed the
+  runtime and development requirements from PyPI, with GABM imported from
+  its own site-packages and no local source override. `pip check` passed;
+  the full suite passed with **824 passed, 1 skipped, 6 warnings, 50
+  subtests**. The integration golden fixture is unchanged. This is not an
+  HPC or live-model reproducibility test, and the Conda environment was not
+  updated or independently validated.
+- **Previous clean-install validation:** installed both runtime and development
+  requirements from scratch in `/tmp/cag-clean-install`; full CAG suite: **792 passed,
   1 skipped, 6 existing warnings, 50 subtests**. The clean environment uses
   the published GABM 0.5.0 dependency and its own `site-packages`, with no
   local GABM source override. The original integration golden fixture remains
@@ -47,20 +53,18 @@ are updated and published-wheel acceptance passes.
 - **Latest memory extraction:** daily compression input formatting was merged
   as `a731626` (PR #114), including characterization commit `9226331`.
   Full validation: **808 passed, 1 skipped, 6 existing warnings, 50 subtests**.
-- **Active implementation:** `refactor/context-rendering-review` contains
-  characterization baseline `ca89c0c` and an uncommitted extraction of pure
-  recent-reflection and recent-own-reasoning renderers. Focused renderer/
-  context/memory/config/golden suite: **121 passed**. Context assembly remains
-  on the agent; no new GABM API is introduced.
+- **Latest context extraction:** recent-reflection and recent-own-reasoning
+  renderers were merged in PR #115. The full suite passed against GABM 0.5.0:
+  **824 passed, 1 skipped, 6 warnings, 50 subtests**. Context assembly remains
+  on the agent; no new GABM API was introduced.
 
 On resuming, check `git status --short --branch` in both repositories before
 changing anything. The `cag-integration` environment may use editable GABM;
 verify import origin rather than treating its results as published-wheel
 acceptance. Normal CAG tests use `PYTHONPATH=src:scripts python -m pytest -q`
-with published GABM 0.5.0 installed. See
+with the pinned published GABM release installed. See
 [the development workflow](DEV_GUIDE.md#cross-repository-refactoring).
-Leave the unrelated tracked deletions under GABM's `venv-build-test/`
-untouched.
+Leave unrelated tracked changes under GABM's `venv-build-test/` untouched.
 
 The dated sections below retain historical development checkpoints; their
 then-pending merge/release statements are superseded by this checkpoint.

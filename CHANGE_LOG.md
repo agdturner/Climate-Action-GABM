@@ -26,6 +26,11 @@ development stage, not necessarily the current code or a verified public tag.
 
 ## [Unreleased]
 
+- **GABM dependency update.** Runtime, development, and Conda manifests pin
+  the published GABM 0.6.0 release. A clean pip install passed the full suite
+  with 824 passed, 1 skipped, 6 warnings, and 50 subtests; the integration
+  golden fixture is unchanged. This is not an HPC reproducibility test.
+
 - **Recent-memory rendering separation (2026-11-10).** Recent reflections
   and target-policy reasoning now render through pure helpers in
   `cag.abm.memory`. Agent section methods remain compatibility wrappers;
