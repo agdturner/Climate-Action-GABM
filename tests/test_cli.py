@@ -58,6 +58,14 @@ class TestArgsToSimDict(TestCase):
                                "--no-checkpoint-every-day"])
         self.assertFalse(args.checkpoint_every_day)
 
+    def test_checkpoint_prompt_logs_are_opt_in(self):
+        base = ["--outdir", "/tmp/x", "--n-citizens", "5", "--days", "2"]
+        self.assertNotIn("checkpoint_prompt_logs", cli._args_to_sim_dict(cli.parse_args(base)))
+        for flag, expected in (("--checkpoint-prompt-logs", True),
+                               ("--no-checkpoint-prompt-logs", False)):
+            cfg = cli._args_to_sim_dict(cli.parse_args(base + [flag]))
+            self.assertIs(cfg["checkpoint_prompt_logs"], expected)
+
 
 class TestBuildConfig(TestCase):
     """Preset + CLI merge precedence and days normalisation."""

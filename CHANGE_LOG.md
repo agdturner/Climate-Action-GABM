@@ -26,6 +26,12 @@ development stage, not necessarily the current code or a verified public tag.
 
 ## [Unreleased]
 
+- **Opt-in checkpoint prompt history.** `checkpoint_prompt_logs=True` or
+  `--checkpoint-prompt-logs` stores sampled full prompts and responses in
+  checkpoint metadata. Resuming with the option enabled requires saved history
+  and the same resolved sample. Disabled by default; prompt history may contain
+  sensitive survey-derived information and increases checkpoint size.
+
 - **Audit sampling controls.** Automatic prompt, survey-context, and timeline
   sampling now respects `timeline_sample_size` (default 3); zero disables all
   three even with explicit IDs. Positive-size explicit ID lists override

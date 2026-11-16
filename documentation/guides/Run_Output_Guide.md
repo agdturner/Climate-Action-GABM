@@ -442,7 +442,16 @@ Reserved for an optional end-of-day per-(agent, policy) summary that some memory
 
 ### 9.7 `agent_prompts.csv` — every prompt a sampled agent saw (v0.9)
 
-The definitive "what did the agent see?" record: for each persona-facing LLM call by a **sampled** agent (one per exposure bucket), the exact system prompt, task prompt, and response. Joins to `agent_timeline.csv` on `(agent_id, day)`; ordered per agent by `prompt_seq`.
+For each sampled agent call recorded through the agent's prompt-log wrapper,
+this records the system prompt, task prompt, and response. Calls outside that
+wrapper, including memory compression and political-agent generation, are not
+included. Joins to `agent_timeline.csv` on `(agent_id, day)`; ordered per agent
+by `prompt_seq`.
+
+By default, pre-checkpoint prompts are not restored on resume. The opt-in
+`checkpoint_prompt_logs` setting persists them in checkpoint metadata; see
+the [checkpoint configuration guide](Simulation_Configuration_Guide.md#7-pausing-and-resuming-a-run)
+for compatibility, privacy, and storage implications.
 
 | Column | Meaning |
 |---|---|
@@ -569,7 +578,7 @@ A checkpoint directory contains the same CSVs `save_results()` writes for a fini
 
 ```
 <checkpoint_dir>/
-  checkpoint_meta.json         # last_completed_day, agent_ids, config, hash, schema_version
+  checkpoint_meta.json         # state metadata; opt-in sampled prompt history
   opinion_trajectories.csv     # full history through last_completed_day
   reflections.csv
   daily_summaries.csv
@@ -582,7 +591,10 @@ A checkpoint directory contains the same CSVs `save_results()` writes for a fini
   package_ground_truth.csv
 ```
 
-A per-day checkpoint deliberately omits the derived diagnostic tables (the `*_shares`, `*_by_bucket`, `day0_vs_dayN_shifts`, `calibration`, `message_flow` files), `agent_timeline.csv`, and `network_snapshot.json` — they are too expensive to recompute every day and are rebuilt from the raw CSVs when the finished run is saved. Writes are atomic (temp file + `os.replace`) so a crash mid-write cannot leave a half-written CSV.
+A per-day checkpoint omits `agent_prompts.csv`, `agent_timeline.csv`, and
+`network_snapshot.json`. With `checkpoint_prompt_logs` enabled, prompt history
+is instead stored in `checkpoint_meta.json`. Files are replaced atomically
+one at a time; the checkpoint bundle as a whole is not atomic.
 
 ### Crash recovery
 

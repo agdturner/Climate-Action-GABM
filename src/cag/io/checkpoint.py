@@ -108,10 +108,69 @@ def _write_checkpoint(nation, cfg, last_day, checkpoint_dir, *, message_pool=Non
     }
     if message_pool is not None:
         meta["message_pool_state"] = message_pool.export_state()
+    if cfg.get("checkpoint_prompt_logs", False):
+        sample = nation._prompt_capture_ids
+        meta["prompt_logs"] = {
+            "version": 1,
+            "sample_ids": [str(aid) for aid in sample],
+            "entries": {
+                str(aid): [
+                    {key: value for key, value in entry.items() if key != "agent_id"}
+                    for entry in nation.agents_active[aid].prompt_log
+                ]
+                for aid in sample
+            },
+        }
     _atomic_write_json(meta, checkpoint_dir / "checkpoint_meta.json")
     logging.info(
         f"Checkpoint written for day {last_day} to {checkpoint_dir}"
     )
+
+
+def _checkpoint_prompt_logs(meta, nation, sample_ids):
+    """Validate opt-in prompt history before mutating any agent."""
+    data = meta.get("prompt_logs")
+    if data is None:
+        raise ValueError(
+            "Checkpoint lacks prompt history required by checkpoint_prompt_logs. "
+            "Start a fresh run or resume with prompt persistence disabled."
+        )
+    if not isinstance(data, dict) or type(data.get("version")) is not int or data["version"] != 1:
+        raise ValueError("Invalid checkpoint prompt history version or format.")
+    saved_sample = data.get("sample_ids")
+    entries = data.get("entries")
+    if (
+        not isinstance(saved_sample, list)
+        or not all(isinstance(aid, str) for aid in saved_sample)
+        or len(set(saved_sample)) != len(saved_sample)
+        or not isinstance(entries, dict)
+        or set(entries) != set(saved_sample)
+    ):
+        raise ValueError("Invalid checkpoint prompt history sample or entries.")
+    current_sample = [str(aid) for aid in sample_ids]
+    if set(saved_sample) != set(current_sample):
+        raise ValueError("Cannot resume: resolved prompt capture sample changed.")
+
+    fields = {"prompt_seq", "day", "phase", "stage", "policy_id",
+              "system_prompt", "user_prompt", "response"}
+    by_id = _agents_by_checkpoint_id(nation)
+    restored = {}
+    for aid in saved_sample:
+        rows = entries[aid]
+        if not isinstance(rows, list) or aid not in by_id:
+            raise ValueError("Invalid checkpoint prompt history entries.")
+        restored[aid] = []
+        for index, row in enumerate(rows):
+            if (
+                not isinstance(row, dict) or set(row) != fields
+                or type(row["prompt_seq"]) is not int or row["prompt_seq"] != index
+                or type(row["day"]) is not int
+                or not 0 <= row["day"] <= int(meta["last_completed_day"])
+                or not all(isinstance(row[key], str) for key in fields - {"prompt_seq", "day"})
+            ):
+                raise ValueError(f"Invalid checkpoint prompt history for agent {aid!r}.")
+            restored[aid].append({"agent_id": by_id[aid].id, **row})
+    return restored
 
 
 def _checkpoint_random_state(meta):

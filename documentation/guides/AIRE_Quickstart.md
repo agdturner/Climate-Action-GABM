@@ -633,8 +633,9 @@ If a valid completed checkpoint exists, continuation can start after its
 last completed day. Use the same run configuration and a directory under
 scratch. Checkpointing defaults on, but **exact fresh-process replay is not
 guaranteed**: checkpoints restore offline message cursors and Python's
-process-wide random state, but prompt-log/timeline hydration and live-model
-variability remain limitations. Older checkpoints lacking random state cannot
+process-wide random state, but prompt history is restored only if opt-in
+persistence was enabled from the original run, and live-model variability
+remains a limitation. Older checkpoints lacking random state cannot
 continue with days remaining. See the [refactor plan](../../GABM_Refactor_Plan.md)
 and do not treat a resumed run as scientifically equivalent without an
 appropriate equivalence check.
