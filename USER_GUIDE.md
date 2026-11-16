@@ -170,6 +170,13 @@ v0.7 consolidates a long block of work (originally labelled "v0.6" internally; v
 
 `--checkpoint-every-day` is now `argparse.BooleanOptionalAction, default=True`, so every batch run is wall-clock-kill-recoverable without remembering the flag. Opt out with `--no-checkpoint-every-day`. The Python-side `run_simulation(..., checkpoint_every_day=False)` default is intentionally unchanged so interactive notebooks don't accumulate per-day artefacts unless asked.
 
+Checkpoints now publish complete generations through an atomic pointer.
+Pre-generation checkpoints are rejected by default because their files may
+contain mixed days. Use `--allow-legacy-checkpoint` with `--resume`, or
+`allow_legacy_checkpoint=True` in `run_simulation`, only if you accept that
+risk. See the [run output guide](documentation/guides/Run_Output_Guide.md#14-checkpointing--resume)
+for recovery and filesystem limitations.
+
 Full sampled prompt logs are **not** included in checkpoints by default. To
 retain them across resumes, opt in with `--checkpoint-prompt-logs` on the
 original CLI run and every resume, or set `checkpoint_prompt_logs=True` in

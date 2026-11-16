@@ -116,7 +116,7 @@ _ARG_TO_SIM = {
 # Argparse dests that are NOT SIM_CONFIG keys (control flow / I/O).
 _NON_SIM_DESTS = frozenset({
     "outdir", "data", "preset", "list_presets", "dry_run",
-    "checkpoint_every_day", "resume",
+    "checkpoint_every_day", "resume", "allow_legacy_checkpoint",
 })
 
 
@@ -571,6 +571,11 @@ def parse_args(argv=None):
              "killed run). Structural config keys must match the original.",
     )
     p.add_argument(
+        "--allow-legacy-checkpoint", action="store_true",
+        help="Allow loading a pre-generation checkpoint that may contain mixed "
+             "days. Use only after assessing the risk.",
+    )
+    p.add_argument(
         "--checkpoint-prompt-logs", action=argparse.BooleanOptionalAction,
         default=argparse.SUPPRESS,
         help="Opt in to storing sampled full prompts and responses in checkpoint "
@@ -704,6 +709,7 @@ def main(argv=None):
         checkpoint_dir=checkpoint_dir,
         checkpoint_every_day=args.checkpoint_every_day,
         resume=args.resume,
+        allow_legacy_checkpoint=args.allow_legacy_checkpoint,
     )
     t_sim = time.perf_counter() - t0
     logging.info("Simulation complete [%.1fs / %.1f min]",

@@ -637,7 +637,7 @@ def _log_experiment_config(cfg, resume, checkpoint_dir):
 
 
 def run_simulation(config, nation, checkpoint_dir=None, resume=False,
-                   checkpoint_every_day=False):
+                   checkpoint_every_day=False, allow_legacy_checkpoint=False):
     """Run a full simulation and return results as a dict of DataFrames.
 
     Args:
@@ -660,6 +660,8 @@ def run_simulation(config, nation, checkpoint_dir=None, resume=False,
             no checkpoint is found.
         checkpoint_every_day: if True, write a CSV checkpoint to
             ``checkpoint_dir`` after each day's ``manage_memory`` step.
+        allow_legacy_checkpoint: explicitly accept an older checkpoint whose
+            files cannot be verified as belonging to the same day.
 
     Returns:
         dict with simulation results (see ``_collect_results``).
@@ -721,6 +723,8 @@ def run_simulation(config, nation, checkpoint_dir=None, resume=False,
             "checkpoint_dir is required when resume=True or "
             "checkpoint_every_day=True"
         )
+    if not isinstance(allow_legacy_checkpoint, bool):
+        raise ValueError("allow_legacy_checkpoint must be a boolean.")
     checkpoint_dir = Path(checkpoint_dir) if checkpoint_dir is not None else None
 
     rt = _resolve_runtime(cfg)
@@ -801,11 +805,12 @@ def run_simulation(config, nation, checkpoint_dir=None, resume=False,
 
     # Resume vs fresh start
     if resume:
-        if checkpoint_dir is None or not (checkpoint_dir / "checkpoint_meta.json").exists():
-            raise FileNotFoundError(
-                f"resume=True but no checkpoint found at {checkpoint_dir}"
-            )
-        meta = _load_checkpoint_meta(checkpoint_dir)
+        resolved_checkpoint = _resolve_checkpoint_dir(
+            checkpoint_dir, allow_legacy=allow_legacy_checkpoint,
+        )
+        meta = _read_checkpoint_meta(
+            resolved_checkpoint, legacy=resolved_checkpoint == checkpoint_dir,
+        )
         _validate_resume_config(meta, cfg, nation)
         prompt_logs = (
             _checkpoint_prompt_logs(meta, nation, _capture_ids)
@@ -826,7 +831,7 @@ def run_simulation(config, nation, checkpoint_dir=None, resume=False,
                     "checkpoint is not supported."
                 )
             rt["message_pool"].restore_state(meta["message_pool_state"])
-        last_day = _load_checkpoint(nation, checkpoint_dir)
+        last_day = _hydrate_checkpoint(nation, resolved_checkpoint, meta)
         if prompt_logs is not None:
             for aid, agent in nation.agents_active.items():
                 agent.prompt_log = prompt_logs.get(str(aid), [])
@@ -909,6 +914,9 @@ from cag.io.checkpoint import (  # noqa: E402,F401
     _config_hash,
     _load_checkpoint,
     _load_checkpoint_meta,
+    _hydrate_checkpoint,
+    _read_checkpoint_meta,
+    _resolve_checkpoint_dir,
     _validate_resume_config,
     _write_checkpoint,
 )

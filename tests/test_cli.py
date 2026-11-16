@@ -38,7 +38,8 @@ class TestArgsToSimDict(TestCase):
         self.assertFalse(cfg["thinking"])
         # Control-flow dests stripped.
         for forbidden in ("outdir", "data", "preset", "list_presets",
-                          "dry_run", "checkpoint_every_day", "resume"):
+                          "dry_run", "checkpoint_every_day", "resume",
+                          "allow_legacy_checkpoint"):
             self.assertNotIn(forbidden, cfg)
 
     def test_unset_flags_absent(self):
@@ -57,6 +58,13 @@ class TestArgsToSimDict(TestCase):
         args = cli.parse_args(["--outdir", "/tmp/x", "--n-citizens", "5", "--days", "2",
                                "--no-checkpoint-every-day"])
         self.assertFalse(args.checkpoint_every_day)
+
+    def test_legacy_checkpoint_opt_in_is_control_flag(self):
+        base = ["--outdir", "/tmp/x", "--n-citizens", "5", "--days", "2"]
+        self.assertFalse(cli.parse_args(base).allow_legacy_checkpoint)
+        args = cli.parse_args(base + ["--resume", "--allow-legacy-checkpoint"])
+        self.assertTrue(args.allow_legacy_checkpoint)
+        self.assertNotIn("allow_legacy_checkpoint", cli._args_to_sim_dict(args))
 
     def test_checkpoint_prompt_logs_are_opt_in(self):
         base = ["--outdir", "/tmp/x", "--n-citizens", "5", "--days", "2"]

@@ -571,34 +571,59 @@ Long runs (50+ agents × 10+ days) can make hundreds of LLM calls. To make them 
 | `checkpoint_dir` | `Path` | Directory to write/read per-day snapshots. Required when `resume=True` or `checkpoint_every_day=True`. |
 | `checkpoint_every_day` | `bool` | If `True`, write a full CSV snapshot to `checkpoint_dir` after each day's `manage_memory` step (and once after Day 0). |
 | `resume` | `bool` | If `True`, hydrate agent + nation state from `checkpoint_dir`, skip Day 0, and continue day numbering from `last_completed_day + 1`. |
+| `allow_legacy_checkpoint` | `bool` | Explicitly accept an older checkpoint with no generation marker; default `False`. Its files may contain mixed days. |
 
 ### Checkpoint contents
 
-A checkpoint directory contains the same CSVs `save_results()` writes for a finished run, plus a metadata file:
+A checkpoint directory contains a pointer and generation directories:
 
 ```
 <checkpoint_dir>/
-  checkpoint_meta.json         # state metadata; opt-in sampled prompt history
-  opinion_trajectories.csv     # full history through last_completed_day
-  reflections.csv
-  daily_summaries.csv
-  survey_reasoning.csv
-  survey_raw_response.csv
-  survey_assembled_context.csv
-  messages.csv
-  package_index_trajectories.csv  # if package mode
-  ground_truth.csv
-  package_ground_truth.csv
+  checkpoint_current.json      # current and previous generation identifiers
+  generations/
+    <generation-id>/
+      checkpoint_meta.json     # state metadata; opt-in sampled prompt history
+      opinion_trajectories.csv
+      reflections.csv
+      daily_summaries.csv
+      survey_reasoning.csv
+      survey_raw_response.csv
+      survey_assembled_context.csv
+      messages.csv
+      package_index_trajectories.csv  # if package mode
+      ground_truth.csv
+      package_ground_truth.csv
 ```
 
 A per-day checkpoint omits `agent_prompts.csv`, `agent_timeline.csv`, and
 `network_snapshot.json`. With `checkpoint_prompt_logs` enabled, prompt history
-is instead stored in `checkpoint_meta.json`. Files are replaced atomically
-one at a time; the checkpoint bundle as a whole is not atomic.
+is instead stored in `checkpoint_meta.json` in the current generation. Each
+generation is written completely before its pointer is atomically replaced.
+The preceding committed generation is retained; after a successful switch,
+the generation before that is removed. Interrupted writes can leave incomplete
+or unreferenced generation directories, which are not used by resume and may
+consume disk space. Keep the whole directory together when copying or backing
+up a checkpoint.
+
+This assumes a filesystem with atomic same-directory rename and a single writer;
+do not read, write, or copy a checkpoint while another process writes it.
+Power-loss durability is not guaranteed: writes are not explicitly synced to
+storage. Missing committed files are rejected; content corruption is not
+checksummed and does not trigger automatic fallback.
 
 ### Crash recovery
 
 If a 10-day run crashes during Day 7's peer-messaging phase, the checkpoint at `last_completed_day=6` is intact. Restart with the same `checkpoint_dir` and `resume=True`; Days 7–10 are re-run from scratch. The Day 7 LLM calls that fired before the crash are lost — checkpoint granularity is end-of-day, not mid-day.
+
+If the process stops while writing a new generation, resume uses the last
+published generation; if it stops after the pointer switch, resume uses the
+new one. Checkpoints created before generation support are rejected by
+default because their files may already contain mixed days. To accept that
+risk explicitly, use `allow_legacy_checkpoint=True` in Python or
+`--allow-legacy-checkpoint` with `--resume` in the CLI. This does not repair
+or verify the old files. Existing RNG, message-pool, and prompt-history
+compatibility checks still apply. The next checkpoint written after an opted-in
+resume uses the new format; legacy files are left in place.
 
 ### Branching from a finished run
 
@@ -606,7 +631,7 @@ To fork a finished run with a different policy or extra days:
 
 1. Build a `nation` with the same `n_citizens` and `random_seed` as the original.
 2. Call `run_simulation(new_cfg, nation, checkpoint_dir=<original_checkpoint>, resume=True, ...)`.
-3. The original checkpoint dir is read-only unless `checkpoint_every_day=True` is also passed (in which case it will be overwritten as the new branch progresses — point `checkpoint_dir` at a fresh path if you want to preserve the original).
+3. The original checkpoint dir is read-only unless `checkpoint_every_day=True` is also passed. To preserve it while writing new checkpoints, copy the whole directory to a fresh path before resuming from the copy.
 
 ### Compatibility rules on resume
 

@@ -782,9 +782,16 @@ checkpoint written with it off no longer contains prompt history.
 Sample IDs are compared by string form; as with other checkpoint IDs, type
 changes with the same string representation cannot be detected.
 
+Checkpoint generations are published with one atomic pointer replacement.
+Older checkpoints without a generation marker are rejected unless explicitly
+accepted with `allow_legacy_checkpoint=True` in `run_simulation` or
+`--allow-legacy-checkpoint` with CLI `--resume`; their consistency cannot be
+verified, and a warning is logged. Other compatibility checks still apply.
+See the [Run Output Guide](Run_Output_Guide.md#14-checkpointing--resume) for
+filesystem, concurrency, storage, and recovery limitations.
+
 These measures do not guarantee full fresh-process reproducibility. Live model
-responses can vary, and checkpoint files are replaced individually rather than
-committed as a single atomic bundle.
+responses can vary.
 
 ---
 
