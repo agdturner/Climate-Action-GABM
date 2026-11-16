@@ -15,6 +15,8 @@ import json
 import logging
 import math
 import random
+import shutil
+import uuid
 from datetime import datetime
 from pathlib import Path
 
@@ -22,6 +24,7 @@ import pandas as pd
 
 from cag.abm.attributes.opinion import ALL_CLIMATE_POLICIES, PACKAGE_SCOPE
 from cag.io.results import (
+    _CHECKPOINT_SKIP_KEYS,
     _RESULT_CSV_SCHEMAS,
     _atomic_write_json,
     _collect_results,
@@ -32,6 +35,57 @@ from cag.io.results import (
 
 
 CHECKPOINT_SCHEMA_VERSION = 1
+_POINTER_FILE = "checkpoint_current.json"
+_GENERATIONS_DIR = "generations"
+
+
+def _generation_name(value):
+    return isinstance(value, str) and len(value) == 32 and all(
+        char in "0123456789abcdef" for char in value
+    )
+
+
+def _read_pointer(checkpoint_dir):
+    path = checkpoint_dir / _POINTER_FILE
+    if not path.exists():
+        return None
+    with path.open() as f:
+        pointer = json.load(f)
+    if (
+        not isinstance(pointer, dict)
+        or set(pointer) != {"version", "current", "previous"}
+        or type(pointer.get("version")) is not int or pointer["version"] != 1
+        or not _generation_name(pointer.get("current"))
+        or (pointer.get("previous") is not None
+            and not _generation_name(pointer["previous"]))
+        or pointer.get("current") == pointer.get("previous")
+    ):
+        raise ValueError("Invalid checkpoint generation pointer.")
+    return pointer
+
+
+def _resolve_checkpoint_dir(checkpoint_dir, *, allow_legacy=False):
+    """Resolve one committed generation, or an explicitly accepted legacy bundle."""
+    root = Path(checkpoint_dir)
+    pointer = _read_pointer(root)
+    if pointer is None:
+        if not (root / "checkpoint_meta.json").is_file():
+            raise FileNotFoundError(f"No checkpoint found at {root}")
+        if not allow_legacy:
+            raise ValueError(
+                "Legacy checkpoint has no atomic generation marker and may contain "
+                "mixed days. Set allow_legacy_checkpoint=True only if you accept "
+                "this risk."
+            )
+        logging.warning(
+            "Loading legacy checkpoint without generation verification: "
+            "its files may contain mixed days."
+        )
+        return root
+    generation = root / _GENERATIONS_DIR / pointer["current"]
+    if not (generation / "checkpoint_meta.json").is_file():
+        raise ValueError(f"Committed checkpoint generation is missing: {generation}")
+    return generation
 
 # Config keys whose change must abort a resume (would silently corrupt
 # the simulation if mismatched against the saved state).
@@ -83,14 +137,18 @@ def _agents_by_checkpoint_id(nation):
 
 
 def _write_checkpoint(nation, cfg, last_day, checkpoint_dir, *, message_pool=None):
-    """Write a per-day checkpoint to ``checkpoint_dir`` (atomic)."""
+    """Publish a complete checkpoint generation with one atomic pointer replacement."""
     _agents_by_checkpoint_id(nation)
     random_state = random.getstate()
     checkpoint_dir = Path(checkpoint_dir)
     checkpoint_dir.mkdir(parents=True, exist_ok=True)
+    old_pointer = _read_pointer(checkpoint_dir)
+    generation_id = uuid.uuid4().hex
+    generation_dir = checkpoint_dir / _GENERATIONS_DIR / generation_id
+    generation_dir.mkdir(parents=True)
 
     results = _collect_results(nation, cfg)
-    _write_all_csvs(checkpoint_dir, results, is_checkpoint=True)
+    written = _write_all_csvs(generation_dir, results, is_checkpoint=True)
 
     serialised = _serialise_config(cfg)
     meta = {
@@ -105,6 +163,7 @@ def _write_checkpoint(nation, cfg, last_day, checkpoint_dir, *, message_pool=Non
         "config_hash": _config_hash(serialised),
         "random_state": random_state,
         "written_at": datetime.now().isoformat(timespec="seconds"),
+        "checkpoint_files": sorted(path.name for path in written.values()),
     }
     if message_pool is not None:
         meta["message_pool_state"] = message_pool.export_state()
@@ -121,7 +180,19 @@ def _write_checkpoint(nation, cfg, last_day, checkpoint_dir, *, message_pool=Non
                 for aid in sample
             },
         }
-    _atomic_write_json(meta, checkpoint_dir / "checkpoint_meta.json")
+    _atomic_write_json(meta, generation_dir / "checkpoint_meta.json")
+    _atomic_write_json({
+        "version": 1,
+        "current": generation_id,
+        "previous": old_pointer["current"] if old_pointer else None,
+    }, checkpoint_dir / _POINTER_FILE)
+    if old_pointer and old_pointer["previous"]:
+        obsolete = checkpoint_dir / _GENERATIONS_DIR / old_pointer["previous"]
+        try:
+            shutil.rmtree(obsolete)
+        except OSError:
+            logging.warning("Could not remove old checkpoint generation %s",
+                            obsolete, exc_info=True)
     logging.info(
         f"Checkpoint written for day {last_day} to {checkpoint_dir}"
     )
@@ -200,7 +271,7 @@ def _checkpoint_random_state(meta):
     return restored
 
 
-def _load_checkpoint_meta(checkpoint_dir):
+def _read_checkpoint_meta(checkpoint_dir, *, legacy=False):
     with open(Path(checkpoint_dir) / "checkpoint_meta.json") as f:
         meta = json.load(f)
     if meta.get("schema_version") != CHECKPOINT_SCHEMA_VERSION:
@@ -209,7 +280,30 @@ def _load_checkpoint_meta(checkpoint_dir):
             f"{meta.get('schema_version')!r} (expected "
             f"{CHECKPOINT_SCHEMA_VERSION}). Re-run from scratch."
         )
+    if not legacy:
+        files = meta.get("checkpoint_files")
+        optional = {"package_index_trajectories.csv", "package_ground_truth.csv"}
+        required = {
+            f"{name}.csv" for name in _RESULT_CSV_SCHEMAS
+            if name not in _CHECKPOINT_SKIP_KEYS
+        } - optional
+        if (not isinstance(files, list) or not files
+                or not all(isinstance(name, str) and Path(name).name == name
+                           and name.endswith(".csv") for name in files)
+                or len(files) != len(set(files))
+                or not required.issubset(files)
+                or not set(files).issubset(required | optional)):
+            raise ValueError("Invalid checkpoint generation file list.")
+        missing = [name for name in files if not (Path(checkpoint_dir) / name).is_file()]
+        if missing:
+            raise ValueError(f"Checkpoint generation is missing files: {missing}")
     return meta
+
+
+def _load_checkpoint_meta(checkpoint_dir, *, allow_legacy=False):
+    root = Path(checkpoint_dir)
+    resolved = _resolve_checkpoint_dir(root, allow_legacy=allow_legacy)
+    return _read_checkpoint_meta(resolved, legacy=resolved == root)
 
 
 def _validate_resume_config(meta, cfg, nation):
@@ -290,13 +384,18 @@ def _validate_resume_config(meta, cfg, nation):
             )
 
 
-def _load_checkpoint(nation, checkpoint_dir):
+def _load_checkpoint(nation, checkpoint_dir, *, allow_legacy=False):
     """Hydrate ``nation`` and its agents from a checkpoint dir.
 
     Returns the ``last_completed_day`` from the checkpoint metadata.
     """
-    checkpoint_dir = Path(checkpoint_dir)
-    meta = _load_checkpoint_meta(checkpoint_dir)
+    root = Path(checkpoint_dir)
+    checkpoint_dir = _resolve_checkpoint_dir(root, allow_legacy=allow_legacy)
+    meta = _read_checkpoint_meta(checkpoint_dir, legacy=checkpoint_dir == root)
+    return _hydrate_checkpoint(nation, checkpoint_dir, meta)
+
+
+def _hydrate_checkpoint(nation, checkpoint_dir, meta):
     last_day = int(meta["last_completed_day"])
 
     # Build a str(policy_id) -> policy_id lookup so reloaded CSV strings

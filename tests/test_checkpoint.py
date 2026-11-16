@@ -7,6 +7,8 @@ Run with: python -m pytest tests/test_checkpoint.py -v
 import json
 import os
 import random
+import shutil
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -16,11 +18,13 @@ from unittest.mock import MagicMock, patch
 import pandas as pd
 import pytest
 
+import cag.io.checkpoint as checkpoint
+import cag.io.results as results
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../src")))
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
 from cag.abm.attributes.opinion import ClimatePolicyID
-from cag.io.checkpoint import _checkpoint_random_state
+from cag.io.checkpoint import _checkpoint_random_state, _resolve_checkpoint_dir
 from cag.abm.sim import (
     CHECKPOINT_SCHEMA_VERSION,
     _load_checkpoint,
@@ -60,6 +64,172 @@ def test_random_state_json_roundtrip_preserves_cached_gaussian():
     restored.setstate(_checkpoint_random_state(decoded))
     assert restored.getstate() == state
     assert restored.gauss(0, 1) == rng.gauss(0, 1)
+
+
+@pytest.mark.parametrize("cut", [0, 1, 3, 5, "before_meta", "before_pointer", "after_pointer"])
+def test_interrupted_generation_preserves_complete_resume(cut, tmp_path):
+    class Interrupted(Exception):
+        pass
+
+    cfg = _base_config(tmp_path)
+    cfg["days"] = cfg["days"][:2]
+    first = dict(cfg, days=cfg["days"][:1])
+    csv_writer = results._atomic_write_csv
+    json_writer = checkpoint._atomic_write_json
+    count = 0
+
+    def interrupt_csv(df, path):
+        nonlocal count
+        if cut == count:
+            raise Interrupted()
+        csv_writer(df, path)
+        count += 1
+
+    def interrupt_json(obj, path):
+        if cut == "before_meta" and path.name == "checkpoint_meta.json":
+            raise Interrupted()
+        if cut == "before_pointer" and path.name == "checkpoint_current.json":
+            raise Interrupted()
+        json_writer(obj, path)
+        if cut == "after_pointer" and path.name == "checkpoint_current.json":
+            raise Interrupted()
+
+    with patch("cag.abm.sim.load_api_key", return_value="mock-key"), \
+         patch("cag.abm.sim.PoliticalAgent"):
+        run_simulation(first, _make_mock_nation(3), checkpoint_dir=tmp_path,
+                       checkpoint_every_day=True)
+        original_dir = _resolve_checkpoint_dir(tmp_path)
+        with patch.object(results, "_atomic_write_csv", side_effect=interrupt_csv), \
+             patch.object(checkpoint, "_atomic_write_json", side_effect=interrupt_json), \
+             pytest.raises(Interrupted):
+            run_simulation(cfg, _make_mock_nation(3), checkpoint_dir=tmp_path,
+                           resume=True, checkpoint_every_day=True)
+
+        committed = _resolve_checkpoint_dir(tmp_path)
+        assert (committed == original_dir) is (cut != "after_pointer")
+        restored = _make_mock_nation(3)
+        loaded_day = _load_checkpoint(restored, tmp_path)
+        assert loaded_day == (2 if cut == "after_pointer" else 1)
+        assert max(day for day, _ in restored.agents_active[0.0].opinion_history[
+            ClimatePolicyID.CARBON_TAX
+        ]) == loaded_day
+        resumed = _make_mock_nation(3)
+        run_simulation(cfg, resumed, checkpoint_dir=tmp_path, resume=True)
+        assert resumed.agents_active[0.0].opinion_history[
+            ClimatePolicyID.CARBON_TAX
+        ] == [(0, 2), (1, 1), (2, 1)]
+        if cut == "after_pointer":
+            assert original_dir.is_dir()
+
+
+def test_checkpoint_retains_previous_generation_and_rejects_missing_file(tmp_path):
+    nation = _make_mock_nation(1)
+    cfg = _base_config(tmp_path)
+    _write_checkpoint(nation, cfg, 0, tmp_path)
+    first = _resolve_checkpoint_dir(tmp_path)
+    _write_checkpoint(nation, cfg, 1, tmp_path)
+    second = _resolve_checkpoint_dir(tmp_path)
+    assert first.is_dir()
+    _write_checkpoint(nation, cfg, 2, tmp_path)
+    assert not first.exists()
+    assert second.is_dir()
+    current = _resolve_checkpoint_dir(tmp_path)
+    (current / "messages.csv").unlink()
+    with pytest.raises(ValueError, match="generation is missing files"):
+        _load_checkpoint(_make_mock_nation(1), tmp_path)
+
+
+@pytest.mark.parametrize("cut", ["csv", "pointer"])
+def test_process_exit_during_checkpoint_write(cut, tmp_path):
+    cfg = _base_config(tmp_path)
+    cfg["days"] = cfg["days"][:2]
+    with patch("cag.abm.sim.load_api_key", return_value="mock-key"), \
+         patch("cag.abm.sim.PoliticalAgent"):
+        run_simulation(dict(cfg, days=cfg["days"][:1]), _make_mock_nation(3),
+                       checkpoint_dir=tmp_path, checkpoint_every_day=True)
+        original_dir = _resolve_checkpoint_dir(tmp_path)
+        script = """
+import os
+import sys
+from pathlib import Path
+from unittest.mock import patch
+import cag.io.checkpoint as checkpoint
+import cag.io.results as results
+from cag.abm.sim import run_simulation
+from test_checkpoint import _base_config
+from test_sim import _make_mock_nation
+root = Path(sys.argv[1])
+cut = sys.argv[2]
+cfg = _base_config(root)
+cfg["days"] = cfg["days"][:2]
+csv = results._atomic_write_csv
+write_json = checkpoint._atomic_write_json
+def csv_writer(df, path):
+    csv(df, path)
+    if cut == "csv":
+        os._exit(73)
+def json_writer(obj, path):
+    write_json(obj, path)
+    if cut == "pointer" and path.name == "checkpoint_current.json":
+        os._exit(73)
+with patch("cag.abm.sim.load_api_key", return_value="mock-key"), \\
+     patch("cag.abm.sim.PoliticalAgent"), \\
+     patch.object(results, "_atomic_write_csv", side_effect=csv_writer), \\
+     patch.object(checkpoint, "_atomic_write_json", side_effect=json_writer):
+    run_simulation(cfg, _make_mock_nation(3), checkpoint_dir=root,
+                   resume=True, checkpoint_every_day=True)
+"""
+        env = dict(os.environ)
+        env["PYTHONPATH"] = os.pathsep.join([
+            str(Path(__file__).parent), str(Path(__file__).parent.parent / "src"),
+            env.get("PYTHONPATH", ""),
+        ])
+        process = subprocess.run([sys.executable, "-c", script, str(tmp_path), cut],
+                                 env=env, capture_output=True, text=True)
+        assert process.returncode == 73, process.stderr
+        assert (_resolve_checkpoint_dir(tmp_path) == original_dir) is (cut == "csv")
+        restored = _make_mock_nation(3)
+        run_simulation(cfg, restored, checkpoint_dir=tmp_path, resume=True)
+        assert restored.agents_active[0.0].opinion_history[
+            ClimatePolicyID.CARBON_TAX
+        ] == [(0, 2), (1, 1), (2, 1)]
+
+
+def test_legacy_checkpoint_requires_opt_in_and_migrates(tmp_path, caplog):
+    cfg = _base_config(tmp_path)
+    cfg["days"] = cfg["days"][:2]
+    first = dict(cfg, days=cfg["days"][:1])
+    with patch("cag.abm.sim.load_api_key", return_value="mock-key"), \
+         patch("cag.abm.sim.PoliticalAgent"):
+        run_simulation(first, _make_mock_nation(3), checkpoint_dir=tmp_path,
+                       checkpoint_every_day=True)
+        generation = _resolve_checkpoint_dir(tmp_path)
+        for path in generation.iterdir():
+            if path.is_file():
+                shutil.copy2(path, tmp_path / path.name)
+        legacy_meta = tmp_path / "checkpoint_meta.json"
+        data = json.loads(legacy_meta.read_text())
+        del data["checkpoint_files"]
+        legacy_meta.write_text(json.dumps(data))
+        (tmp_path / "checkpoint_current.json").unlink()
+        with pytest.raises(ValueError, match="Legacy checkpoint"):
+            run_simulation(cfg, _make_mock_nation(3), checkpoint_dir=tmp_path, resume=True)
+        run_simulation(cfg, _make_mock_nation(3), checkpoint_dir=tmp_path,
+                       resume=True, allow_legacy_checkpoint=True,
+                       checkpoint_every_day=True)
+        assert "files may contain mixed days" in caplog.text
+        assert _load_checkpoint_meta(tmp_path)["last_completed_day"] == 2
+        assert _resolve_checkpoint_dir(tmp_path) != tmp_path
+
+
+@pytest.mark.parametrize("pointer", [
+    {}, {"version": 1, "current": "../evil", "previous": None},
+    {"version": 1, "current": "a" * 32, "previous": "a" * 32},
+])
+def test_invalid_checkpoint_pointer_rejected(tmp_path, pointer):
+    (tmp_path / "checkpoint_current.json").write_text(json.dumps(pointer))
+    with pytest.raises(ValueError, match="Invalid checkpoint generation pointer"):
+        _load_checkpoint_meta(tmp_path, allow_legacy=True)
 
 
 @pytest.mark.parametrize("ids", [(1, 2), (1.0, 2.0), ("001", "02"), ("NA", "None"),
@@ -125,7 +295,7 @@ def test_checkpoint_rejects_collisions_before_hydrating(tmp_path):
 def test_checkpoint_rejects_duplicate_saved_ids(tmp_path):
     original = _make_mock_nation(1)
     _write_checkpoint(original, _base_config(tmp_path), 1, tmp_path)
-    path = tmp_path / "checkpoint_meta.json"
+    path = _resolve_checkpoint_dir(tmp_path) / "checkpoint_meta.json"
     meta = json.loads(path.read_text())
     meta["agent_ids"] *= 2
     path.write_text(json.dumps(meta))
@@ -144,7 +314,7 @@ def test_unknown_message_citizen_does_not_clear_existing_state(column, tmp_path)
         "recipient_scope": "direct", "message_text": "hello",
     }]
     _write_checkpoint(original, _base_config(tmp_path), 1, tmp_path)
-    path = tmp_path / "messages.csv"
+    path = _resolve_checkpoint_dir(tmp_path) / "messages.csv"
     messages = pd.read_csv(path, dtype={column: str})
     messages.loc[0, column] = "unknown"
     messages.to_csv(path, index=False)
@@ -169,10 +339,11 @@ class TestCheckpointRoundtrip(unittest.TestCase):
             run_simulation(cfg, nation, checkpoint_dir=ckpt,
                            checkpoint_every_day=True)
 
-            self.assertTrue((ckpt / "checkpoint_meta.json").exists())
-            self.assertTrue((ckpt / "opinion_trajectories.csv").exists())
-            self.assertTrue((ckpt / "reflections.csv").exists())
-            self.assertTrue((ckpt / "messages.csv").exists())
+            generation = _resolve_checkpoint_dir(ckpt)
+            self.assertTrue((generation / "checkpoint_meta.json").exists())
+            self.assertTrue((generation / "opinion_trajectories.csv").exists())
+            self.assertTrue((generation / "reflections.csv").exists())
+            self.assertTrue((generation / "messages.csv").exists())
 
             meta = _load_checkpoint_meta(ckpt)
             self.assertEqual(meta["last_completed_day"], 2)
@@ -244,7 +415,7 @@ class TestCheckpointRoundtrip(unittest.TestCase):
 
             _write_checkpoint(nation, cfg, last_day=1, checkpoint_dir=ckpt)
 
-            msgs = pd.read_csv(ckpt / "messages.csv", keep_default_na=False)
+            msgs = pd.read_csv(_resolve_checkpoint_dir(ckpt) / "messages.csv", keep_default_na=False)
             self.assertIn("political_message_id", msgs.columns)
             self.assertEqual(msgs.iloc[0]["political_message_id"], "A_05_01")
 
@@ -416,7 +587,7 @@ class TestResumeNaNHandling(unittest.TestCase):
             # _load_checkpoint, package-mode policy_id / package_scope round-trip
             # as the string 'nan' on the second checkpoint.
             import pandas as pd  # local import keeps top-level imports tidy
-            msgs = pd.read_csv(ckpt / "messages.csv", keep_default_na=False)
+            msgs = pd.read_csv(_resolve_checkpoint_dir(ckpt) / "messages.csv", keep_default_na=False)
             for col in ("policy_id", "recipient_scope", "package_scope",
                         "policy_ids_json", "sender_side"):
                 offending = msgs[msgs[col].astype(str).str.lower() == "nan"]

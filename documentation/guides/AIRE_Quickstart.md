@@ -509,7 +509,8 @@ run_<jobid>/
 ├── opinion_shares.png               # plot
 ├── package_index_shares.png         # plot
 └── checkpoints/                     # after a completed checkpoint; default-on
-    └── checkpoint_meta.json + per-day CSV dumps
+    ├── checkpoint_current.json
+    └── generations/<generation-id>/  # metadata + per-day CSV dumps
 ```
 </details>
 
@@ -647,6 +648,10 @@ RESUME_FROM=$SCRATCH/cag/runs/run_<old_jobid> sbatch scripts/aire/run.sh \
 ```
 
 The new job writes back into the **same** `OUTDIR` (`$RESUME_FROM` — don't pass `--outdir`), forwards `--resume` automatically, and replays from `<outdir>/checkpoints/`.
+Pre-generation checkpoints require the additional `--allow-legacy-checkpoint`
+argument to `run.sh`; their consistency cannot be verified. See the
+[checkpoint recovery guide](Run_Output_Guide.md#14-checkpointing--resume)
+before accepting that risk.
 
 <details>
 <summary>Resume contract — which config keys must match (hard) vs. may change (soft)</summary>

@@ -37,7 +37,7 @@ from cag.abm.democracy.elections.brexit import BrexitVoteID, BrexitVoteMap
 from cag.abm.democracy.elections.ukge2019 import UKGE2019VoteID, UKGE2019VoteMap
 from cag.abm.environment import SurveyedNation
 from cag.abm.sim import SIM_CONFIG, run_simulation
-from cag.io.checkpoint import _load_checkpoint, _load_checkpoint_meta
+from cag.io.checkpoint import _load_checkpoint, _load_checkpoint_meta, _resolve_checkpoint_dir
 from cag.io.results import _serialise_config, save_results
 
 
@@ -243,7 +243,7 @@ def test_audit_sampling_controls_all_outputs(size, explicit, expected_count, tmp
         for key in ("agent_prompts", "agent_timeline", "survey_assembled_context"):
             ids = set(results[key]["agent_id"])
             assert ids == selected, key
-        contexts = pd.read_csv(tmp_path / "survey_assembled_context.csv")
+        contexts = pd.read_csv(_resolve_checkpoint_dir(tmp_path) / "survey_assembled_context.csv")
         assert set(contexts["agent_id"]) == selected
 
 
@@ -384,8 +384,8 @@ def test_checkpoint_output_hydration_preserves_timeline_but_not_prompt_logs(
         original_results = run_simulation(
             config, original, checkpoint_dir=tmp_path, checkpoint_every_day=True,
         )
-        assert not (tmp_path / "agent_prompts.csv").exists()
-        assert not (tmp_path / "agent_timeline.csv").exists()
+        assert not (_resolve_checkpoint_dir(tmp_path) / "agent_prompts.csv").exists()
+        assert not (_resolve_checkpoint_dir(tmp_path) / "agent_timeline.csv").exists()
 
         restored = _make_nation()
         loaded_results = run_simulation(
@@ -569,7 +569,7 @@ def test_opt_in_rejects_malformed_prompt_history(corruption, tmp_path):
         partial["days"] = partial["days"][:1]
         run_simulation(partial, _make_nation(), checkpoint_dir=tmp_path,
                        checkpoint_every_day=True)
-        path = tmp_path / "checkpoint_meta.json"
+        path = _resolve_checkpoint_dir(tmp_path) / "checkpoint_meta.json"
         meta = json.loads(path.read_text())
         data = meta["prompt_logs"]
         first = data["entries"][data["sample_ids"][0]][0]
@@ -743,7 +743,7 @@ def test_checkpoint_without_random_state_rejects_continuation_but_loads_complete
         partial["days"] = partial["days"][:1]
         run_simulation(partial, _make_nation(), checkpoint_dir=tmp_path,
                        checkpoint_every_day=True)
-        meta_path = tmp_path / "checkpoint_meta.json"
+        meta_path = _resolve_checkpoint_dir(tmp_path) / "checkpoint_meta.json"
         meta = json.loads(meta_path.read_text())
         del meta["random_state"]
         meta_path.write_text(json.dumps(meta))
@@ -765,7 +765,7 @@ def test_checkpoint_rejects_invalid_random_state_without_changing_rng(state, tmp
         partial["days"] = partial["days"][:1]
         run_simulation(partial, _make_nation(), checkpoint_dir=tmp_path,
                        checkpoint_every_day=True)
-        meta_path = tmp_path / "checkpoint_meta.json"
+        meta_path = _resolve_checkpoint_dir(tmp_path) / "checkpoint_meta.json"
         meta = json.loads(meta_path.read_text())
         meta["random_state"] = state
         meta_path.write_text(json.dumps(meta))
@@ -786,7 +786,7 @@ def test_legacy_checkpoint_without_pool_state(source, tmp_path):
             partial_config, _make_nation(), checkpoint_dir=tmp_path,
             checkpoint_every_day=True,
         )
-        meta_path = tmp_path / "checkpoint_meta.json"
+        meta_path = _resolve_checkpoint_dir(tmp_path) / "checkpoint_meta.json"
         meta = json.loads(meta_path.read_text())
         meta.pop("message_pool_state", None)
         meta_path.write_text(json.dumps(meta))

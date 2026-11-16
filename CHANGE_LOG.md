@@ -26,6 +26,14 @@ development stage, not necessarily the current code or a verified public tag.
 
 ## [Unreleased]
 
+- **Atomic checkpoint generations.** Publish a complete per-day generation
+  through one atomic pointer switch, retaining the previous committed
+  generation. Legacy checkpoints are rejected by default because mixed-day
+  files cannot be detected retrospectively; explicitly accept them with
+  `allow_legacy_checkpoint=True` or `--allow-legacy-checkpoint`. Incomplete
+  generation directories can remain after interruption. Power-loss
+  durability and concurrent access are not guaranteed.
+
 - **Opt-in checkpoint prompt history.** `checkpoint_prompt_logs=True` or
   `--checkpoint-prompt-logs` stores sampled full prompts and responses in
   checkpoint metadata. Resuming with the option enabled requires saved history
