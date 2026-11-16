@@ -560,13 +560,21 @@ models in thinking mode can take a while. *Safe to change.*
 
 The model can write a minute-by-minute log for a few sampled citizens — every broadcast they heard,
 every reflection they wrote, every message sent and received, and the exact survey prompt they saw —
-in true order, to `agent_timeline.csv`. This setting is how many citizens get that detailed log. Set
-it to `0` to switch the log off. *Safe to change.*
+in true order, to `agent_timeline.csv`. Automatic selection uses up to this
+many citizens, prioritizing the largest exposure buckets and filling remaining
+places from the population. Set it to `0` to disable the timeline, sampled
+prompt capture, and sampled survey-context output, even when explicit IDs are
+provided. Other checkpoint and result files may still contain sensitive
+survey-derived information. *Safe to change.*
 
 #### `timeline_sample_agent_ids` — default `None`
 
-Which specific citizens get the detailed log. `None` picks a spread automatically; otherwise pass a
-list of citizen IDs. *Safe to change.*
+Which specific citizens get the detailed log. `None` selects automatically;
+otherwise pass a list of citizen IDs. When the sample size is positive, the
+list overrides automatic selection and may contain more IDs than that size.
+Unknown IDs are ignored with a warning; an empty list selects nobody.
+Changing the sample on resume does not reconstruct previously uncaptured
+prompts or survey contexts. *Safe to change.*
 
 ### What each citizen remembers
 

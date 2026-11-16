@@ -142,7 +142,12 @@ The exact config dict that produced the run (enums serialised to strings). Group
 | `memory` | What the agent "remembers" and sees in each prompt. A preset name (e.g. `"default"`, `"short_memory"`, `"no_anchor"`), a partial-override dict, or `null` (= `"default"`). Presets and the full schema are documented in [Simulation_Configuration_Guide.md](Simulation_Configuration_Guide.md). |
 | `memory_resolved` | The fully-expanded, validated memory config the run actually used — every section toggle, the `verbatim_window_days` window, and any per-stage overrides. This is *derived* from `memory` and always written, so you can audit the exact prompt-assembly behaviour even when `memory` is just a preset name. |
 
-**Audit-trail sampling** — `timeline_sample_size` (default 3) and `timeline_sample_agent_ids` (explicit list, or `null` to auto-pick) control which agents get a detailed `agent_timeline.csv`. See §10.
+**Audit-trail sampling** — `timeline_sample_size` (default 3) and
+`timeline_sample_agent_ids` (explicit list, or `null` to auto-pick) control
+sampled prompts, survey contexts, and `agent_timeline.csv`. A size of zero
+disables all three even with explicit IDs. For a positive size, an explicit
+list overrides automatic selection and can be larger than the configured size.
+See §10 and the [configuration guide](Simulation_Configuration_Guide.md).
 
 The two-LLM split lets us message with a cheap fast model and survey with a careful, less-biased model.
 

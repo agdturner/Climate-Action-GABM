@@ -404,7 +404,8 @@ def _resolve_timeline_sample_ids(agent_attributes, sample_size=3, explicit_ids=N
     Default: one agent from each of the top-``sample_size``-by-size buckets
     (ties broken by sorted agent_id for determinism). If fewer buckets
     than ``sample_size`` exist, fall back to evenly-spaced agent_ids.
-    An explicit list of agent_ids always wins.
+    A nonempty or empty explicit list overrides automatic selection when
+    ``sample_size`` is positive; zero disables all sampling.
     """
     if sample_size is None or sample_size <= 0:
         return []
@@ -412,6 +413,13 @@ def _resolve_timeline_sample_ids(agent_attributes, sample_size=3, explicit_ids=N
         return list(explicit_ids)
     if agent_attributes is None or agent_attributes.empty:
         return []
+
+    def sorted_ids(values):
+        ids = list(values)
+        try:
+            return sorted(ids)
+        except TypeError:
+            return sorted(ids, key=lambda value: (str(value), type(value).__name__))
 
     buckets_by_size = (
         agent_attributes.groupby("political_exposure", dropna=True)
@@ -421,16 +429,16 @@ def _resolve_timeline_sample_ids(agent_attributes, sample_size=3, explicit_ids=N
     for bucket in buckets_by_size.index:
         if len(chosen) >= sample_size:
             break
-        candidates = agent_attributes[
+        candidates = sorted_ids(agent_attributes[
             agent_attributes["political_exposure"] == bucket
-        ]["agent_id"].sort_values().tolist()
+        ]["agent_id"])
         if candidates:
             chosen.append(candidates[0])
 
     if len(chosen) < sample_size:
         # Fall back to evenly-spaced picks from the agent pool, skipping
         # any already chosen so we still hit ``sample_size`` distinct ids.
-        all_ids = agent_attributes["agent_id"].sort_values().tolist()
+        all_ids = sorted_ids(agent_attributes["agent_id"])
         remaining = [a for a in all_ids if a not in chosen]
         if remaining:
             need = sample_size - len(chosen)

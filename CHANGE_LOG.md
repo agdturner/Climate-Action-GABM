@@ -26,6 +26,12 @@ development stage, not necessarily the current code or a verified public tag.
 
 ## [Unreleased]
 
+- **Audit sampling controls.** Automatic prompt, survey-context, and timeline
+  sampling now respects `timeline_sample_size` (default 3); zero disables all
+  three even with explicit IDs. Positive-size explicit ID lists override
+  automatic selection. Previously automatic capture selected one agent per
+  exposure bucket regardless of the configured size, including zero.
+
 - **Checkpoint citizen IDs.** Read checkpoint identifiers as text and map
   citizen IDs back to the current nation, preserving leading zeros and ID
   types for unambiguous matches. Ambiguous string-form collisions and unknown

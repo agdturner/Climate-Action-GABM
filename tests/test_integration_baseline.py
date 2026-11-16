@@ -222,6 +222,101 @@ def _run_scenario(mode, output_dir):
     return snapshot
 
 
+@pytest.mark.parametrize(
+    ("size", "explicit", "expected_count"),
+    [(0, None, 0), (0, [0, 1], 0), (1, None, 1), (3, None, 3),
+     (8, None, 8), (1, [0, 1, 2, 3], 4), (3, [], 0)],
+)
+def test_audit_sampling_controls_all_outputs(size, explicit, expected_count, tmp_path):
+    with _runtime():
+        config = _config("single_policy")
+        config.update(timeline_sample_size=size, timeline_sample_agent_ids=explicit)
+        config["days"] = config["days"][:1]
+        nation = _make_nation()
+        results = run_simulation(
+            config, nation, checkpoint_dir=tmp_path, checkpoint_every_day=True,
+        )
+        selected = set(nation._prompt_capture_ids)
+        assert len(selected) == expected_count
+        assert {aid for aid, agent in nation.agents_active.items()
+                if agent._capture_prompts} == selected
+        for key in ("agent_prompts", "agent_timeline", "survey_assembled_context"):
+            ids = set(results[key]["agent_id"])
+            assert ids == selected, key
+        contexts = pd.read_csv(tmp_path / "survey_assembled_context.csv")
+        assert set(contexts["agent_id"]) == selected
+
+
+@pytest.mark.parametrize("size", [-1, True, 1.5, None])
+def test_audit_sampling_rejects_invalid_size(size):
+    with _runtime(), pytest.raises(ValueError, match="timeline_sample_size"):
+        config = _config("single_policy")
+        config["timeline_sample_size"] = size
+        run_simulation(config, _make_nation())
+
+
+def test_audit_sampling_filters_unknown_and_duplicate_explicit_ids(caplog):
+    with _runtime():
+        config = _config("single_policy")
+        config.update(timeline_sample_size=1, timeline_sample_agent_ids=[1, 1, 999])
+        config["days"] = config["days"][:1]
+        nation = _make_nation()
+        results = run_simulation(config, nation)
+        assert nation._prompt_capture_ids == [1]
+        assert set(results["agent_prompts"]["agent_id"]) == {1}
+        assert "Ignoring unknown timeline sample agent IDs" in caplog.text
+
+
+def test_disabling_audit_on_reused_nation_omits_prior_prompt_logs():
+    with _runtime():
+        config = _config("single_policy")
+        config["days"] = config["days"][:1]
+        nation = _make_nation()
+        first = run_simulation(config, nation)
+        assert not first["agent_prompts"].empty
+        config["timeline_sample_size"] = 0
+        second = run_simulation(config, nation)
+        assert second["agent_prompts"].empty
+        assert second["agent_timeline"].empty
+        assert second["survey_assembled_context"].empty
+        assert all(not agent._capture_prompts for agent in nation.agents_active.values())
+
+
+def test_audit_sampling_does_not_change_simulation_or_requests():
+    with _runtime() as requests:
+        config = _config("single_policy")
+        config["days"] = config["days"][:1]
+        config.update(timeline_sample_size=0, timeline_sample_agent_ids=None)
+        first_nation = _make_nation()
+        first = run_simulation(config, first_nation)
+        first_requests = list(requests)
+        requests.clear()
+        random.seed(42)
+        config["timeline_sample_size"] = 3
+        second_nation = _make_nation()
+        second = run_simulation(config, second_nation)
+        assert requests == first_requests
+        assert _digest(_agent_state(first_nation)) == _digest(_agent_state(second_nation))
+        for key in ("messages", "reflections", "opinion_trajectories",
+                    "survey_reasoning", "daily_summaries"):
+            assert first[key].to_csv(index=False) == second[key].to_csv(index=False)
+
+
+def test_audit_sampling_respects_zero_when_resuming_checkpoint(tmp_path):
+    with _runtime():
+        config = _config("single_policy")
+        partial = deepcopy(config)
+        partial["days"] = partial["days"][:1]
+        run_simulation(partial, _make_nation(), checkpoint_dir=tmp_path,
+                       checkpoint_every_day=True)
+        config["timeline_sample_size"] = 0
+        resumed = _make_nation()
+        results = run_simulation(config, resumed, checkpoint_dir=tmp_path, resume=True)
+        assert resumed._prompt_capture_ids == []
+        for key in ("agent_prompts", "agent_timeline", "survey_assembled_context"):
+            assert results[key].empty
+
+
 @pytest.mark.parametrize("mode", ["package", "single_policy"])
 def test_real_nation_matches_golden_and_repeats(mode, tmp_path):
     golden = json.loads(GOLDEN_PATH.read_text())

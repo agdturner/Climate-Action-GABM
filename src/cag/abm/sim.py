@@ -10,6 +10,8 @@ import random
 from copy import deepcopy
 from pathlib import Path
 
+import pandas as pd
+
 from cag.abm.agent import PoliticalAgent
 from cag.abm.attributes.opinion import (
     ALL_CLIMATE_POLICIES,
@@ -125,8 +127,8 @@ SIM_CONFIG = {
     # reflections, peer messages sent/received, the EXACT assembled survey
     # context, debias trace, daily summaries) in true execution order.
     # Final-output only (not checkpointed). See `build_agent_timeline`.
-    "timeline_sample_size": 3,        # int >= 0; 0 disables the timeline
-    "timeline_sample_agent_ids": None,  # None → auto-stratified by bucket; else list of agent IDs
+    "timeline_sample_size": 3,        # int >= 0; 0 disables sampled audit output
+    "timeline_sample_agent_ids": None,  # None → auto-stratified; else explicit IDs
 }
 
 
@@ -708,6 +710,10 @@ def run_simulation(config, nation, checkpoint_dir=None, resume=False,
             f"got {persona_mode!r}"
         )
 
+    sample_size = cfg.get("timeline_sample_size", 3)
+    if not isinstance(sample_size, int) or isinstance(sample_size, bool) or sample_size < 0:
+        raise ValueError("timeline_sample_size must be a non-negative integer.")
+
     if (resume or checkpoint_every_day) and checkpoint_dir is None:
         raise ValueError(
             "checkpoint_dir is required when resume=True or "
@@ -773,22 +779,23 @@ def run_simulation(config, nation, checkpoint_dir=None, resume=False,
     for agent in nation.agents_active.values():
         agent.memory_cfg = deepcopy(rt["memory_cfg"])
 
-    # Resolve which agents get full prompt capture + the diagnostic timeline
-    # (one per exposure bucket by default; an explicit id list overrides).
-    # Gating capture to this small sample keeps agent_prompts.csv bounded.
     _explicit = cfg.get("timeline_sample_agent_ids")
-    if _explicit:
-        _capture_ids = [a for a in _explicit if a in nation.agents_active]
-    else:
-        _seen = {}
-        for _aid in sorted(nation.agents_active.keys(), key=str):
-            _bucket = getattr(nation.agents_active[_aid], "political_exposure", None)
-            if _bucket not in _seen:
-                _seen[_bucket] = _aid
-        _capture_ids = list(_seen.values())
+    if _explicit is not None:
+        missing = [aid for aid in _explicit if aid not in nation.agents_active]
+        if missing and sample_size:
+            logging.warning("Ignoring unknown timeline sample agent IDs: %r", missing)
+        _explicit = list(dict.fromkeys(aid for aid in _explicit if aid in nation.agents_active))
+    _attributes = pd.DataFrame(
+        [(aid, getattr(agent, "political_exposure", None))
+         for aid, agent in nation.agents_active.items()],
+        columns=["agent_id", "political_exposure"],
+    )
+    _capture_ids = _resolve_timeline_sample_ids(
+        _attributes, sample_size=sample_size, explicit_ids=_explicit,
+    )
     nation._prompt_capture_ids = _capture_ids
-    for _aid in _capture_ids:
-        nation.agents_active[_aid]._capture_prompts = True
+    for _aid, agent in nation.agents_active.items():
+        agent._capture_prompts = _aid in _capture_ids
 
     # Resume vs fresh start
     if resume:
