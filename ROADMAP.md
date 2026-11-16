@@ -33,9 +33,8 @@ authoritative current specification. Experiment evidence is maintained in
 climate-policy research logic and existing behaviour. Follow the sequence and
 validation gates in [GABM_Refactor_Plan.md](GABM_Refactor_Plan.md).
 
-- Independently validate the implemented published GABM 0.3.0 compatibility
-  slice and merge it before upstream extraction; retain the original golden
-  integration reference to guard subsequent behaviour.
+- Retain the original golden integration reference to guard subsequent
+  behaviour; change it only for an explicitly approved behaviour change.
 - Generic seeded graph generation, diagnostics, and component repair were
   released in GABM 0.4.0. The optional two-stage survey executor is now
   released in GABM 0.5.0; both CAG adapters are merged. CAG pins GABM 0.6.0.
@@ -45,14 +44,16 @@ validation gates in [GABM_Refactor_Plan.md](GABM_Refactor_Plan.md).
   prompt roles, request options, cache policy, and explicit failure behaviour.
 - Evaluate reusable memory, checkpoint, and experiment infrastructure only
   after the preceding bounded slices demonstrate a useful API boundary.
-- Offline message-pool cursor persistence is implemented and tested; older
-  offline checkpoints without rotation state require a fresh run.
-  Peer-selection random state is stored for continuation; older checkpoints
-  without it cannot continue with days remaining. Resolve the remaining
-  prompt-log hydration separately. Citizen IDs are mapped from checkpoint
-  text to the current population when unambiguous; original ID types are
-  not recorded. Do not claim
-  exact fresh-process replay until the relevant equivalence tests pass.
+- Checkpoint continuation now persists offline message-pool cursors and
+  Python random state; sampled prompt history can be retained explicitly.
+  Complete generations are published through an atomic pointer. Remaining
+  limitations and legacy compatibility are described in the
+  [checkpoint guide](documentation/guides/Run_Output_Guide.md#14-checkpointing--resume).
+  Candidate follow-up work includes validating HPC filesystem behaviour,
+  evaluating power-loss durability and concurrent access requirements, and
+  considering typed citizen-ID provenance. These are separate design
+  decisions, not approved implementation work. Mocked continuation tests do
+  not establish live-model reproducibility.
 
 ## Documentation and data organisation
 

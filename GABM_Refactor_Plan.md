@@ -1,12 +1,51 @@
 # CAG to GABM Refactor Plan
 
-**Status:** network integration and offline cursor restoration merged into
-CAG main; generic network follow-up tests merged. Survey-execution extraction
-is merged in both repositories. GABM 0.6.0 is published and pinned in CAG.
-The current branch characterizes checkpoint output hydration and fixes
-unambiguous citizen-ID restoration.
+**Status:** generic network and survey-execution integrations are merged;
+CAG pins the published GABM 0.6.0. Checkpoint continuation, audit sampling,
+opt-in prompt history, and atomic checkpoint generations are merged in CAG.
 
-## Resume here: checkpoint (2026-11-15)
+## Resume here: checkpoint (2026-11-16)
+
+- **Baselines at handoff:** CAG `main` at `cf7103d`, including PR #121;
+  GABM `main` at `737abdf`, including its build-test environment cleanup.
+  Both worktrees were clean when checked. These are historical snapshots:
+  check both branches, commits, and worktrees again before making changes.
+- **Recent CAG slices:** PR #118 preserves unambiguous citizen IDs during
+  checkpoint hydration; PR #119 fixes sampled audit capture; PR #120 adds
+  opt-in checkpoint prompt history; PR #121 publishes complete checkpoint
+  generations through an atomic pointer. See [CHANGE_LOG.md](CHANGE_LOG.md)
+  for the delivered behaviour and
+  [Run_Output_Guide.md](documentation/guides/Run_Output_Guide.md#14-checkpointing--resume)
+  for the current checkpoint contract.
+- **Latest test evidence:** on the PR #121 feature branch, the full suite in
+  the `cag` environment passed with **906 passed, 1 skipped, 6 warnings,
+  50 subtests**. A subsequent focused run of the recovery scenarios passed
+  **14 tests** after a test-only adjustment to model older metadata more
+  accurately; the full suite was not rerun after that adjustment. Tests
+  included simulated write interruptions and abrupt subprocess exits; the
+  original integration golden fixture was not changed. This does not validate
+  live-model reproducibility, HPC filesystem behaviour, or power-loss durability.
+- **Remaining checkpoint limits:** prompt history is off by default and covers
+  only calls recorded by the agent prompt-log wrapper; opted-in resume requires
+  saved history and the same resolved sample. Legacy flat checkpoints require
+  explicit risk acceptance and other compatibility checks still apply. The
+  generation protocol assumes a single writer and atomic same-directory rename,
+  does not checksum content or automatically fall back to the previous
+  generation, and can leave unreferenced directories after interruption.
+  Citizen ID types are not recorded, so equal string forms cannot distinguish
+  a type change. Live model responses may vary.
+- **Next session:** read [DEV_GUIDE.md](DEV_GUIDE.md),
+  [ROADMAP.md](ROADMAP.md), this handoff, and the unreleased section of
+  [CHANGE_LOG.md](CHANGE_LOG.md); verify current repository state and reassess
+  priorities rather than assuming another extraction is needed. Keep the
+  original integration golden fixture unless an intentional behaviour change
+  is explicitly approved. Broad notebook maintenance remains deferred;
+  do not run notebooks with live LLM calls without prior discussion.
+
+The following 2026-11-15 checkpoint is retained as historical evidence; its
+branch status and pending-work statements are superseded by the handoff above.
+
+## Historical checkpoint (2026-11-15)
 
 - **CAG baseline:** `main` at `da5b391`, synchronized after PR #117.
   Survey execution, the published GABM dependency update, the population
@@ -99,7 +138,7 @@ with the pinned published GABM release installed. See
 GABM no longer tracks its temporary `venv-build-test/` directory.
 
 The dated sections below retain historical development checkpoints; their
-then-pending merge/release statements are superseded by this checkpoint.
+then-pending merge/release statements are superseded by the latest handoff.
 
 ### Context-section rendering review (2026-11-10)
 
