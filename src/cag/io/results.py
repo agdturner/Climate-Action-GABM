@@ -258,7 +258,7 @@ def _collect_results(nation, config):
         for agent_id, source_agent_id in persona_map_raw.items()
     ]
     sample_ids = getattr(nation, "_prompt_capture_ids", None)
-    if not sample_ids:
+    if sample_ids is None:
         sample_ids = _resolve_timeline_sample_ids(
             agent_attributes_df,
             sample_size=config.get("timeline_sample_size", 3),
@@ -268,8 +268,8 @@ def _collect_results(nation, config):
 
     prompt_rows = []
     for agent in nation.agents_active.values():
-        for entry in getattr(agent, "prompt_log", None) or []:
-            prompt_rows.append(entry)
+        if agent.id in _sac_sample_set:
+            prompt_rows.extend(getattr(agent, "prompt_log", None) or [])
 
     results = {
         "opinion_trajectories": pd.DataFrame(

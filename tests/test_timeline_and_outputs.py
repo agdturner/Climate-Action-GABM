@@ -212,6 +212,18 @@ class TestResolveTimelineSampleIds(unittest.TestCase):
         self.assertEqual(len(out), 3)
         self.assertIn(1, out)  # first canonical pick
 
+    def test_mixed_numeric_and_string_ids_have_deterministic_order(self):
+        attrs = pd.DataFrame({
+            "agent_id": [2, "001", 1, "02"],
+            "political_exposure": ["A", "A", "B", "B"],
+        })
+        expected = _resolve_timeline_sample_ids(attrs, sample_size=3)
+        self.assertEqual(len(expected), 3)
+        self.assertEqual(
+            _resolve_timeline_sample_ids(attrs.iloc[::-1], sample_size=3),
+            expected,
+        )
+
 
 # ── agent_timeline construction ─────────────────────────────────
 
