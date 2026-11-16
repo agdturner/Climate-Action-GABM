@@ -170,6 +170,17 @@ v0.7 consolidates a long block of work (originally labelled "v0.6" internally; v
 
 `--checkpoint-every-day` is now `argparse.BooleanOptionalAction, default=True`, so every batch run is wall-clock-kill-recoverable without remembering the flag. Opt out with `--no-checkpoint-every-day`. The Python-side `run_simulation(..., checkpoint_every_day=False)` default is intentionally unchanged so interactive notebooks don't accumulate per-day artefacts unless asked.
 
+Full sampled prompt logs are **not** included in checkpoints by default. To
+retain them across resumes, opt in with `--checkpoint-prompt-logs` on the
+original CLI run and every resume, or set `checkpoint_prompt_logs=True` in
+the Python simulation config. With the option enabled, a resume requires
+saved prompt history and the same resolved sample; otherwise it fails
+explicitly. Checkpoint metadata then contains sampled prompts and responses
+that may include sensitive survey-derived content, and grows with the run.
+This covers calls recorded by the agent prompt-log wrapper, not every LLM
+call. See the [checkpoint configuration guide](documentation/guides/Simulation_Configuration_Guide.md#7-pausing-and-resuming-a-run)
+for compatibility, privacy, and remaining reproducibility limitations.
+
 ### Two new SIM_CONFIG keys for the agent timeline
 
 | Key | Default | Meaning |

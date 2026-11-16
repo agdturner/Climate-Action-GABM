@@ -762,8 +762,29 @@ unambiguously and are rejected. Checkpoints store ID text rather than its
 original type, so a change from integer `1` to string `"1"` between runs
 cannot be detected: use the same population and ID types on resume.
 
-These measures do not guarantee full fresh-process reproducibility. Full
-prompt logs are not hydrated, and live model responses can vary.
+By default checkpoints do not retain full prompt logs. To opt in, set
+`checkpoint_prompt_logs=True` in the simulation config or pass
+`--checkpoint-prompt-logs` to the CLI on the original run and every resume.
+The checkpoint metadata then contains sampled system prompts, task prompts,
+and responses recorded by the agent prompt-log mechanism. Calls outside that
+mechanism, such as memory compression and political-agent generation, are not
+included. The stored text may include sensitive survey-derived persona and memory
+content; protect checkpoint storage and backups accordingly. Metadata and
+per-day write costs grow with the sampled prompt history.
+
+With the option enabled, a resume (including loading a completed checkpoint)
+requires saved prompt history and the same resolved sample of citizen IDs;
+older or disabled-mode checkpoints and changed samples are rejected. To
+continue without earlier prompt history, explicitly leave the option disabled;
+the resumed output will be incomplete and its prompt sequences restart.
+Turning persistence off after it was enabled logs a warning. A subsequent
+checkpoint written with it off no longer contains prompt history.
+Sample IDs are compared by string form; as with other checkpoint IDs, type
+changes with the same string representation cannot be detected.
+
+These measures do not guarantee full fresh-process reproducibility. Live model
+responses can vary, and checkpoint files are replaced individually rather than
+committed as a single atomic bundle.
 
 ---
 

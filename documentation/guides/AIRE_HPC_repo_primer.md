@@ -145,7 +145,8 @@ container identity, and environment versions alongside results. A pinned SIF
 name alone is not a container digest. Fixed seeds do not guarantee identical
 live LLM responses or exact checkpoint replay: the
 [refactor plan](../../GABM_Refactor_Plan.md) records checkpoint validation
-and remaining prompt-log/timeline hydration limitations.
+and remaining audit limitations. Sampled prompt-log persistence is opt-in;
+see the [configuration guide](Simulation_Configuration_Guide.md#7-pausing-and-resuming-a-run).
 
 ## 5. Archived article: retained context and unresolved work
 

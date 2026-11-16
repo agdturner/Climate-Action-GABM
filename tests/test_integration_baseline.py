@@ -449,6 +449,167 @@ def test_resumed_prompt_log_contains_only_new_calls_and_restarts_sequence(mode, 
 
 
 @pytest.mark.parametrize("mode", ["package", "single_policy"])
+@pytest.mark.parametrize("source", ["offline", "llm"])
+def test_opt_in_prompt_logs_match_uninterrupted_across_repeated_resume(mode, source, tmp_path):
+    with _runtime() as requests:
+        config = _config(mode)
+        config.update(checkpoint_prompt_logs=True, political_message_source=source)
+        expected = run_simulation(config, _make_nation())
+        expected_requests = list(requests)
+        requests.clear()
+        random.seed(42)
+        partial = deepcopy(config)
+        partial["days"] = partial["days"][:1]
+        run_simulation(partial, _make_nation(), checkpoint_dir=tmp_path,
+                       checkpoint_every_day=True)
+        partial["days"] = config["days"][:2]
+        random.seed(12)
+        run_simulation(partial, _make_nation(), checkpoint_dir=tmp_path,
+                       resume=True, checkpoint_every_day=True)
+        random.seed(13)
+        actual = run_simulation(config, _make_nation(), checkpoint_dir=tmp_path,
+                                resume=True, checkpoint_every_day=True)
+        assert requests == expected_requests
+        assert actual["agent_prompts"].to_csv(index=False) == (
+            expected["agent_prompts"].to_csv(index=False)
+        )
+        for _, group in actual["agent_prompts"].groupby("agent_id"):
+            assert group["prompt_seq"].tolist() == list(range(len(group)))
+        loaded = run_simulation(config, _make_nation(), checkpoint_dir=tmp_path, resume=True)
+        assert loaded["agent_prompts"].to_csv(index=False) == actual["agent_prompts"].to_csv(index=False)
+
+
+def test_opt_in_prompt_logs_resume_in_fresh_process(tmp_path):
+    with _runtime():
+        config = _config("single_policy")
+        config["checkpoint_prompt_logs"] = True
+        expected = run_simulation(config, _make_nation())
+        random.seed(42)
+        partial = deepcopy(config)
+        partial["days"] = partial["days"][:1]
+        run_simulation(partial, _make_nation(), checkpoint_dir=tmp_path,
+                       checkpoint_every_day=True)
+        script = """
+import importlib.util
+import sys
+from pathlib import Path
+spec = importlib.util.spec_from_file_location("baseline", sys.argv[1])
+t = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(t)
+with t._runtime():
+    config = t._config("single_policy")
+    config["checkpoint_prompt_logs"] = True
+    result = t.run_simulation(config, t._make_nation(), checkpoint_dir=Path(sys.argv[2]), resume=True)
+    Path(sys.argv[3]).write_text(result["agent_prompts"].to_csv(index=False))
+"""
+        output = tmp_path / "prompt-result.csv"
+        subprocess.run(
+            [sys.executable, "-c", script, str(Path(__file__).resolve()), str(tmp_path), str(output)],
+            check=True, capture_output=True, text=True,
+            env={**os.environ, "PYTHONHASHSEED": "0"},
+        )
+        assert output.read_text() == expected["agent_prompts"].to_csv(index=False)
+
+
+@pytest.mark.parametrize("size", [0, 3])
+def test_opt_in_rejects_missing_history_even_for_completed_checkpoint(size, tmp_path):
+    with _runtime():
+        config = _config("single_policy")
+        config["days"] = config["days"][:1]
+        config.update(timeline_sample_size=size, timeline_sample_agent_ids=None)
+        run_simulation(config, _make_nation(), checkpoint_dir=tmp_path,
+                       checkpoint_every_day=True)
+        assert "prompt_logs" not in _load_checkpoint_meta(tmp_path)
+        config["checkpoint_prompt_logs"] = True
+        with pytest.raises(ValueError, match="lacks prompt history"):
+            run_simulation(config, _make_nation(), checkpoint_dir=tmp_path, resume=True)
+
+
+@pytest.mark.parametrize("invalid", [None, "true", 1])
+def test_prompt_checkpoint_option_rejects_non_boolean(invalid):
+    with _runtime(), pytest.raises(ValueError, match="checkpoint_prompt_logs must be a boolean"):
+        config = _config("single_policy")
+        config["checkpoint_prompt_logs"] = invalid
+        run_simulation(config, _make_nation())
+
+
+def test_opt_in_rejects_changed_resolved_sample(tmp_path):
+    with _runtime():
+        config = _config("single_policy")
+        config.update(checkpoint_prompt_logs=True, timeline_sample_agent_ids=[0, 1])
+        partial = deepcopy(config)
+        partial["days"] = partial["days"][:1]
+        run_simulation(partial, _make_nation(), checkpoint_dir=tmp_path,
+                       checkpoint_every_day=True)
+        config["timeline_sample_agent_ids"] = [0, 2]
+        with pytest.raises(ValueError, match="prompt capture sample changed"):
+            run_simulation(config, _make_nation(), checkpoint_dir=tmp_path, resume=True)
+
+
+def test_opt_in_accepts_same_sample_in_different_order(tmp_path):
+    with _runtime():
+        config = _config("single_policy")
+        config.update(checkpoint_prompt_logs=True, timeline_sample_agent_ids=[0, 1])
+        partial = deepcopy(config)
+        partial["days"] = partial["days"][:1]
+        run_simulation(partial, _make_nation(), checkpoint_dir=tmp_path,
+                       checkpoint_every_day=True)
+        config["timeline_sample_agent_ids"] = [1, 0]
+        result = run_simulation(config, _make_nation(), checkpoint_dir=tmp_path, resume=True)
+        assert set(result["agent_prompts"]["agent_id"]) == {0, 1}
+        assert set(result["agent_prompts"]["day"]) == {0, 1, 2, 3}
+
+
+@pytest.mark.parametrize("corruption", ["version", "sample", "sequence", "day", "missing_field"])
+def test_opt_in_rejects_malformed_prompt_history(corruption, tmp_path):
+    with _runtime():
+        config = _config("single_policy")
+        config["checkpoint_prompt_logs"] = True
+        partial = deepcopy(config)
+        partial["days"] = partial["days"][:1]
+        run_simulation(partial, _make_nation(), checkpoint_dir=tmp_path,
+                       checkpoint_every_day=True)
+        path = tmp_path / "checkpoint_meta.json"
+        meta = json.loads(path.read_text())
+        data = meta["prompt_logs"]
+        first = data["entries"][data["sample_ids"][0]][0]
+        if corruption == "version":
+            data["version"] = 2
+        elif corruption == "sample":
+            data["sample_ids"].append(data["sample_ids"][0])
+        elif corruption == "sequence":
+            first["prompt_seq"] = 9
+        elif corruption == "day":
+            first["day"] = 99
+        else:
+            del first["response"]
+        path.write_text(json.dumps(meta))
+        with pytest.raises(ValueError, match="Invalid checkpoint prompt history"):
+            run_simulation(config, _make_nation(), checkpoint_dir=tmp_path, resume=True)
+
+
+def test_opt_in_empty_sample_and_disabled_resume_warning(tmp_path, caplog):
+    with _runtime():
+        config = _config("single_policy")
+        config.update(checkpoint_prompt_logs=True, timeline_sample_size=0)
+        partial = deepcopy(config)
+        partial["days"] = partial["days"][:1]
+        run_simulation(partial, _make_nation(), checkpoint_dir=tmp_path,
+                       checkpoint_every_day=True)
+        assert _load_checkpoint_meta(tmp_path)["prompt_logs"]["entries"] == {}
+        result = run_simulation(config, _make_nation(), checkpoint_dir=tmp_path, resume=True)
+        assert result["agent_prompts"].empty
+        config["checkpoint_prompt_logs"] = False
+        run_simulation(config, _make_nation(), checkpoint_dir=tmp_path, resume=True,
+                       checkpoint_every_day=True)
+        assert "resumed audit logs are incomplete" in caplog.text
+        assert "prompt_logs" not in _load_checkpoint_meta(tmp_path)
+        config["checkpoint_prompt_logs"] = True
+        with pytest.raises(ValueError, match="lacks prompt history"):
+            run_simulation(config, _make_nation(), checkpoint_dir=tmp_path, resume=True)
+
+
+@pytest.mark.parametrize("mode", ["package", "single_policy"])
 @pytest.mark.parametrize("source", ["llm", "offline"])
 def test_real_checkpoint_continuation_restores_rng(mode, source, tmp_path):
     with _runtime() as requests:

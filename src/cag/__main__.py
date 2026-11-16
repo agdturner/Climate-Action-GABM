@@ -570,6 +570,12 @@ def parse_args(argv=None):
         help="Resume from <outdir>/checkpoints/ (same --outdir as the "
              "killed run). Structural config keys must match the original.",
     )
+    p.add_argument(
+        "--checkpoint-prompt-logs", action=argparse.BooleanOptionalAction,
+        default=argparse.SUPPRESS,
+        help="Opt in to storing sampled full prompts and responses in checkpoint "
+             "metadata. May contain sensitive survey-derived information.",
+    )
     return p.parse_args(argv)
 
 

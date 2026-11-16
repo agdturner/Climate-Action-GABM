@@ -713,6 +713,8 @@ def run_simulation(config, nation, checkpoint_dir=None, resume=False,
     sample_size = cfg.get("timeline_sample_size", 3)
     if not isinstance(sample_size, int) or isinstance(sample_size, bool) or sample_size < 0:
         raise ValueError("timeline_sample_size must be a non-negative integer.")
+    if not isinstance(cfg.get("checkpoint_prompt_logs", False), bool):
+        raise ValueError("checkpoint_prompt_logs must be a boolean.")
 
     if (resume or checkpoint_every_day) and checkpoint_dir is None:
         raise ValueError(
@@ -805,6 +807,15 @@ def run_simulation(config, nation, checkpoint_dir=None, resume=False,
             )
         meta = _load_checkpoint_meta(checkpoint_dir)
         _validate_resume_config(meta, cfg, nation)
+        prompt_logs = (
+            _checkpoint_prompt_logs(meta, nation, _capture_ids)
+            if cfg.get("checkpoint_prompt_logs", False) else None
+        )
+        if prompt_logs is None and "prompt_logs" in meta:
+            logging.warning(
+                "Checkpoint prompt history is not restored because "
+                "checkpoint_prompt_logs is disabled; resumed audit logs are incomplete."
+            )
         last_day = int(meta["last_completed_day"])
         random_state = _checkpoint_random_state(meta) if last_day < n_days else None
         if rt["message_pool"] is not None:
@@ -816,6 +827,9 @@ def run_simulation(config, nation, checkpoint_dir=None, resume=False,
                 )
             rt["message_pool"].restore_state(meta["message_pool_state"])
         last_day = _load_checkpoint(nation, checkpoint_dir)
+        if prompt_logs is not None:
+            for aid, agent in nation.agents_active.items():
+                agent.prompt_log = prompt_logs.get(str(aid), [])
         if random_state is not None:
             random.setstate(random_state)
         start_day_index = last_day  # next day to run is last_day + 1 (1-indexed)
@@ -826,6 +840,9 @@ def run_simulation(config, nation, checkpoint_dir=None, resume=False,
         )
     else:
         nation.message_log = []
+        if cfg.get("checkpoint_prompt_logs", False):
+            for agent in nation.agents_active.values():
+                agent.prompt_log = []
         start_day_index = 0
         logging.info(f"Simulation: {n_agents} agents, {n_days} days")
 
@@ -888,6 +905,7 @@ from cag.io.checkpoint import (  # noqa: E402,F401
     _RESUME_HARD_KEYS,
     _RESUME_SOFT_KEYS,
     _checkpoint_random_state,
+    _checkpoint_prompt_logs,
     _config_hash,
     _load_checkpoint,
     _load_checkpoint_meta,
