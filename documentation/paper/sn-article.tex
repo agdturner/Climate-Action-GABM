@@ -167,7 +167,7 @@ limitations and next steps in research.
 
 \begin{figure*}[t]
   \centering
-\includegraphics[width=0.8\textwidth]{paper/figures/GABM_framework.png}
+\includegraphics[width=0.8\textwidth]{figures/GABM_framework.png}
   \caption{GABM framework overview: Each citizen AI agent is initialised from a real YouGov survey respondent and anchored to their observed climate-policy opinions at Day~0. On each simulated day, citizen agents receive persuasive messages from one or both committed minority agents, reflect privately, exchange peer messages with network neighbours, and reflect again. At the end of the day, each citizen agent answers the original survey questions, and the responses are stored in a tiered memory that carries forward into the next day.}
   \label{fig:gabm-framework}
 \end{figure*}
@@ -424,9 +424,9 @@ small-world graphs as well.
 %   Every number below is recomputed from the raw runs and verified in the
 %   provenance notebooks notebooks/45_evaluation_audit.ipynb (32 checks pass)
 %   and notebooks/46_experiments_audit.ipynb; machine-readable outputs in
-%   paper/tables/ (audit_evaluation.csv, audit_experiments.csv,
+%   tables/ (audit_evaluation.csv, audit_experiments.csv,
 %   table1_experiments.csv). Do NOT cite docs/result_report.md in the paper —
-%   cite the SI / the paper/tables CSVs.
+%   cite the SI / the tables CSVs.
 % Metric contract (main text only): mean package index on -3..+3; support/
 % oppose shares (%); within-person difference in scale points with 95% CI;
 % Spearman rho + signed bias for the evaluation; "same sign in every seed"
@@ -513,7 +513,7 @@ absolute opinions wrong.
 
 \subsection{Reaching more citizens moves the majority}\label{subsec:bite-reach}
 % FIGURE 1 (TODO): reach dose-response — within-person difference vs reach gap.
-% Numbers verified in paper/tables/ (NB 46); seven-day ladder, 15 of 18 runs (placebo pending).
+% Numbers verified in tables/ (NB 46); seven-day ladder, 15 of 18 runs (placebo pending).
 
 The first form of advantage is reach: speaking to more people. On the seven-day horizon
 we sweep a graded reach ladder, throttling one side to a half or a quarter of its
@@ -611,7 +611,7 @@ levers that a classical committed-minority model collapses into a single influen
 weight: the separability that a generative agent-based model uniquely affords, and
 the methodological payoff of the approach.
 
-% TABLE 1 --- verified against paper/tables/table1_experiments.csv (NB 46).
+% TABLE 1 --- verified against tables/table1_experiments.csv (NB 46).
 \begin{table*}[t]
 \centering
 \small
@@ -817,4 +817,3 @@ persona-faithfulness refinements, and local-model deployment.
 \bibliography{references}
 
 \end{document}
-

@@ -99,7 +99,7 @@ the same-named GABM types describe different codebooks and are not
 interchangeable. CAG reuses GABM's base ID, attribute objects, and map machinery
 without modifying GABM's shared codebook constants.
 
-See [GABM_Refactor_Plan.md](GABM_Refactor_Plan.md) for compatibility evidence,
+See [GABM_Refactor_Plan.md](documentation/planning/GABM_Refactor_Plan.md) for compatibility evidence,
 the default ethnicity-map alignment, and existing checkpoint replay limitations.
 
 To run fully offline against a local LLM, also install a local runtime for your hardware and serve a model — see [docs/Local_LLM_Setup_Guide.md](documentation/guides/Local_LLM_Setup_Guide.md):

@@ -144,7 +144,7 @@ Preserve resolved `config.json`, input/message-set provenance, source commit,
 container identity, and environment versions alongside results. A pinned SIF
 name alone is not a container digest. Fixed seeds do not guarantee identical
 live LLM responses or exact checkpoint replay: the
-[refactor plan](../../GABM_Refactor_Plan.md) records checkpoint validation
+[refactor plan](../planning/GABM_Refactor_Plan.md) records checkpoint validation
 and remaining audit limitations. Sampled prompt-log persistence is opt-in;
 see the [configuration guide](Simulation_Configuration_Guide.md#7-pausing-and-resuming-a-run).
 

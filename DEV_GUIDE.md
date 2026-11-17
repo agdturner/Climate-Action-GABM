@@ -116,9 +116,9 @@ Please add or update tests when modifying or adding features. Aim for high test 
 ## Cross-Repository Refactoring
 
 For work that moves reusable CAG capabilities into GABM, follow the
-[CAG to GABM Refactor Plan](GABM_Refactor_Plan.md). It records the published
+[CAG to GABM Refactor Plan](documentation/planning/GABM_Refactor_Plan.md). It records the published
 dependency audit, ownership boundaries, implementation sequence, and validation
-gates; the [roadmap](ROADMAP.md#cag-to-gabm-refactor-track) records the strategic
+gates; the [roadmap](documentation/planning/ROADMAP.md#cag-to-gabm-refactor-track) records the strategic
 goal.
 
 Establish deterministic integration evidence before runtime edits. Develop
@@ -208,7 +208,7 @@ artifact without source overrides, and merge the dependent CAG integration.
 Keep the original golden fixtures unless an intentional behaviour change is
 separately approved.
 
-Update the [refactor plan](GABM_Refactor_Plan.md) after each slice with commits,
+Update the [refactor plan](documentation/planning/GABM_Refactor_Plan.md) after each slice with commits,
 test/comparison evidence, and whether validation used editable source, an exact
 Git revision, a local wheel, or a published artifact. These are distinct gates;
 development success is not published-package acceptance.
@@ -410,7 +410,7 @@ as a second test suite after a documentation build.
 
 Keep planning and history separate:
 
-- [ROADMAP.md](ROADMAP.md) is forward-looking: priorities, intended outcomes,
+- [ROADMAP.md](documentation/planning/ROADMAP.md) is forward-looking: priorities, intended outcomes,
   unfinished work, and dependencies. It is not a release log. When work lands,
   remove or update the relevant planned item and record the delivered change
   in the change log. Keep inherited tasks with uncertain completion explicitly
@@ -419,11 +419,11 @@ Keep planning and history separate:
 - [CHANGE_LOG.md](CHANGE_LOG.md) records delivered changes by release, with an
   Unreleased section for changes awaiting release. Preserve unique historical
   details when moving material from the roadmap; do not duplicate entries.
-- [DEVELOPMENT_HISTORY.md](DEVELOPMENT_HISTORY.md) records dated milestones,
+- [DEVELOPMENT_HISTORY.md](documentation/history/DEVELOPMENT_HISTORY.md) records dated milestones,
   development context, and reflections, rather than duplicating the release
   log or acting as the current plan.
 - Detailed implementation plans, such as
-  [GABM_Refactor_Plan.md](GABM_Refactor_Plan.md), hold scope, acceptance gates,
+  [GABM_Refactor_Plan.md](documentation/planning/GABM_Refactor_Plan.md), hold scope, acceptance gates,
   and progress evidence. Link them from the roadmap instead of repeating them.
 
 Markdown files in the root directory, each serving a specific purpose:
@@ -433,10 +433,10 @@ Markdown files in the root directory, each serving a specific purpose:
   - [DEV_QUICKSTART.md](DEV_QUICKSTART.md) Provides step-by-step instructions for developers to get set up for contributing to GABM development.
   - [DEV_GUIDE.md](DEV_GUIDE.md): Explains how to contribute to GABM as a developer. It provides details about project structure, and workflow guidance.
   - [API_KEYS.md](API_KEYS.md): Explains how to create a file containing API keys for communicating with LLMs.
-  - [ROADMAP.md](ROADMAP.md): Forward-looking priorities, planned features, and unfinished development goals.
-  - [GABM_Refactor_Plan.md](GABM_Refactor_Plan.md): Maintained plan and acceptance gates for extracting reusable CAG capabilities into GABM.
+  - [ROADMAP.md](documentation/planning/ROADMAP.md): Forward-looking priorities, planned features, and unfinished development goals.
+  - [GABM_Refactor_Plan.md](documentation/planning/GABM_Refactor_Plan.md): Maintained plan and acceptance gates for extracting reusable CAG capabilities into GABM.
   - [CHANGE_LOG.md](CHANGE_LOG.md): Delivered changes and updates organised by release.
-  - [DEVELOPMENT_HISTORY.md](DEVELOPMENT_HISTORY.md): Dated development milestones, context, and reflections.
+  - [DEVELOPMENT_HISTORY.md](documentation/history/DEVELOPMENT_HISTORY.md): Dated development milestones, context, and reflections.
 
 - Add API docs via `docs/index.md` or `docs/api.rst`.
 

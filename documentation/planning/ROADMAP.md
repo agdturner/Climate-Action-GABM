@@ -16,16 +16,16 @@ ship in 1.0. Detailed implementation plans hold acceptance gates and progress
 evidence; link to them rather than duplicating their contents here.
 
 Delivered changes and historical release milestones belong in
-[CHANGE_LOG.md](CHANGE_LOG.md). Dated development context belongs in
-[DEVELOPMENT_HISTORY.md](DEVELOPMENT_HISTORY.md). See the documentation
-ownership rules in [DEV_GUIDE.md](DEV_GUIDE.md#root-documents).
+[CHANGE_LOG.md](../../CHANGE_LOG.md). Dated development context belongs in
+[DEVELOPMENT_HISTORY.md](../history/DEVELOPMENT_HISTORY.md). See the documentation
+ownership rules in [DEV_GUIDE.md](../../DEV_GUIDE.md#root-documents).
 
 For current model behaviour, consult the
-[configuration guide](documentation/guides/Simulation_Configuration_Guide.md),
-[code tour](documentation/guides/Code_Tour.md), and source code. The
-[model design log](documentation/research/Model_Design.md) is a historical reference, not an
+[configuration guide](../../documentation/guides/Simulation_Configuration_Guide.md),
+[code tour](../../documentation/guides/Code_Tour.md), and source code. The
+[model design log](../../documentation/research/Model_Design.md) is a historical reference, not an
 authoritative current specification. Experiment evidence is maintained in
-[docs/result_report.md](documentation/research/result_report.md).
+[docs/result_report.md](../../documentation/research/result_report.md).
 
 ## CAG to GABM refactor track
 
@@ -48,7 +48,7 @@ validation gates in [GABM_Refactor_Plan.md](GABM_Refactor_Plan.md).
   Python random state; sampled prompt history can be retained explicitly.
   Complete generations are published through an atomic pointer. Remaining
   limitations and legacy compatibility are described in the
-  [checkpoint guide](documentation/guides/Run_Output_Guide.md#14-checkpointing--resume).
+  [checkpoint guide](../../documentation/guides/Run_Output_Guide.md#14-checkpointing--resume).
   Candidate follow-up work includes validating HPC filesystem behaviour,
   evaluating power-loss durability and concurrent access requirements, and
   considering typed citizen-ID provenance. These are separate design
@@ -101,12 +101,12 @@ old task as still open.
   neutral, three seeds per arm) and provide or update its demonstration
   notebook once the corresponding Aire run directories are available.
 - Re-measure Condition B bias on the unified first-person debias chain
-  (partial rerun of [NB 13](notebooks/13_bias_mitigation_experiment.ipynb);
+  (partial rerun of [NB 13](../../notebooks/13_bias_mitigation_experiment.ipynb);
   historical estimate: about 120 API calls).
 - Run or reconcile 30-50-agent Qwen3 and seed-sweep evidence for per-agent
   Spearman correlation stability, following the persona-signal question from
   NB 24/25.
-- Re-run or update [NB 27](notebooks/27_affinity_exposure_demo.ipynb) against
+- Re-run or update [NB 27](../../notebooks/27_affinity_exposure_demo.ipynb) against
   the shipped affinity-weight ladder; its original agreement percentages are
   historical.
 - Author bespoke package-level political messages for message set v2 rather
@@ -125,7 +125,7 @@ old task as still open.
   14B 4-bit / 4B 2507 / 32B HPC candidates.
 - Implement async/parallel dispatch only after defining ordering, random-state,
   checkpoint, and request-provenance contracts. The historical design proposal
-  is in [docs/Model_Design.md](documentation/research/Model_Design.md), section 16.
+  is in [docs/Model_Design.md](../../documentation/research/Model_Design.md), section 16.
 
 Earlier backlog entries for source-version alignment, release-tag cleanup,
 README status updates, and an end-to-end committed-minority run were followed

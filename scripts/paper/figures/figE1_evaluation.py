@@ -19,7 +19,7 @@ import matplotlib.pyplot as plt
 
 REPO = Path(__file__).resolve().parents[3]
 EXP = REPO / "data/output/experiments"
-FIGDIR = REPO / "paper/figures"; FIGDIR.mkdir(parents=True, exist_ok=True)
+FIGDIR = REPO / "documentation/paper/figures"; FIGDIR.mkdir(parents=True, exist_ok=True)
 
 import sys
 sys.path.insert(0, str(REPO / "src"))

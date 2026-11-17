@@ -17,10 +17,10 @@ DOC_FILES = [
     "requirements.txt",
     "requirements-dev.txt",
     "API_KEYS.md",
-    "ROADMAP.md",
-    "GABM_Refactor_Plan.md",
+    "documentation/planning/ROADMAP.md",
+    "documentation/planning/GABM_Refactor_Plan.md",
     "CHANGE_LOG.md",
-    "DEVELOPMENT_HISTORY.md",
+    "documentation/history/DEVELOPMENT_HISTORY.md",
     "documentation/guides/AIRE_HPC_repo_primer.md",
     "documentation/guides/AIRE_Quickstart.md",
     "documentation/guides/Code_Tour.md",
@@ -45,6 +45,9 @@ DOC_FILES = [
 
 STAGED_NAMES = {
     "README.md": "project_readme.md",
+    "documentation/planning/ROADMAP.md": "ROADMAP.md",
+    "documentation/planning/GABM_Refactor_Plan.md": "GABM_Refactor_Plan.md",
+    "documentation/history/DEVELOPMENT_HISTORY.md": "DEVELOPMENT_HISTORY.md",
     "documentation/guides/AIRE_HPC_repo_primer.md": "AIRE_HPC_repo_primer.md",
     "documentation/guides/AIRE_Quickstart.md": "AIRE_Quickstart.md",
     "documentation/guides/Code_Tour.md": "Code_Tour.md",

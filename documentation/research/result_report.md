@@ -5,9 +5,9 @@ Results are listed newest-first.
 
 ---
 
-## Paper Cross-Reference (`paper/sn-article.tex` + `paper/sn-si.tex`)
+## Paper Cross-Reference (`documentation/paper/sn-article.tex` + `documentation/paper/sn-si.tex`)
 
-Which results back which parts of the paper — the **draft-45 program**: a fit-for-purpose evaluation followed by four resource-advantage experiments (reach / frequency / targeting / breadth-vs-depth). Every number in the main text and SI is recomputed from the raw runs in two self-contained provenance notebooks — [`notebooks/45_evaluation_audit.ipynb`](../../notebooks/45_evaluation_audit.ipynb) (evaluation; 20 checks PASS) and [`notebooks/46_experiments_audit.ipynb`](../../notebooks/46_experiments_audit.ipynb) (experiments; 15 checks PASS) — which write machine-readable outputs to `paper/tables/` (`audit_evaluation.csv`, `audit_experiments.csv`, `table1_experiments.csv`). **The paper cites the SI and those CSVs, not this markdown.** Internal labels (Tier P/1/2/3, Bites 1–4) are repository-internal and do not appear in the paper; the neutral naming there is pro-climate committed minority (A) / climate-sceptic committed minority (B).
+Which results back which parts of the paper — the **draft-45 program**: a fit-for-purpose evaluation followed by four resource-advantage experiments (reach / frequency / targeting / breadth-vs-depth). Every number in the main text and SI is recomputed from the raw runs in two self-contained provenance notebooks — [`notebooks/45_evaluation_audit.ipynb`](../../notebooks/45_evaluation_audit.ipynb) (evaluation; 20 checks PASS) and [`notebooks/46_experiments_audit.ipynb`](../../notebooks/46_experiments_audit.ipynb) (experiments; 15 checks PASS) — which write machine-readable outputs to `documentation/paper/tables/` (`audit_evaluation.csv`, `audit_experiments.csv`, `table1_experiments.csv`). **The paper cites the SI and those CSVs, not this markdown.** Internal labels (Tier P/1/2/3, Bites 1–4) are repository-internal and do not appear in the paper; the neutral naming there is pro-climate committed minority (A) / climate-sceptic committed minority (B).
 
 | Paper part | Internal label | Source runs | Audit → CSV | What to verify |
 |---|---|---|---|---|
@@ -23,7 +23,7 @@ Which results back which parts of the paper — the **draft-45 program**: a fit-
 
 Notes:
 - The old N=30 gpt-5-mini "Probe 1 / Probe 2" design (Runs 5/7) and the n=30/n=100 Sonnet calibration (NB 22/23) are **superseded** by the draft-45 Qwen3-14B program above. Their detailed write-ups remain further down this log for history but no longer back the paper.
-- The figures that backed the old cross-reference (`probe1_*`, `probe2_*`, `calib_*`) were removed from `paper/figures/` on 2026-07-10; only `GABM_framework.png` and `peer_network_exposure.png` (the two figures the tex references) remain. Result figures for the current program are **not yet made** (deferred; team decision).
+- The figures that backed the old cross-reference (`probe1_*`, `probe2_*`, `calib_*`) were removed from `documentation/paper/figures/` on 2026-07-10; only `GABM_framework.png` and `peer_network_exposure.png` (the two figures the tex references) remain. Result figures for the current program are **not yet made** (deferred; team decision).
 - Full run configs and numbers for the four experiments live in the draft-45 Bite 1/2/3/4 sections below and the v0.9 Tier-P/1/2/3 sections. Bite 1 (reach) is now the landed 7-day dose-response ladder (`run_6544103`–`run_6544117`, 15 of 18 runs; the 3 no-broadcast placebo runs are still pending), audited in NB 46; the Tier-1 5-day runs remain as cross-topology/model validation.
 
 ---

@@ -6,8 +6,10 @@ design, how to configure and run it, what it produces, and how to read the code.
 plain Markdown you can read on GitHub; a few are Sphinx machinery that builds the rendered
 docs site.
 
-> Project-level docs (`README.md`, `USER_GUIDE.md`, `DEV_GUIDE.md`, `ROADMAP.md`,
-> `CHANGE_LOG.md`, etc.) live in the **repository root**, not here.
+> Project-level docs (`README.md`, `USER_GUIDE.md`, `DEV_GUIDE.md`,
+> `CHANGE_LOG.md`, etc.) live in the **repository root**. Planning/history
+> records are now under [documentation/planning/](planning/) and
+> [documentation/history/](history/).
 
 ---
 
@@ -17,16 +19,16 @@ Pick the doc that matches what you want to do:
 
 | I want to… | Read |
 |---|---|
-| Understand the model's design and research questions | the paper in [`paper/`](../paper/) (see also [Simulation_Configuration_Guide.md](https://github.com/compolis/Climate-Action-GABM/blob/main/documentation/guides/Simulation_Configuration_Guide.md)) |
+| Understand the model's design and research questions | the paper in [`paper/`](paper/) (see also [Simulation_Configuration_Guide.md](https://github.com/compolis/Climate-Action-GABM/blob/main/documentation/guides/Simulation_Configuration_Guide.md)) |
 | Configure and launch a simulation | [Simulation_Configuration_Guide.md](https://github.com/compolis/Climate-Action-GABM/blob/main/documentation/guides/Simulation_Configuration_Guide.md) |
 | Understand the files a run produces | [Run_Output_Guide.md](https://github.com/compolis/Climate-Action-GABM/blob/main/documentation/guides/Run_Output_Guide.md) |
 | See the exact prompts and personas sent to the LLM | [Prompts_and_Personas_Guide_v2.md](https://github.com/compolis/Climate-Action-GABM/blob/main/documentation/guides/Prompts_and_Personas_Guide_v2.md) |
 | Find my way around the source code | [Code_Tour.md](https://github.com/compolis/Climate-Action-GABM/blob/main/documentation/guides/Code_Tour.md) |
-| Refactor CAG to reuse and extend the GABM framework | [GABM_Refactor_Plan.md](../GABM_Refactor_Plan.md) |
+| Refactor CAG to reuse and extend the GABM framework | [GABM_Refactor_Plan.md](planning/GABM_Refactor_Plan.md) |
 | Run a fully local LLM backend | [Local_LLM_Setup_Guide.md](https://github.com/compolis/Climate-Action-GABM/blob/main/documentation/guides/Local_LLM_Setup_Guide.md) |
 | Run on the Aire HPC cluster | [AIRE_Quickstart.md](guides/AIRE_Quickstart.md) |
 | Check what past experiments found | [result_report.md](https://github.com/compolis/Climate-Action-GABM/blob/main/documentation/research/result_report.md) |
-| Read the paper draft (manuscript + SI) | [`paper/`](../paper/) |
+| Read the paper draft (manuscript + SI) | [`paper/`](paper/) |
 
 ---
 
@@ -36,9 +38,9 @@ Pick the doc that matches what you want to do:
 > log that was updated over many iterations, so roughly half of it describes earlier model
 > versions that no longer match the code. Treat it as a historical / internal reference only.
 > For current behaviour, use [Simulation_Configuration_Guide.md](https://github.com/compolis/Climate-Action-GABM/blob/main/documentation/guides/Simulation_Configuration_Guide.md),
-> [Code_Tour.md](https://github.com/compolis/Climate-Action-GABM/blob/main/documentation/guides/Code_Tour.md), the paper in [`paper/`](../paper/), and the code itself; the
+> [Code_Tour.md](https://github.com/compolis/Climate-Action-GABM/blob/main/documentation/guides/Code_Tour.md), the paper in [`paper/`](paper/), and the code itself; the
 > maintained change history lives in the root [CHANGE_LOG.md](../CHANGE_LOG.md) and
-> [DEVELOPMENT_HISTORY.md](../DEVELOPMENT_HISTORY.md).
+> [DEVELOPMENT_HISTORY.md](history/DEVELOPMENT_HISTORY.md).
 
 | File | Role | Use it when… |
 |---|---|---|
@@ -60,7 +62,7 @@ Pick the doc that matches what you want to do:
 | File | Role | Use it when… |
 |---|---|---|
 | [Code_Tour.md](https://github.com/compolis/Climate-Action-GABM/blob/main/documentation/guides/Code_Tour.md) | A guided, two-layer walk through `src/cag/` — bold lines for a fast pass, "Staying?" notes for depth, with grep breadcrumbs instead of line numbers. | You know the science but haven't opened the code. |
-| [GABM_Refactor_Plan.md](../GABM_Refactor_Plan.md) | Root-authored two-repository refactor plan: audit evidence, ownership boundaries, extraction sequence, and acceptance gates. | You're moving generic CAG capabilities into GABM or wiring CAG to framework APIs. |
+| [GABM_Refactor_Plan.md](planning/GABM_Refactor_Plan.md) | Two-repository refactor plan: audit evidence, ownership boundaries, extraction sequence, and acceptance gates. | You're moving generic CAG capabilities into GABM or wiring CAG to framework APIs. |
 
 ## HPC (Aire)
 
@@ -83,15 +85,15 @@ and the [CAG portability notes](guides/AIRE_HPC_repo_primer.md#6-related-gabm-gu
 
 ## Paper
 
-The manuscript lives in the top-level [`paper/`](../paper/) folder (Springer Nature
+The manuscript lives in [`documentation/paper/`](paper/) (Springer Nature
 single-file `sn-jnl` format), separate from these docs.
 
 | File / folder | Role |
 |---|---|
-| [`paper/sn-article.tex`](../paper/sn-article.tex) | Main manuscript — the current working draft. |
-| [`paper/sn-si.tex`](../paper/sn-si.tex) | Supplementary Information (Sections S1–S5, Tables S1–S9). |
-| [`paper/tables/`](../paper/tables/) | Machine-readable audit tables (`audit_evaluation.csv`, `audit_experiments.csv`, `table1_experiments.csv`) that every reported number is recomputed from. |
-| [`paper/figures/`](../paper/figures/) | The figures the tex references. |
+| [`documentation/paper/sn-article.tex`](paper/sn-article.tex) | Main manuscript — the current working draft. |
+| [`documentation/paper/sn-si.tex`](paper/sn-si.tex) | Supplementary Information (Sections S1–S5, Tables S1–S9). |
+| [`documentation/paper/tables/`](paper/tables/) | Machine-readable audit tables (`audit_evaluation.csv`, `audit_experiments.csv`, `table1_experiments.csv`) that every reported number is recomputed from. |
+| [`documentation/paper/figures/`](paper/figures/) | The figures the tex references. |
 
 **Current contents (draft, work in progress).** The paper reports a fit-for-purpose
 *evaluation* of the model — does it read personas, respond to the lever, avoid a
