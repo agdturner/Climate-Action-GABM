@@ -218,7 +218,7 @@ Day-0 ground-truth mean +0.662. Rank fidelity holds in every condition (Spearman
 ## v0.9 — Tier-3 MODEL-replication arm: Llama-3.1-8B (run_6475093 / run_6479341 / run_6479390, seed 42) — the reach-asymmetry DiD reproduces on a different model family, correctly signed and strongly significant, *despite* Llama being a poor difference engine
 
 **Date:** 2026-07-07
-**Analysed runs:** the **model-replication arm** of Tier 3 — the last open gate (the network arm is closed above). Three seed-42 **Llama-3.1-8B-Instruct** runs under the identical `tier1` shape used for the Qwen3-14B Tier-1 headline (N=100, 5-day P-A/P-B/C, package mode, SBM `p_intra=0.15/p_inter=0.05`, `committed_minority_symmetric` exposure, offline v1 messages, Day-0 anchor `ground_truth_with_rationale`, memory `day0_anchor.ttl_days=1`): baseline (`run_6475093`, reach 1.0/1.0), green-dom (`run_6479341`), reform-dom (`run_6479390`). **The only thing changed vs the Qwen Tier-1 headline is the model** (`HF_MODEL=meta-llama/Llama-3.1-8B-Instruct`), so this is a clean cross-model replication. Analysis script: [`sandbox/ajay_sandbox/tier3_llama_model_arm.py`](../../sandbox/ajay_sandbox/tier3_llama_model_arm.py) (reuses the network-arm DiD/`mean_ci` harness verbatim); figure in [`data/output/tier3_llama_analysis/`](../../data/output/tier3_llama_analysis). Framing in [research_notes.md](research_notes.md) (2026-07-07 model-arm note).
+**Analysed runs:** the **model-replication arm** of Tier 3 — the last open gate (the network arm is closed above). Three seed-42 **Llama-3.1-8B-Instruct** runs under the identical `tier1` shape used for the Qwen3-14B Tier-1 headline (N=100, 5-day P-A/P-B/C, package mode, SBM `p_intra=0.15/p_inter=0.05`, `committed_minority_symmetric` exposure, offline v1 messages, Day-0 anchor `ground_truth_with_rationale`, memory `day0_anchor.ttl_days=1`): baseline (`run_6475093`, reach 1.0/1.0), green-dom (`run_6479341`), reform-dom (`run_6479390`). **The only thing changed vs the Qwen Tier-1 headline is the model** (`HF_MODEL=meta-llama/Llama-3.1-8B-Instruct`), so this is a clean cross-model replication. Analysis script: `sandbox/ajay_sandbox/tier3_llama_model_arm.py` (removed with sandbox cleanup; reused the network-arm DiD/`mean_ci` harness verbatim); figure in [`data/output/tier3_llama_analysis/`](../../data/output/tier3_llama_analysis). Framing in [research_notes.md](research_notes.md) (2026-07-07 model-arm note).
 
 **Design.** Single seed 42, so the same 100 agents (identical ground truth, exposure buckets, SBM wiring) appear in all three conditions; the DiD (`shift_green − shift_reform`) is paired per agent (n=100). **Single seed → read direction + within-seed significance, NOT a cross-draw effect-size claim** — same footing as the network *pilot* below.
 
@@ -1464,7 +1464,7 @@ Nearly half of B-only cells moved at least one step. The bucket asymmetry is aga
 - neither — [data/output/experiments/run_6203838_R14_neither_5day/20260619_184539/](../../data/output/experiments/run_6203838_R14_neither_5day/20260619_184539)
 - anchor_llm — [data/output/experiments/run_6204291_R14_split50_5day_anchor_llm/checkpoints/](../../data/output/experiments/run_6204291_R14_split50_5day_anchor_llm/checkpoints) (CSVs sit in `checkpoints/` because the wall-clock-killed run never reached the final save step; checkpoint_meta records `last_completed_day = 4`)
 
-**Analysis script:** [sandbox/ajay_sandbox/run14_split50_analysis.py](../../sandbox/ajay_sandbox/run14_split50_analysis.py)
+**Analysis script:** `sandbox/ajay_sandbox/run14_split50_analysis.py` (removed with sandbox cleanup)
 
 Designed in response to Run 13's muted aggregate signal and the persuasion-responsiveness concern (Run 13 §K). Three runs were submitted in parallel:
 
@@ -1589,7 +1589,7 @@ The rank-affinity sort correctly put the 25 most pro-climate agents (by YouGov s
 - S  — [data/output/experiments/run_6045935_S_symmetric_nopeer/20260617_010957/](../../data/output/experiments/run_6045935_S_symmetric_nopeer/20260617_010957)
 - C1 — [data/output/experiments/run_6046803_C1_reform_dominant_nopeer/20260617_005519/](../../data/output/experiments/run_6046803_C1_reform_dominant_nopeer/20260617_005519)
 - C3 — [data/output/experiments/run_6046804_C3_green_dominant_nopeer/20260617_005418/](../../data/output/experiments/run_6046804_C3_green_dominant_nopeer/20260617_005418)
-**Analysis script:** [sandbox/ajay_sandbox/run13_nopeer_analysis.py](../../sandbox/ajay_sandbox/run13_nopeer_analysis.py)
+**Analysis script:** `sandbox/ajay_sandbox/run13_nopeer_analysis.py` (removed with sandbox cleanup)
 
 Follow-up to Run 12. Two changes from Run 12: (1) `k_peers_per_day = 0` (peer messaging fully disabled — `run_package_peer_messaging` now early-returns when `k_peers <= 0`); (2) `political_exposure_targets = {A-only: 0.05, B-only: 0.05, both: 0.50, neither: 0.40}` per supervisor recommendation, replacing the previous `committed_minority_symmetric` (11/11/33/45) default. Hypothesis going in: with peers muted, the reach-asymmetry signal should finally show up in the aggregate trajectory. **Hypothesis not supported at the cohort-mean level**, but a cleaner partial signal is now visible inside the conditional-by-exposure-bucket cut (§G).
 
@@ -1840,7 +1840,7 @@ From `messages.csv`, unique recipients per political broadcast per day:
 | C1 (0.25 / 1.0) | **5** | 22 |
 | C3 (1.0 / 0.25) | 22 | **5** |
 
-Audience composition is identical in all three runs (the seed-42 cohort produces 6 A-only / 6 B-only / 16 both / 22 neither under `rule_affinity_rank` + default targets — see [sandbox/ajay_sandbox/check_reach_split.py](../../sandbox/ajay_sandbox/check_reach_split.py)). The reach knob only subsamples *who hears the broadcast*; per-citizen `political_exposure` labels are untouched.
+Audience composition is identical in all three runs (the seed-42 cohort produces 6 A-only / 6 B-only / 16 both / 22 neither under `rule_affinity_rank` + default targets — see `sandbox/ajay_sandbox/check_reach_split.py`, removed with sandbox cleanup). The reach knob only subsamples *who hears the broadcast*; per-citizen `political_exposure` labels are untouched.
 
 ### Headline: trajectories are essentially flat across the three conditions
 
@@ -1904,7 +1904,7 @@ The pattern is consistent with the per-day end-of-day survey logs (`run.log`): m
 
 ### Quality of the simulation run (Qwen3-8B local LLM behaviour at n=50, 7 days)
 
-The chief value of these three runs is that they give us 6,000+ on-task LLM completions on a real persona × policy grid. Five dimensions, all computed from the artefact CSVs (see [sandbox/ajay_sandbox/run12_asymmetry_analysis.py](../../sandbox/ajay_sandbox/run12_asymmetry_analysis.py)):
+The chief value of these three runs is that they give us 6,000+ on-task LLM completions on a real persona × policy grid. Five dimensions, all computed from the artefact CSVs (see `sandbox/ajay_sandbox/run12_asymmetry_analysis.py`, removed with sandbox cleanup):
 
 **1. Reflection completeness and length** (one per agent per phase that received messages; phases C + the broadcast phases yield up to ~12 reflections per agent over 7 days):
 

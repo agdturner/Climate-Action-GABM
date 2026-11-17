@@ -17,7 +17,7 @@ Contrast = depth2 - depth4, paired per agent within seed, pooled n=300.
 Because Day 0 is pinned to ground truth in every condition, this is a within-person
 endpoint difference on the -3..+3 package index.
 
-Run: .venv/bin/python sandbox/ajay_sandbox/bite4_iso_impression.py
+Run: .venv/bin/python scripts/paper/analysis/bite4_iso_impression.py
 """
 from pathlib import Path
 import re
