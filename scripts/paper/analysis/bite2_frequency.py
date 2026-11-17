@@ -20,7 +20,7 @@ oppose shares. Validation = Spearman rho + signed bias. Reliability = same sign
 in every seed. DiD reduces to a paired endpoint difference because Day 0 is
 pinned to ground truth in every condition.
 
-Run: .venv/bin/python sandbox/ajay_sandbox/bite2_frequency.py
+Run: .venv/bin/python scripts/paper/analysis/bite2_frequency.py
 """
 from pathlib import Path
 import re

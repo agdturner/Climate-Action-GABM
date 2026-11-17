@@ -19,7 +19,7 @@
 Notable changes are to be documented in this file.
 
 This is the release-oriented record of delivered changes. Future priorities
-and unfinished work live in [ROADMAP.md](ROADMAP.md). Historical counts,
+and unfinished work live in [ROADMAP.md](documentation/planning/ROADMAP.md). Historical counts,
 defaults, implementation locations, and version labels below describe their
 development stage, not necessarily the current code or a verified public tag.
 
@@ -256,10 +256,10 @@ development stage, not necessarily the current code or a verified public tag.
   failures expose the existing offline-message cursor resume limitation.
   Published GABM 0.2.18 validation: 686 passed, 1 skipped, 2 expected failures.
   Runtime code and dependency pins are unchanged; detailed evidence and
-  checkpoint limitations are in [GABM_Refactor_Plan.md](GABM_Refactor_Plan.md).
+  checkpoint limitations are in [GABM_Refactor_Plan.md](documentation/planning/GABM_Refactor_Plan.md).
 
 - **CAG to GABM refactor plan (2026-11-08).** Added
-  [GABM_Refactor_Plan.md](GABM_Refactor_Plan.md) with the published
+  [GABM_Refactor_Plan.md](documentation/planning/GABM_Refactor_Plan.md) with the published
   dependency audit, generic/domain ownership boundaries, phased extraction
   sequence, and behaviour-preservation gates. Linked it from the roadmap,
   developer guide, and documentation navigation. Documentation only; no
@@ -272,7 +272,7 @@ development stage, not necessarily the current code or a verified public tag.
   dated development history, and detailed implementation plans in the developer
   guide.
 - **Roadmap/history consolidation (2026-11-08).** Replaced historical release
-  tables in [ROADMAP.md](ROADMAP.md) with forward-looking refactor priorities,
+  tables in [ROADMAP.md](documentation/planning/ROADMAP.md) with forward-looking refactor priorities,
   documentation/data organisation, consolidated validation backlog, and
   longer-term goals. Existing release entries below already cover most of the
   removed deliverables; unique milestone evidence and the MVP dependency
@@ -372,7 +372,7 @@ v0.7 consolidates a long block of work that had been accumulating under the in-p
     - [notebooks/32_v06_outputs_smoke.ipynb](notebooks/32_v06_outputs_smoke.ipynb) — canonical 10-agent × 2-day package-mode smoke that surfaces every new artefact (file inventory, per-CSV schema, bucket views, agent_timeline for sampled agents, every PNG inline). Also doubles as the live demo for the connectivity defence: at n=10, Layer 1 fires (`p_inter` 0.05 → 0.10) and Layer 2 fires (5 components → 1 with 4 bridging edges).
 - **Test suite** — **538 passed, 1 skipped** (was 432 → +106 across the window). New file [tests/test_timeline_and_outputs.py](tests/test_timeline_and_outputs.py) (30 tests covering `sim_step` counter, `_safe_step`, `collect_agent_attributes`, network_snapshot, timeline sampling, all bucket builders, calibration, message_flow, `_CHECKPOINT_SKIP_KEYS`, `save_results` JSON emission). 13 new connectivity tests in [tests/test_networks.py](tests/test_networks.py) (`TestAdjustNetworkParamsForSmallN ×7`, `TestAutoConnectComponents ×4`, `TestNetworkDiagnosticsAutoConnectedField ×2`). Plus k_peers=0 and CLI-checkpoint tests above. Three existing tests updated for the new `sim_step` column.
 - **Versioning** — `__version__` bulk-bumped to **0.7.0** across 18 source modules. Retires the long-standing inconsistency (0.2.0 / 0.3.0 / 0.5.0 / 0.6.0 / 1.0.0 across modules). The previously in-progress "v0.6" label is subsumed into v0.7: v0.6 was never tagged on `origin`, so the public version ladder is 0.5 → 0.7 with one rich release.
-- **Docs sweep** — this CHANGE_LOG, [ROADMAP.md](ROADMAP.md), [DEVELOPMENT_HISTORY.md](DEVELOPMENT_HISTORY.md), [docs/Model_Design.md](documentation/research/Model_Design.md) §22–§26, [USER_GUIDE.md](USER_GUIDE.md) (new v0.7 section + HPC pointer), and [README.md](README.md) status all bumped together. [docs/result_report.md](documentation/research/result_report.md) already covered Run-14 v2, NB-31 fix, and the NB 32 v0.6-outputs + connectivity smoke validation. Deep rewrites of [docs/Run_Output_Guide.md](documentation/guides/Run_Output_Guide.md) and [docs/Simulation_Configuration_Guide.md](documentation/guides/Simulation_Configuration_Guide.md) deferred to a follow-up session.
+- **Docs sweep** — this CHANGE_LOG, [ROADMAP.md](documentation/planning/ROADMAP.md), [DEVELOPMENT_HISTORY.md](documentation/history/DEVELOPMENT_HISTORY.md), [docs/Model_Design.md](documentation/research/Model_Design.md) §22–§26, [USER_GUIDE.md](USER_GUIDE.md) (new v0.7 section + HPC pointer), and [README.md](README.md) status all bumped together. [docs/result_report.md](documentation/research/result_report.md) already covered Run-14 v2, NB-31 fix, and the NB 32 v0.6-outputs + connectivity smoke validation. Deep rewrites of [docs/Run_Output_Guide.md](documentation/guides/Run_Output_Guide.md) and [docs/Simulation_Configuration_Guide.md](documentation/guides/Simulation_Configuration_Guide.md) deferred to a follow-up session.
 
 
 ## [0.6]
@@ -465,9 +465,9 @@ Issues 1, 2 (independent)
 
 ## [0.1]
 - README.md
-- DEVELOPMENT_HISTORY.md
+- documentation/history/DEVELOPMENT_HISTORY.md
 - CHANGE_LOG.md
-- ROADMAP.md
+- documentation/planning/ROADMAP.md
 - CODE_OF_CONDUCT.md
 - DEV_GUIDE.md
 - DEV_QUICKSTART.md

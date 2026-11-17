@@ -637,7 +637,7 @@ guaranteed**: checkpoints restore offline message cursors and Python's
 process-wide random state, but prompt history is restored only if opt-in
 persistence was enabled from the original run, and live-model variability
 remains a limitation. Older checkpoints lacking random state cannot
-continue with days remaining. See the [refactor plan](../../GABM_Refactor_Plan.md)
+continue with days remaining. See the [refactor plan](../planning/GABM_Refactor_Plan.md)
 and do not treat a resumed run as scientifically equivalent without an
 appropriate equivalence check.
 

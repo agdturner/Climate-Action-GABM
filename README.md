@@ -54,7 +54,7 @@ A resource advantage can take **different forms**, and the framework holds them 
 
 The central finding of the accompanying paper is that the **form** of a resource asymmetry, not merely its magnitude, shapes which side moves the majority. Alongside the simulation, the repo ships a **fit-for-purpose evaluation protocol** — including a persona-null ablation that checks whether the model actually conditions on each agent's assigned persona. We are careful about epistemic status: the evidence targets **internal validity and algorithmic fidelity**, not a claim that the model reproduces real-world opinion change.
 
-> The accompanying manuscript is in preparation in [paper/](paper/) (`sn-article.tex` + supplementary `sn-si.tex`). See [docs/result_report.md](documentation/research/result_report.md) for experiment results and [docs/Model_Design.md](documentation/research/Model_Design.md) for the full design specification.
+> The accompanying manuscript is in preparation in [documentation/paper/](documentation/paper/) (`sn-article.tex` + supplementary `sn-si.tex`). See [docs/result_report.md](documentation/research/result_report.md) for experiment results and [docs/Model_Design.md](documentation/research/Model_Design.md) for the full design specification.
 
 
 ## Quick Start
@@ -99,13 +99,13 @@ Prefer notebooks? Open [notebooks/01_agent_profiles.ipynb](notebooks/01_agent_pr
 | Notebooks | 46 (01–46) |
 | Source files | 32 under `src/cag/` |
 
-See [ROADMAP.md](ROADMAP.md) for the full issue list and status.
+See [ROADMAP.md](documentation/planning/ROADMAP.md) for the full issue list and status.
 See [docs/Model_Design.md](documentation/research/Model_Design.md) for the design specification.
 See [docs/Code_Tour.md](documentation/guides/Code_Tour.md) for a newcomer-friendly walkthrough of `src/cag/`.
 See [docs/result_report.md](documentation/research/result_report.md) for experiment results and analysis.
 See [docs/Simulation_Configuration_Guide.md](documentation/guides/Simulation_Configuration_Guide.md) for canonical configuration options (supervisor brief + developer matrix).
 See [documentation/guides/AIRE_Quickstart.md](documentation/guides/AIRE_Quickstart.md) for the v0.7 HPC walkthrough.
-See [paper/](paper/) for the manuscript in preparation (`sn-article.tex` and supplementary `sn-si.tex`).
+See [documentation/paper/](documentation/paper/) for the manuscript in preparation (`sn-article.tex` and supplementary `sn-si.tex`).
 
 
 ## Architecture
@@ -189,8 +189,8 @@ Interactive demos live in `notebooks/`. Each covers one simulation component:
 | 42 | Reach-Targeting Smoke | Per-side reach targeting (persuadable + centrality) smoke with asserts + output checks |
 | 43 | Observability Gallery | Prompt-capture walkthrough and diagnostic-figure gallery |
 | 44 | Draft-45 Results Figures | Result figures for the draft-45 experiment program |
-| 45 | Evaluation Audit | Provenance audit of the evaluation numbers into `paper/tables/` CSVs |
-| 46 | Experiments Audit | Provenance audit of the experiment numbers into `paper/tables/` CSVs |
+| 45 | Evaluation Audit | Provenance audit of the evaluation numbers into `documentation/paper/tables/` CSVs |
+| 46 | Experiments Audit | Provenance audit of the experiment numbers into `documentation/paper/tables/` CSVs |
 
 
 ## License
@@ -214,7 +214,7 @@ Please use the [Developer Guide](DEV_GUIDE.md).
 
 
 ## Roadmap
-See [ROADMAP.md](ROADMAP.md) for planned next steps and future goals.
+See [ROADMAP.md](documentation/planning/ROADMAP.md) for planned next steps and future goals.
 
 
 ## Change Log
@@ -222,7 +222,7 @@ See [CHANGE_LOG.md](CHANGE_LOG.md) for details of each release.
 
 
 ## Development History
-The collaborative development of GABM is captured in the [DEVELOPMENT_HISTORY.md](DEVELOPMENT_HISTORY.md).
+The collaborative development of GABM is captured in the [DEVELOPMENT_HISTORY.md](documentation/history/DEVELOPMENT_HISTORY.md).
 
 
 ## Acknowledgements

@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 
 REPO = Path(__file__).resolve().parents[3]
 EXP = REPO / "data/output/experiments"
-FIGDIR = REPO / "paper/figures"; FIGDIR.mkdir(parents=True, exist_ok=True)
+FIGDIR = REPO / "documentation/paper/figures"; FIGDIR.mkdir(parents=True, exist_ok=True)
 
 
 def _sub(r): return sorted([p for p in Path(r).iterdir() if p.is_dir()])[-1]

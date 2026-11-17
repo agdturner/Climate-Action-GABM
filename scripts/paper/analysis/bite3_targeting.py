@@ -17,7 +17,7 @@ difference = that targeting mode spent the same reach budget better.
 Metric contract: paired within-person endpoint difference on the -3..+3 package
 index, pooled over 3 seeds (pair within seed). Companion = support/oppose shares.
 
-Run: .venv/bin/python sandbox/ajay_sandbox/bite3_targeting.py
+Run: .venv/bin/python scripts/paper/analysis/bite3_targeting.py
 """
 from pathlib import Path
 import re

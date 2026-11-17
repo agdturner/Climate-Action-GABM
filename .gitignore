@@ -1,4 +1,3 @@
-sandbox/charlie_sandbox/API_keys.py
 data/api_key.csv
 
 # Byte-compiled / optimized / DLL files
@@ -215,6 +214,7 @@ cython_debug/
 #  and can be added to the global gitignore or merged into this file. However, if you prefer, 
 #  you could uncomment the following to ignore the entire vscode folder
 .vscode/
+*.code-workspace
 
 # Ruff stuff:
 .ruff_cache/

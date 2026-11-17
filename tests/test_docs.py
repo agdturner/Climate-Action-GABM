@@ -16,7 +16,7 @@ from docs_assets import DOC_FILES, GITHUB_DOC_FILES, STAGED_NAMES, GENERATED_DOC
 
 @pytest.mark.parametrize("target,expected", [
     ("README.md#overview", "project_readme.md#overview"),
-    ("./GABM_Refactor_Plan.md", "GABM_Refactor_Plan.md"),
+    ("./documentation/planning/GABM_Refactor_Plan.md", "GABM_Refactor_Plan.md"),
     ("documentation/guides/Code_Tour.md", "Code_Tour.md"),
     ("documentation/guides/AIRE_Quickstart.md", "AIRE_Quickstart.md"),
     ("src/cag/abm/attributes/politics.py", docs.REPOSITORY_URL + "src/cag/abm/attributes/politics.py"),

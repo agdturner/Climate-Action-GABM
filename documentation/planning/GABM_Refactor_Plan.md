@@ -1,12 +1,51 @@
 # CAG to GABM Refactor Plan
 
-**Status:** network integration and offline cursor restoration merged into
-CAG main; generic network follow-up tests merged. Survey-execution extraction
-is merged in both repositories. GABM 0.6.0 is published and pinned in CAG.
-The current branch characterizes checkpoint output hydration and fixes
-unambiguous citizen-ID restoration.
+**Status:** generic network and survey-execution integrations are merged;
+CAG pins the published GABM 0.6.0. Checkpoint continuation, audit sampling,
+opt-in prompt history, and atomic checkpoint generations are merged in CAG.
 
-## Resume here: checkpoint (2026-11-15)
+## Resume here: checkpoint (2026-11-16)
+
+- **Baselines at handoff:** CAG `main` at `cf7103d`, including PR #121;
+  GABM `main` at `737abdf`, including its build-test environment cleanup.
+  Both worktrees were clean when checked. These are historical snapshots:
+  check both branches, commits, and worktrees again before making changes.
+- **Recent CAG slices:** PR #118 preserves unambiguous citizen IDs during
+  checkpoint hydration; PR #119 fixes sampled audit capture; PR #120 adds
+  opt-in checkpoint prompt history; PR #121 publishes complete checkpoint
+  generations through an atomic pointer. See [CHANGE_LOG.md](../../CHANGE_LOG.md)
+  for the delivered behaviour and
+  [Run_Output_Guide.md](../../documentation/guides/Run_Output_Guide.md#14-checkpointing--resume)
+  for the current checkpoint contract.
+- **Latest test evidence:** on the PR #121 feature branch, the full suite in
+  the `cag` environment passed with **906 passed, 1 skipped, 6 warnings,
+  50 subtests**. A subsequent focused run of the recovery scenarios passed
+  **14 tests** after a test-only adjustment to model older metadata more
+  accurately; the full suite was not rerun after that adjustment. Tests
+  included simulated write interruptions and abrupt subprocess exits; the
+  original integration golden fixture was not changed. This does not validate
+  live-model reproducibility, HPC filesystem behaviour, or power-loss durability.
+- **Remaining checkpoint limits:** prompt history is off by default and covers
+  only calls recorded by the agent prompt-log wrapper; opted-in resume requires
+  saved history and the same resolved sample. Legacy flat checkpoints require
+  explicit risk acceptance and other compatibility checks still apply. The
+  generation protocol assumes a single writer and atomic same-directory rename,
+  does not checksum content or automatically fall back to the previous
+  generation, and can leave unreferenced directories after interruption.
+  Citizen ID types are not recorded, so equal string forms cannot distinguish
+  a type change. Live model responses may vary.
+- **Next session:** read [DEV_GUIDE.md](../../DEV_GUIDE.md),
+  [ROADMAP.md](../../documentation/planning/ROADMAP.md), this handoff, and the unreleased section of
+  [CHANGE_LOG.md](../../CHANGE_LOG.md); verify current repository state and reassess
+  priorities rather than assuming another extraction is needed. Keep the
+  original integration golden fixture unless an intentional behaviour change
+  is explicitly approved. Broad notebook maintenance remains deferred;
+  do not run notebooks with live LLM calls without prior discussion.
+
+The following 2026-11-15 checkpoint is retained as historical evidence; its
+branch status and pending-work statements are superseded by the handoff above.
+
+## Historical checkpoint (2026-11-15)
 
 - **CAG baseline:** `main` at `da5b391`, synchronized after PR #117.
   Survey execution, the published GABM dependency update, the population
@@ -95,11 +134,11 @@ changing anything. The `cag-integration` environment may use editable GABM;
 verify import origin rather than treating its results as published-wheel
 acceptance. Normal CAG tests use `PYTHONPATH=src:scripts python -m pytest -q`
 with the pinned published GABM release installed. See
-[the development workflow](DEV_GUIDE.md#cross-repository-refactoring).
+[the development workflow](../../DEV_GUIDE.md#cross-repository-refactoring).
 GABM no longer tracks its temporary `venv-build-test/` directory.
 
 The dated sections below retain historical development checkpoints; their
-then-pending merge/release statements are superseded by this checkpoint.
+then-pending merge/release statements are superseded by the latest handoff.
 
 ### Context-section rendering review (2026-11-10)
 
@@ -333,7 +372,7 @@ verbatim as a standalone page; the authored index is `documentation/README.md`.
 Both dependency mirrors are now generated from root manifests and cleaned
 after building. Content consolidation and remaining tracked API stub ownership
 are separate follow-ups. See the ownership conventions in
-[DEV_GUIDE.md](DEV_GUIDE.md#authored-sources-and-sphinx-staging).
+[DEV_GUIDE.md](../../DEV_GUIDE.md#authored-sources-and-sphinx-staging).
 
 Final ownership validation: fresh Sphinx build succeeds with 221 warnings;
 full suite 722 passed, 1 skipped, 2 expected failures, same 6 warnings.
@@ -368,11 +407,11 @@ behaviour changes require a separate decision, explicit documentation, and
 appropriate tests; they must not be hidden inside an extraction.
 
 This document is the maintained implementation reference. The
-[roadmap](ROADMAP.md) records the strategic goal, and the
-[developer guide](DEV_GUIDE.md) links contributors here. For current model
-behaviour, consult the [configuration guide](documentation/guides/Simulation_Configuration_Guide.md),
-[code tour](documentation/guides/Code_Tour.md), and source code. The
-[model design log](documentation/research/Model_Design.md) contains historical decisions and is not an
+[roadmap](../../documentation/planning/ROADMAP.md) records the strategic goal, and the
+[developer guide](../../DEV_GUIDE.md) links contributors here. For current model
+behaviour, consult the [configuration guide](../../documentation/guides/Simulation_Configuration_Guide.md),
+[code tour](../../documentation/guides/Code_Tour.md), and source code. The
+[model design log](../../documentation/research/Model_Design.md) contains historical decisions and is not an
 authoritative current specification.
 
 ## Verified starting point
@@ -426,11 +465,11 @@ Networks, LLM access, memory, checkpoints, and experiments are extraction
 candidates, not commitments to build a general abstraction for every row.
 In particular:
 
-- [Network code](src/cag/abm/networks.py) mixes generic graph algorithms
+- [Network code](../../src/cag/abm/networks.py) mixes generic graph algorithms
   with political-exposure grouping.
-- [Memory configuration](src/cag/abm/config/memory.py) mixes retention
+- [Memory configuration](../../src/cag/abm/config/memory.py) mixes retention
   mechanics with the survey design.
-- [LLM access](src/cag/io/llm.py) returns text from system/user prompts.
+- [LLM access](../../src/cag/io/llm.py) returns text from system/user prompts.
   GABM's existing LLM service contract returns response objects and enables
   caching by default. Direct substitution could change prompts, calls, or
   failures and needs a deliberate adapter.
@@ -459,7 +498,7 @@ credentials, private survey records, or large generated run directories.
 
 #### Baseline implementation and evidence (2026-11-08)
 
-[tests/test_integration_baseline.py](tests/test_integration_baseline.py) now runs
+[tests/test_integration_baseline.py](../../tests/test_integration_baseline.py) now runs
 eight real synthetic citizens in a real nation for three days, in both
 six-policy package mode and single-policy carbon-tax mode. The scenarios use
 the real offline political-message set, all four exposure buckets, asymmetric
@@ -468,7 +507,7 @@ repair, ground-truth Day-0 rationale, two-step surveys, and Day-1 memory
 compression on Day 3. Citizen/nation logic is not mocked.
 
 The versioned reference is
-[data/fixtures/cag_integration_baseline.json](data/fixtures/cag_integration_baseline.json).
+[data/fixtures/cag_integration_baseline.json](../../data/fixtures/cag_integration_baseline.json).
 It records dependency provenance, the complete serialized configurations,
 explicit graph snapshots and diagnostics, per-table row counts and SHA-256
 fingerprints, ordered transport-request fingerprints, agent-state fingerprints,
@@ -543,9 +582,9 @@ decision for any intentional behaviour change.
 - Update imports across source, tests, and affected notebook code cells.
 - Adapt the `SurveyedNation` constructor, retaining its public CAG arguments
   and explicitly storing the CAG ethnicity map.
-- Update [runtime requirements](requirements.txt),
-  [development requirements](requirements-dev.txt),
-  [Conda environment](environment.yaml), and directly related docs together.
+- Update [runtime requirements](../../requirements.txt),
+  [development requirements](../../requirements-dev.txt),
+  [Conda environment](../../environment.yaml), and directly related docs together.
 
 **Gate:** the existing suite, CLI smoke dry-run, and golden comparisons pass
 against the published 0.3.0 wheel. Do not leave a version-only upgrade that
@@ -554,9 +593,9 @@ cannot import or run.
 #### Compatibility implementation and evidence (2026-11-08)
 
 Runtime, development, and Conda manifests now pin `gabm==0.3.0`.
-[Politics](src/cag/abm/attributes/politics.py),
-[ethnicity](src/cag/abm/attributes/ethnicity.py), and
-[family](src/cag/abm/attributes/family.py) identifiers and attribute objects
+[Politics](../../src/cag/abm/attributes/politics.py),
+[ethnicity](../../src/cag/abm/attributes/ethnicity.py), and
+[family](../../src/cag/abm/attributes/family.py) identifiers and attribute objects
 are CAG-owned subclasses of GABM's generic attribute primitives. Their class
 names, constructor keyword names, ID ordinals, descriptions, equality/hash
 semantics, and string representations are retained. Existing survey mappings
@@ -584,7 +623,7 @@ Validation used the published PyPI wheel in the isolated test environment:
 - Independent developer validation (2026-11-08): installation succeeded in the
   `cag` environment; `make test` reported **693 passed, 1 skipped, 2 expected
   failures, 6 warnings in 11.95s**, matching the isolated-environment result.
-- [Compatibility contracts](tests/test_gabm_compatibility.py) and integration
+- [Compatibility contracts](../../tests/test_gabm_compatibility.py) and integration
   baseline together: **13 passed, 2 expected failures**.
 - Package and single-policy scenarios match the original 0.2.18 golden
   reference without refreshing any fingerprints, including a run with
@@ -616,7 +655,7 @@ unlisted documents, and historical highlighting failures remain follow-up work.
 These warnings are not globally suppressed. The authored documentation index
 and existing tracked autosummary stub were restored after the first build and
 verified unchanged by the subsequent build. Staging/cleanup regression tests
-are in [tests/test_docs.py](tests/test_docs.py).
+are in [tests/test_docs.py](../../tests/test_docs.py).
 Default pytest discovery now targets `tests/`, preventing the HTML build's
 downloaded test examples from being collected as duplicate application tests.
 Two repeated `make -j2 docs` runs verified build/cleanup ordering and preserved
@@ -964,11 +1003,11 @@ The temporary environment was removed after validation.
 on CAG `bf5b241`, including the unreleased survey adapter. No runtime changes,
 new framework API, dependency changes, or respondent data are introduced.
 Synthetic characterization lives in
-[`tests/test_survey_population.py`](tests/test_survey_population.py).
+[`tests/test_survey_population.py`](../../tests/test_survey_population.py).
 
 ##### Existing path and observed contracts
 
-1. [`io.survey.load`](src/cag/io/survey.py) reads CSV and selects an ordered
+1. [`io.survey.load`](../../src/cag/io/survey.py) reads CSV and selects an ordered
    application-owned column list. It drops a whole respondent if any selected
    value is missing, including outcome responses. It then tries to cast `ID`
    to integer, warning but retaining original values if conversion fails.
@@ -977,7 +1016,7 @@ Synthetic characterization lives in
    Surviving row order and original DataFrame indices are retained; unrelated
    CSV columns are discarded. Missing files/columns and an empty retained
    dataset return `None` with logging where implemented.
-2. [`__main__.main`](src/cag/__main__.py) samples with
+2. [`__main__.main`](../../src/cag/__main__.py) samples with
    `data.sample(n=..., random_state=seed).reset_index(drop=True)`.
    Sampling is outside the loader and population constructor. Changing to
    another sampling algorithm or RNG would change respondent selection/order.
@@ -1063,7 +1102,7 @@ when demonstrated by one eventual end-to-end example.
 
 Committed the characterization baseline as `b485dad`, then extracted
 `citizen_from_survey_row(row, *, environment, year)` into
-[`cag.abm.population`](src/cag/abm/population.py) on the same stacked
+[`cag.abm.population`](../../src/cag/abm/population.py) on the same stacked
 `refactor/survey-population-review` branch. `__main__.build_nation` retains its
 public entry point, map construction, positional iteration and registration.
 The factory retains the supplied Series without registering the citizen;
@@ -1102,7 +1141,7 @@ merely to match a framework example.
 ## Two-repository development and release workflow
 
 The maintained operational instructions are in
-[Cross-Repository Refactoring](DEV_GUIDE.md#cross-repository-refactoring).
+[Cross-Repository Refactoring](../../DEV_GUIDE.md#cross-repository-refactoring).
 Use a fast integration loop and batch releases at coherent milestones; the
 following gates do not require a separate release for every extraction.
 
